@@ -1,64 +1,36 @@
-# Portfolio
-
-Welcome to my personal portfolio! This project is built using [Next.js](https://nextjs.org), and showcases my skills, projects, and experience in web development. The site is designed to be fully responsive, sleek, and optimized with modern tools.
-
-## Tech Stack
-
-This portfolio leverages the following technologies:
-
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
-- **Fonts**: Geist font by Vercel, optimized with Next.js
-- **Deployment**: Vercel for seamless hosting and continuous integration
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-To get the project up and running locally, follow these steps:
+First, run the development server:
 
-1. **Clone the Repository:**
-
-   git clone https://github.com/divijg19/portfolio.git
-==Navigate to the Project Directory:==
-cd portfolio
-
-2. **Install Dependencies:**
-==Using npm:==
-npm install
-
-==Or, if you prefer Yarn:==
-
-yarn install
-
-3. **Run the Development Server:**
-
-==To launch the development server, use the following command:==
-
+```bash
 npm run dev
 # or
 yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-4. **Open the App:**
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Open your browser and go to http://localhost:3000 to see the live preview of the portfolio.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-The page will automatically refresh as you make edits to the app/page.tsx file.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Features
-- Geist Font Optimization: The project uses next/font to automatically optimize and load Geist, a modern and readable font by Vercel.
+## Learn More
 
-- Responsive Design: The portfolio is designed to be fully responsive, looking great on both desktop and mobile devices. Tailwind CSS is used to achieve a clean, modern layout.
+To learn more about Next.js, take a look at the following resources:
 
-- Smooth Transitions: Enjoy smooth transitions between pages and theme changes for an engaging user experience.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Learn More
-To dive deeper into Next.js, here are some useful resources:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-Next.js Documentation - Explore the features and API of Next.js.
+## Deploy on Vercel
 
-Learn Next.js - Start an interactive Next.js tutorial.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Next.js GitHub Repository - Access the official Next.js codebase and contribute.
-
-For deployment documentation, refer to the Next.js deployment guide.
-
-License
-This project is open source and licensed under the MIT License.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
