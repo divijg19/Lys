@@ -8,7 +8,7 @@ export default function HeroSection() {
       {/* Left content */}
       <div className="text-center sm:text-left">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight">
-          Hey, I'm Divij
+          Hey, I&apos;m Divij
         </h1>
         <p className="mt-4 text-lg sm:text-xl text-gray-700 dark:text-gray-300">
           Developer, writer, and systems thinker on a mission to build integrated digital solutions and communities.
@@ -33,7 +33,7 @@ export default function HeroSection() {
       <div className="shrink-0">
         <Image
           src="/your-photo.jpg"
-          alt="Divij's profile photo"
+          alt="Divij&apos;s profile photo"
           width={220}
           height={220}
           className="rounded-full shadow-lg"
