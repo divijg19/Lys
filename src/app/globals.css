@@ -31,7 +31,9 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition between themes */
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease; /* Smooth transition between themes */
   line-height: 1.6;
 }
 
@@ -41,11 +43,18 @@ html {
 }
 
 /* Tailwind Typography Customizations */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-sans);
 }
 
-p, ul, ol {
+p,
+ul,
+ol {
   font-family: var(--font-sans);
   line-height: 1.8;
 }
@@ -53,7 +62,9 @@ p, ul, ol {
 /* Links */
 a {
   color: var(--color-foreground);
-  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  transition:
+    color 0.2s ease-in-out,
+    background-color 0.2s ease-in-out;
 }
 
 a:hover {
@@ -88,16 +99,22 @@ footer a:hover {
 }
 
 /* Form Elements */
-input, textarea, select {
+input,
+textarea,
+select {
   background-color: var(--color-background);
   color: var(--color-foreground);
   border: 1px solid var(--color-foreground);
   padding: 0.75rem;
   border-radius: 5px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: var(--color-foreground);
   outline: none;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
@@ -140,5 +157,8 @@ input:focus, textarea:focus, select:focus {
 
 /* Smooth Transition for Theme Changes */
 body {
-  transition: background-color 0.5s, color 0.5s, box-shadow 0.5s;
+  transition:
+    background-color 0.5s,
+    color 0.5s,
+    box-shadow 0.5s;
 }

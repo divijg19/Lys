@@ -3,11 +3,11 @@ import AboutSection from "../components/AboutSection";
 import TechStackSection from "../components/TechStackSection";
 import ProjectsSection from "../components/ProjectsSection";
 import ContactSection from "../components/ContactSection";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="min-h-screen grid grid-rows-[auto_1fr_auto] items-center justify-items-center p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      
       {/* Hero Section */}
       <HeroSection />
 
@@ -20,7 +20,7 @@ export default function Home() {
       {/* Projects Section */}
       <ProjectsSection />
 
-       {/* Contact Section */}
+      {/* Contact Section */}
       <ContactSection />
 
       {/* Project Highlight Section */}
@@ -31,18 +31,20 @@ export default function Home() {
         <div className="flex flex-wrap gap-8 justify-center sm:justify-start">
           {/* Example project */}
           <div className="w-full sm:w-[300px] p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Project 1: Nargis</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+              Project 1: Nargis
+            </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              A web app for managing tasks and goals. Built with MERN stack and AWS.
+              A web app for managing tasks and goals. Built with MERN stack and
+              AWS.
             </p>
-            <a
-              href="#"
+            <Link
+              href="/projects/nargis"
               className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-600"
             >
               View Project
-            </a>
+            </Link>
           </div>
-          {/* Add other projects similarly */}
         </div>
       </section>
 
@@ -64,14 +66,13 @@ export default function Home() {
         >
           LinkedIn
         </a>
-        <a
+        {/* Replace with actual contact page */}
+        <Link
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="/contact"
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Contact
-        </a>
+        </Link>
       </footer>
     </div>
   );

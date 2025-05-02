@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "../components/Navbar";
-import "./globals.css"; 
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,15 +31,12 @@ export default function RootLayout({
         <meta name="description" content="My personal portfolio" />
         <title>My Portfolio</title>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white`}>
-        
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white`}
+      >
         {/* Navbar Section */}
         <Navbar /> {/* Include Navbar component */}
-        
-        <main className="py-8 px-4">
-          {children}
-        </main>
-        
+        <main className="py-8 px-4">{children}</main>
         {/* Footer Section */}
         <footer className="bg-gray-800 text-white text-center py-4">
           <p>© 2025 My Portfolio</p>
