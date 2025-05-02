@@ -11,7 +11,8 @@ export default function HeroSection() {
           Hey, I&apos;m Divij
         </h1>
         <p className="mt-4 text-lg sm:text-xl text-gray-700 dark:text-gray-300">
-          Developer, writer, and systems thinker on a mission to build integrated digital solutions and communities.
+          Developer, writer, and systems thinker on a mission to build
+          integrated digital solutions and communities.
         </p>
         <div className="mt-6 flex flex-wrap gap-4 justify-center sm:justify-start">
           <a
@@ -33,7 +34,7 @@ export default function HeroSection() {
       <div className="shrink-0">
         <Image
           src="/your-photo.jpg"
-          alt="Divij&apos;s profile photo"
+          alt="Divij's profile photo"
           width={220}
           height={220}
           className="rounded-full shadow-lg"
