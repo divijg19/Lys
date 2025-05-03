@@ -1,3 +1,4 @@
+// src/app/projects/page.tsx
 "use client";
 
 import Link from "next/link";
@@ -25,11 +26,18 @@ const projects = [
     link: "/",
   },
   {
+    title: "Nargis",
+    description:
+      "A web app for managing tasks and goals. Built with the MERN stack and AWS cloud integration.",
+    tags: ["MERN", "AWS", "Task Management"],
+    link: "/projects/nargis",
+  },
+  {
     title: "Upcoming Projects",
     description:
-      "Projects in Python, R, Go, Rust, and Ruby on Rails are under active development &mdash; each focused on data, scalability, and performance.",
+      "Projects in Python, R, Go, Rust, and Ruby on Rails are under active development — each focused on data, scalability, and performance.",
     tags: ["Python", "R", "Go", "Rust", "RoR"],
-    link: "#", // Replace with an actual link if available
+    link: "#",
   },
 ];
 
@@ -43,11 +51,11 @@ export default function ProjectsPage() {
         A collection of software, platforms, and experiments I&apos;m currently
         working on or have built recently.
       </p>
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
         {projects.map((project) => (
           <div
             key={project.title}
-            className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-lg transition-shadow"
+            className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-lg transition-shadow bg-white dark:bg-gray-900"
           >
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
               {project.title}
@@ -59,17 +67,17 @@ export default function ProjectsPage() {
               {project.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="bg-gray-200 dark:bg-gray-700 text-sm text-gray-800 dark:text-white px-2 py-1 rounded"
+                  className="bg-gray-200 dark:bg-gray-700 text-sm text-gray-800 dark:text-white px-2 py-1 rounded-full"
                 >
                   {tag}
                 </span>
               ))}
             </div>
-            {/* Link will be active only for valid URLs */}
             {project.link !== "#" ? (
               <Link
                 href={project.link}
                 className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                aria-label={`View details of ${project.title}`}
               >
                 View Project
               </Link>
