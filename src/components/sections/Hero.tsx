@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link"; // Import Link from next/link
 
 export default function HeroSection() {
   return (
@@ -15,18 +16,19 @@ export default function HeroSection() {
           integrated digital solutions and communities.
         </p>
         <div className="mt-6 flex flex-wrap gap-4 justify-center sm:justify-start">
-          <a
+          {/* Updated to use Link component */}
+          <Link
             href="/projects"
             className="px-6 py-2 rounded-xl bg-gray-900 text-white dark:bg-white dark:text-black font-medium hover:scale-105 transition-transform"
           >
             View Projects
-          </a>
-          <a
+          </Link>
+          <Link
             href="/contact"
             className="px-6 py-2 rounded-xl border border-gray-700 dark:border-white font-medium text-gray-900 dark:text-white hover:scale-105 transition-transform"
           >
             Contact Me
-          </a>
+          </Link>
         </div>
       </div>
 

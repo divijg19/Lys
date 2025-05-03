@@ -1,5 +1,3 @@
-// src/components/ProjectsSection.tsx
-
 import Link from "next/link";
 
 export default function ProjectsSection() {
@@ -44,6 +42,32 @@ export default function ProjectsSection() {
         </div>
 
         {/* Add more projects below */}
+        {/* You can map through an array of projects to make adding new projects simpler */}
+        {[
+          {
+            name: "Project 3: Your Next Project",
+            description: "Brief description of your next project.",
+            link: "/projects/next-project",
+          },
+        ].map((project, index) => (
+          <div
+            key={index}
+            className="w-full sm:w-[300px] p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg"
+          >
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+              {project.name}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {project.description}
+            </p>
+            <Link
+              href={project.link}
+              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-600"
+            >
+              View Project
+            </Link>
+          </div>
+        ))}
       </div>
     </section>
   );
