@@ -1,44 +1,69 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Navbar from "@/components/layout/Navbar";
 import "@/styles/globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import NavbarWrapper from "@/components/layout/NavbarWrapper";
+import ClientFooter from "@/components/layout/ClientFooter";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+// --- Global metadata config ---
 export const metadata: Metadata = {
   title: {
-    default: "My Portfolio",
-    template: "%s | My Portfolio",
+    default: "Divij Ganjoo",
+    template: "%s | Divij Ganjoo",
   },
-  description: "Welcome to my personal portfolio!",
+  description:
+    "Portfolio of Divij Ganjoo – developer, writer, and systems thinker crafting integrated digital ecosystems.",
+  authors: [{ name: "Divij Ganjoo", url: "https://your-domain.com" }],
+  generator: "Next.js",
+  themeColor: "#ffffff",
+  metadataBase: new URL("https://your-domain.com"),
+  openGraph: {
+    title: "Divij Ganjoo",
+    description:
+      "Developer, writer, systems thinker – building meaningful digital solutions.",
+    url: "https://your-domain.com",
+    siteName: "Divij Ganjoo",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Divij's Portfolio",
+      },
+    ],
+    type: "website",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
+// --- Root layout with SSR-safe hydration and theming ---
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white`}
-        suppressHydrationWarning
-      >
-        <Navbar />
-        <main className="py-8 px-4 min-h-screen">{children}</main>
-        <footer className="bg-gray-800 text-white text-center py-4">
-          <p>© {new Date().getFullYear()} My Portfolio</p>
-        </footer>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <body className="min-h-screen bg-white text-black dark:bg-black dark:text-white transition-colors duration-300 ease-in-out">
+        <ThemeProvider>
+          <NavbarWrapper />
+          <main className="min-h-[calc(100vh-5rem)] px-4 py-10 sm:px-8 md:px-12 lg:px-20">
+            {children}
+          </main>
+          <ClientFooter />
+        </ThemeProvider>
       </body>
     </html>
   );

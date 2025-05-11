@@ -1,24 +1,58 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { useTheme } from "@/hooks/useTheme";
+
 export default function AboutSection() {
+  const { theme } = useTheme();
+
+  const isEthereal = theme === "ethereal";
+  const isHorizon = theme === "horizon-blaze";
+  const isNeoMirage = theme === "neo-mirage";
+
+  const headingGradient = isEthereal
+    ? "from-pink-400 to-indigo-400"
+    : isHorizon
+      ? "from-orange-500 via-yellow-400 to-pink-500"
+      : isNeoMirage
+        ? "from-cyan-500 via-teal-400 to-purple-500"
+        : "from-blue-600 to-purple-500";
+
   return (
     <section className="w-full max-w-4xl mx-auto mt-24 px-4 text-center sm:text-left">
-      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+      <motion.h2
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className={`text-3xl sm:text-4xl font-bold mb-6 bg-gradient-to-r ${headingGradient} text-transparent bg-clip-text`}
+      >
         About Me
-      </h2>
-      <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+      </motion.h2>
+
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
+        className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed"
+      >
         I’m Divij — a full-stack developer and systems thinker passionate about
         building scalable, meaningful, and community-driven tech solutions. I
         blend code with strategy, focusing on MERN, AWS, and DevOps to craft
         reliable infrastructure and intuitive user experiences.
-      </p>
-      <p className="mt-4 text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="mt-4 text-lg text-gray-700 dark:text-gray-300 leading-relaxed"
+      >
         With experience across leadership roles in TEDx, GDSC, and AIESEC, I
         bring a unique perspective to software: it’s not just about what you
         build, but who it empowers. I’m currently working on a skill-sharing
         platform and a game called{" "}
         <span className="italic">The Crowns Blade</span>.
-      </p>
+      </motion.p>
     </section>
   );
 }

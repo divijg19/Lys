@@ -4,15 +4,18 @@ import Image from "next/image";
 
 export default function TechStackSection() {
   const techStack = [
-    { name: "JavaScript", src: "/tech/javascript-icon.png" },
-    { name: "React", src: "/tech/react-icon.png" },
-    { name: "AWS", src: "/tech/aws-icon.png" },
-    { name: "MERN", src: "/tech/mern-icon.png" },
-    { name: "Python", src: "/tech/python-icon.png" },
-    { name: "R", src: "/tech/r-icon.png" },
-    { name: "C++", src: "/tech/cpp-icon.png" },
-    { name: "GoLang", src: "/tech/golang-icon.png" },
-    { name: "Ruby on Rails", src: "/tech/rails-icon.png" },
+    { name: "AWS", src: "/assets/icons/aws.svg" },
+    { name: "JavaScript", src: "/assets/icons/javascript.svg" },
+    { name: "Typescript", src: "/assets/icons/typescript.svg" },
+    { name: "Python", src: "/assets/icons/python.svg" },
+    { name: "MongoDB", src: "/assets/icons/mongodb.svg" },
+    { name: "Express", src: "/assets/icons/express.svg" },
+    { name: "React", src: "/assets/icons/react.svg" },
+    { name: "Nodejs", src: "/assets/icons/nodejs.svg" },
+    { name: "R", src: "/assets/icons/r.svg" },
+    { name: "GoLang", src: "/assets/icons/golang.svg" },
+    { name: "C++", src: "/assets/icons/c++.svg" },
+    { name: "Lua", src: "/assets/icons/lua.svg" },
   ];
 
   return (
@@ -28,12 +31,15 @@ export default function TechStackSection() {
           <div className="flex flex-col items-center" key={tech.name}>
             <Image
               src={tech.src}
-              alt={tech.name}
+              alt={`${tech.name} logo`}
               width={64}
               height={64}
-              className="w-16 h-16"
+              className="w-16 h-16 object-contain"
+              loading="lazy"
             />
-            <p className="text-lg text-gray-800 dark:text-white">{tech.name}</p>
+            <p className="mt-2 text-base font-medium text-gray-800 dark:text-white">
+              {tech.name}
+            </p>
           </div>
         ))}
       </div>

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2021",
     "lib": ["DOM", "DOM.Iterable", "ES2021"],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -16,18 +16,33 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
 
-    // ✅ Corrected for path aliasing
+    // Path Aliases
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@app/*": ["src/app/*"],
+      "@styles/*": ["src/styles/*"],
+      "@lib/*": ["src/lib/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@types/*": ["src/types/*"],
+      "@assets/*": ["src/assets/*"],
+      "@content/*": ["src/content/*"]
     },
 
     "plugins": [
-      {
-        "name": "next"
-      }
+      { "name": "next" }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next", "dist"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist"
+  ]
 }
