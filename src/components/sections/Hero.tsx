@@ -1,27 +1,17 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
+import { useState, useEffect } from "react";
+import bio from "../../content/bio";
 
 export default function HeroSection() {
   const { theme } = useTheme();
-  const [reduceMotion, setReduceMotion] = useState(false);
   const [greeting, setGreeting] = useState("Hello");
 
   useEffect(() => {
-    // Detect reduced motion preference
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handleChange = () => setReduceMotion(mq.matches);
-    handleChange();
-    mq.addEventListener("change", handleChange);
-    return () => mq.removeEventListener("change", handleChange);
-  }, []);
-
-  useEffect(() => {
-    // Set greeting based on time of day
     const hour = new Date().getHours();
     if (hour < 12) {
       setGreeting("Good morning");
@@ -32,100 +22,79 @@ export default function HeroSection() {
     }
   }, []);
 
-  const themeButtonClass = {
-    cyberpunk:
-      "neon-glow bg-[var(--color-accent)] text-[var(--color-background)]",
-    default:
-      "bg-[var(--color-accent)] text-[var(--color-background)] hover:brightness-110",
-  };
-
-  const headingGradient = {
-    ethereal: "from-pink-400 to-indigo-400",
-    horizon: "from-orange-500 via-yellow-400 to-pink-500",
-    mirage: "from-cyan-500 via-teal-400 to-purple-500",
-    default: "from-blue-600 to-purple-500",
-  };
-
-  const resolvedGradient =
-    headingGradient[theme as keyof typeof headingGradient] ??
-    headingGradient.default;
+  // Theme-based accent for name
+  const nameGradient =
+    theme === "cyberpunk"
+      ? "from-cyan-400 to-pink-500 neon-glow"
+      : theme === "ethereal"
+      ? "from-purple-400 to-pink-300"
+      : theme === "horizon-blaze"
+      ? "from-orange-400 to-pink-500"
+      : theme === "neo-mirage"
+      ? "from-cyan-500 to-teal-400"
+      : "from-blue-600 to-purple-500";
 
   return (
     <section
-      className="relative flex flex-col sm:flex-row items-center justify-between gap-10 sm:gap-16 w-full max-w-6xl px-4 py-16 sm:py-24 mx-auto"
-      aria-labelledby="hero-heading"
+      className="flex flex-col-reverse sm:flex-row items-center justify-center min-h-[60vh] gap-10 text-center sm:text-left w-full relative"
+      aria-label="Hero section"
     >
-      <div className="absolute inset-0 -z-10 pointer-events-none" />
-
-      {/* Text Content */}
-      <div className="text-center sm:text-left max-w-2xl">
-        <motion.h1
-          id="hero-heading"
-          initial={{ opacity: 0, y: reduceMotion ? 0 : -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className={`text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight bg-gradient-to-r ${resolvedGradient} text-transparent bg-clip-text drop-shadow-md`}
-        >
-          {greeting}, I&apos;m Divij
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: reduceMotion ? 0 : 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="mt-4 text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-xl"
-        >
-          Developer, writer, and systems thinker on a mission to build
-          integrated digital solutions and communities.
-        </motion.p>
-
-        {/* Call to Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: reduceMotion ? 0 : 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="mt-6 flex flex-wrap gap-4 justify-center sm:justify-start"
-        >
+      {/* Left: Text */}
+      <motion.div
+        className="flex-1 flex flex-col items-center sm:items-start gap-6"
+      >
+        <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight drop-shadow-lg">
+          <span className="block text-lg font-medium text-gray-500 dark:text-gray-400 mb-2" aria-live="polite">
+            {greeting}
+          </span>
+          <span
+            className={`bg-gradient-to-r ${nameGradient} text-transparent bg-clip-text`}
+            aria-label={bio.name}
+          >
+            {bio.name}
+          </span>
+        </h1>
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 dark:text-gray-300">
+          {bio.title}
+        </h2>
+        <p className="text-lg text-gray-600 dark:text-gray-300 max-w-xl">
+          {bio.tagline}
+        </p>
+        <p className="text-base text-gray-500 dark:text-gray-400 max-w-xl">
+          {bio.summary}
+        </p>
+        <div className="flex flex-wrap gap-4 mt-4">
           <Link
             href="/projects"
-            className={`px-6 py-2 rounded-xl font-medium transition-all focus-visible:ring-2 focus-visible:ring-offset-2 ${
-              theme === "cyberpunk"
-                ? themeButtonClass.cyberpunk
-                : themeButtonClass.default
-            }`}
-            aria-label="View Divij's Projects"
+            className="px-6 py-2 rounded-xl bg-accent text-background font-medium shadow-lg hover:scale-105 transition-transform focus:outline-none focus:ring-2 focus:ring-accent"
+            aria-label="View Projects"
           >
             View Projects
           </Link>
-
           <Link
             href="/contact"
-            className="px-6 py-2 rounded-xl border border-[var(--color-foreground)] text-[var(--color-foreground)] font-medium transition-all hover:bg-[var(--color-hover)] hover:text-[var(--color-background)] focus-visible:ring-2 focus-visible:ring-offset-2"
-            aria-label="Contact Divij"
+            className="px-6 py-2 rounded-xl border border-accent text-accent font-medium hover:bg-accent hover:text-background transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+            aria-label="Contact Me"
           >
             Contact Me
           </Link>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
 
-      {/* Image Section */}
-      <motion.figure
-        initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
-        className="shrink-0"
+      {/* Right: Avatar image only, no Lottie */}
+      <motion.div
+        className="flex-1 flex items-center justify-center"
+        aria-hidden="true"
       >
         <Image
           src="/assets/images/your-photo.jpg"
-          alt="Portrait of Divij"
-          width={240}
-          height={240}
-          className="rounded-full shadow-2xl ring-4 ring-[var(--color-accent)] transition-all duration-300 blur-sm hover:blur-0 hover:scale-105"
+          alt="Divij Ganjoo profile photo"
+          width={220}
+          height={220}
+          className="rounded-full shadow-2xl border-4 border-accent object-cover animate-float"
+          priority
         />
-        <figcaption className="sr-only">
-          Divij&apos;s profile picture
-        </figcaption>
-      </motion.figure>
+      </motion.div>
     </section>
   );
 }

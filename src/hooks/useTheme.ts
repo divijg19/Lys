@@ -68,5 +68,27 @@ export function useTheme(defaultTheme: ThemeName = "light") {
     return () => darkQuery.removeEventListener("change", handleChange);
   }, [setTheme]);
 
-  return { theme, setTheme };
+  // Add themeClasses for card styling
+  const themeClasses = {
+    card: (() => {
+      switch (theme) {
+        case "cyberpunk":
+          return "bg-cyberpunk/80 border-cyberpunk shadow-cyberpunk";
+        case "ethereal":
+          return "bg-ethereal/80 border-ethereal shadow-ethereal";
+        case "horizon-blaze":
+          return "bg-horizon/80 border-horizon shadow-horizon";
+        case "neo-mirage":
+          return "bg-mirage/80 border-mirage shadow-mirage";
+        case "high-contrast":
+          return "bg-black text-white border-white";
+        case "reduced-motion":
+          return "bg-gray-200 dark:bg-gray-800 border-gray-400";
+        default:
+          return "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700";
+      }
+    })(),
+  };
+
+  return { theme, setTheme, themeClasses };
 }

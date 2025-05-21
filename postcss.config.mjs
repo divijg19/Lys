@@ -1,9 +1,8 @@
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
-
+// This file is used to configure PostCSS, a tool for transforming CSS with JavaScript. Do not change.
 /** @type {import('postcss').ProcessOptions} */
-const config = {
-  plugins: [tailwindcss, autoprefixer],
+export default {
+  plugins: {
+    "@tailwindcss/postcss": {},
+    autoprefixer: {},
+  },
 };
-
-export default config;

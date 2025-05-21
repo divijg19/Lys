@@ -100,3 +100,6 @@ export function getAllSlugs(type: ContentType): { slug: string }[] {
     return [];
   }
 }
+
+// Usage: import { getAllSlugs, getMarkdownContent, MarkdownContent, ContentType } from "@/lib/content";
+// All main types and functions are already exported above.
