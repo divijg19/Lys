@@ -1,0 +1,170 @@
+/* === GLOBAL PERFORMANCE HINTS === */
+.animate-glitch,
+.animate-float,
+.animate-clouds,
+.animate-horizon-fade,
+.animate-sunrays,
+.animate-heatwave,
+.animate-mirage-shift,
+.animate-refract,
+.animate-blur-pulse {
+  will-change: transform, opacity, backdrop-filter;
+}
+
+/* === CYBERPUNK THEME === */
+@keyframes glitch {
+  0% {
+    opacity: 0.08;
+    transform: translate(0, 0);
+  }
+  20% {
+    opacity: 0.12;
+    transform: translate(-1px, 1px);
+  }
+  40% {
+    opacity: 0.1;
+    transform: translate(1px, -1px);
+  }
+  60% {
+    opacity: 0.15;
+    transform: translate(-2px, 2px);
+  }
+  80% {
+    opacity: 0.1;
+    transform: translate(2px, -2px);
+  }
+  100% {
+    opacity: 0.08;
+    transform: translate(0, 0);
+  }
+}
+
+.animate-glitch {
+  animation: glitch 2.5s infinite ease-in-out;
+}
+
+/* === ETHEREAL THEME === */
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-float {
+  animation: float 12s ease-in-out infinite;
+}
+
+@keyframes clouds {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.animate-clouds {
+  animation: clouds 20s linear infinite;
+  background-size: 400% 400%;
+}
+
+/* === HORIZON BLAZE THEME === */
+@keyframes horizon-fade {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.animate-horizon-fade {
+  animation: horizon-fade 10s ease-in-out infinite;
+}
+
+@keyframes sunrays {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1.05);
+  }
+}
+
+.animate-sunrays {
+  animation: sunrays 40s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes heatwave {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 0.2;
+  }
+}
+
+.animate-heatwave {
+  animation: heatwave 12s ease-in-out infinite;
+}
+
+/* === NEO MIRAGE THEME === */
+@keyframes mirage-shift {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(-1.5%) scale(1.01);
+    opacity: 0.3;
+  }
+}
+
+.animate-mirage-shift {
+  animation: mirage-shift 20s ease-in-out infinite;
+}
+
+@keyframes refract {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translateX(2%) scale(1.02);
+    opacity: 0.15;
+  }
+}
+
+.animate-refract {
+  animation: refract 16s ease-in-out infinite;
+}
+
+@keyframes blur-pulse {
+  0%,
+  100% {
+    backdrop-filter: blur(2px);
+  }
+  50% {
+    backdrop-filter: blur(3px);
+  }
+}
+
+.animate-blur-pulse {
+  animation: blur-pulse 14s ease-in-out infinite;
+}

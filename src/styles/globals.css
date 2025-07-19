@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Only add custom CSS that cannot be achieved with Tailwind utilities below */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-accent);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background-color: var(--color-background);
+}
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-background);
+}
+
+[data-theme="high-contrast"] input:focus,
+[data-theme="high-contrast"] textarea:focus,
+[data-theme="high-contrast"] select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+[data-theme="reduced-motion"] * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
