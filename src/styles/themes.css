@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+  --color-accent: #3b82f6;
+}
+
+[data-theme="light"] {
+  --color-background: #ffffff;
+  --color-foreground: #111111;
+  --color-accent: #3b82f6;
+}
+[data-theme="dark"] {
+  --color-background: #0d1117;
+  --color-foreground: #e6edf3;
+  --color-accent: #8b5cf6;
+}
+[data-theme="cyberpunk"] {
+  --color-background: #0f0f1b;
+  --color-foreground: #00ffea;
+  --color-accent: #ff00c8;
+}
+[data-theme="ethereal"] {
+  --color-background: #f5f7ff;
+  --color-foreground: #706f8a;
+  --color-accent: #b5d0ff;
+}
+[data-theme="horizon-blaze"] {
+  --color-background: #ffedd5;
+  --color-foreground: #1c1c1c;
+  --color-accent: #ff5722;
+}
+[data-theme="neo-mirage"] {
+  --color-background: #e0f7fa;
+  --color-foreground: #212121;
+  --color-accent: #26c6da;
+}
+[data-theme="high-contrast"] {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-accent: #ffdd00;
+}
+[data-theme="reduced-motion"] {
+  --color-background: #fefefe;
+  --color-foreground: #333333;
+  --color-accent: #888888;
+}

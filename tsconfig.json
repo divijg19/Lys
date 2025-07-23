@@ -1,28 +1,50 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
+    "target": "ES2021",
+    "lib": ["DOM", "DOM.Iterable", "ES2021"],
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+
+    // THE OPTIMAL FIX, PART 1: Changed from "NodeNext" to "ESNext".
+    // This tells TypeScript to generate the most modern ES module syntax,
+    // which is perfect for a bundler like Next.js to consume.
+    "module": "ESNext",
+
+    // THE OPTIMAL FIX, PART 2: Changed from "NodeNext" to "bundler".
+    // This setting is the key. It enables extensionless imports in your code
+    // while still using modern module resolution for your node_modules,
+    // perfectly matching how a modern bundler-based project works.
+    "moduleResolution": "bundler",
+
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "#velite": ["./.velite"],
+      "#velite/*": ["./.velite/*"],
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@app/*": ["src/app/*"],
+      "@styles/*": ["src/styles/*"],
+      "@lib/*": ["src/lib/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@types/*": ["src/types/*"],
+      "@assets/*": ["src/assets/*"],
+      "@content/*": ["src/content/*"]
+    },
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    ]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".next", "dist"]
 }
