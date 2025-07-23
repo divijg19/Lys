@@ -1,0 +1,11 @@
+# bunfig.toml
+[install]
+registry= "https://registry.npmjs.org/"
+# Use exact versions to avoid dependency conflicts
+exact = true
+# Faster installs
+production = false
+
+[install.cache]
+# Enable caching for faster subsequent installs
+disable = false

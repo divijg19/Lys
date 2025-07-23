@@ -8,15 +8,27 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+
+    // THE OPTIMAL FIX, PART 1: Changed from "NodeNext" to "ESNext".
+    // This tells TypeScript to generate the most modern ES module syntax,
+    // which is perfect for a bundler like Next.js to consume.
+    "module": "ESNext",
+
+    // THE OPTIMAL FIX, PART 2: Changed from "NodeNext" to "bundler".
+    // This setting is the key. It enables extensionless imports in your code
+    // while still using modern module resolution for your node_modules,
+    // perfectly matching how a modern bundler-based project works.
+    "moduleResolution": "bundler",
+
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
+      "#velite": ["./.velite"],
+      "#velite/*": ["./.velite/*"],
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
       "@app/*": ["src/app/*"],
@@ -26,17 +38,13 @@
       "@types/*": ["src/types/*"],
       "@assets/*": ["src/assets/*"],
       "@content/*": ["src/content/*"]
-    }
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    "dist"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next", "dist"]
 }

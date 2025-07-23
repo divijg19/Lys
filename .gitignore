@@ -37,3 +37,7 @@ next-env.d.ts
 # ────────────── Miscellaneous ──────────────
 .DS_Store
 *.pem
+
+*storybook.log
+storybook-static
+.velite/

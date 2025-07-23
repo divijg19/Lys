@@ -1,77 +1,88 @@
-// src/app/layout.tsx
-
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
+import { Toaster } from "sonner";
+import { ClientFooter } from "@/components/layout/ClientFooter";
+import { Navbar } from "@/components/layout/Navbar";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { geistMono, geistSans } from "@/lib/fonts";
+import { cn } from "@/lib/utils"; // Best practice for combining class names
 import "@/styles/globals.css";
 
-import { geistSans, geistMono } from "@/lib/fonts";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import Navbar from "@/components/layout/Navbar";
-import ClientFooter from "@/components/layout/ClientFooter";
-import BackgroundEffects from "@/components/theme/BackgroundEffects";
-
-// --- Global metadata config ---
+// --- METADATA & VIEWPORT ---
+// This is world-class. No changes are needed.
+// It's static, specific, and provides a great experience on all devices and platforms.
 export const metadata: Metadata = {
   title: {
     default: "Divij Ganjoo",
     template: "%s | Divij Ganjoo",
   },
   description:
-    "Portfolio of Divij Ganjoo – developer, writer, and systems thinker crafting integrated digital ecosystems.",
-  authors: [{ name: "Divij Ganjoo", url: "https://your-domain.com" }],
-  generator: "Next.js",
-  metadataBase: new URL("https://your-domain.com"),
+    "Portfolio of Divij Ganjoo – a software developer crafting performant and accessible digital experiences.",
+  authors: [{ name: "Divij Ganjoo", url: "https://divijg19.vercel.app/" }], // Use your actual domain
+  metadataBase: new URL("https://divijg19.vercel.app/"), // Use your actual domain
   openGraph: {
-    title: "Divij Ganjoo",
-    description:
-      "Developer, writer, systems thinker – building meaningful digital solutions.",
-    url: "https://your-domain.com",
-    siteName: "Divij Ganjoo",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Divij's Portfolio",
-      },
-    ],
+    title: "Divij Ganjoo | Software Developer",
+    description: "Performant and accessible digital experiences.",
+    url: "https://divijg19.vercel.app/",
+    siteName: "Divij Ganjoo's Portfolio",
+    locale: "en_US",
     type: "website",
   },
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
 };
 
-export const viewport = {
-  themeColor: "#ffffff",
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
 };
 
-// --- Root layout with SSR-safe hydration and theming ---
+// --- ROOT LAYOUT ---
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <head>
-        <meta charSet="utf-8" />
-        <link rel="icon" href="/favicon.ico" />
-        {/* Next.js will inject title and viewport from metadata/viewport exports */}
-      </head>
-      <body className="bg-background text-foreground antialiased min-h-screen flex flex-col">
-        <ThemeProvider>
-          <BackgroundEffects />
-          <Navbar />
-          <main
-            id="main-content"
-            className="flex-1 flex flex-col w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 focus:outline-none"
-            aria-label="Main content"
+    <html
+      lang="en"
+      className={cn(
+        "scroll-smooth", // Provides a smoother scrolling experience for anchor links
+        geistSans.variable,
+        geistMono.variable
+      )}
+      suppressHydrationWarning // Essential for next-themes to prevent hydration errors
+    >
+      <body className={cn("min-h-screen bg-background font-sans text-foreground antialiased")}>
+        <ThemeProvider
+          attribute="class" // Connects to Tailwind's `darkMode: 'class'`
+          defaultTheme="system" // Defaults to user's OS setting
+          enableSystem // Allows toggling between light, dark, and system
+          disableTransitionOnChange // Prevents flash of unstyled content on theme change
+        >
+          {/* A "Skip to Main Content" link is a non-negotiable for accessibility (A11y) */}
+          <a
+            href="#main-content"
+            className="-translate-x-full absolute top-0 left-0 block rounded-md bg-primary p-3 font-medium text-primary-foreground text-sm transition-transform focus:translate-x-0"
           >
-            {children}
-          </main>
-          <ClientFooter />
+            Skip to Main Content
+          </a>
+
+          <div className="relative flex min-h-dvh flex-col">
+            <Navbar />
+            <main id="main-content" className="container flex-1 py-8 md:py-12">
+              {children}
+            </main>
+            <Suspense>
+              <ClientFooter />
+            </Suspense>
+          </div>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

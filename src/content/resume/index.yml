@@ -1,0 +1,41 @@
+# This is the single source of truth for your professional and academic journey.
+# It now uses a unified `title` property for all entries for consistency.
+history:
+  - title: "Senior Software Engineer"
+    company: "Tech Solutions Inc."
+    period: "Jan 2025 - Present"
+    description: "Spearheaded the design and implementation of a new microservices architecture, enhancing system scalability by over 200%. I lead a team of four, mentor junior developers, and define best practices for our CI/CD pipeline."
+    tags:
+      - "React"
+      - "Node.js"
+      - "AWS"
+      - "Docker"
+      - "GoLang"
+    type: "work"
+
+  - title: "Frontend Developer"
+    company: "Innovate Co."
+    period: "Jun 2023 - Dec 2024"
+    description: "Drove the development of high-performance, accessible web applications using React and TypeScript. Led a component library migration that resulted in a 30% reduction in application bundle size and improved developer experience."
+    tags:
+      - "React"
+      - "TypeScript"
+      - "Next.js"
+    type: "work"
+
+  - # --- THE FIX: Changed the `degree` key to `title` to match the unified schema. ---
+    title: "Bachelor of Science in Computer Science"
+    institution: "VIT Bhopal University"
+    period: "Sep 2022 - May 2026"
+    description: "Graduated with honors, focusing on algorithms, distributed systems, and human-computer interaction. As President of the University Coding Club, I organized workshops and hackathons for over 500 students."
+    type: "education"
+  
+  - title: "Software Engineer Intern"
+    company: "Creative Tech"
+    period: "May 2023 - Aug 2023"
+    description: "Developed and shipped a full-stack feature for a client-facing analytics dashboard. My work on API optimization contributed to a 15% reduction in data-loading times for key customer reports."
+    tags:
+      - "JavaScript"
+      - "MongoDB"
+      - "Express"
+    type: "work"

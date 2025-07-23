@@ -1,68 +1,74 @@
 "use client";
 
-import { useTheme } from "@/hooks/useTheme";
-import { useEffect, useMemo, useState } from "react";
-import { customThemes, ThemeName } from "@/lib/themeClassMap";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/Button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
+import { useTheme } from "@/hooks/useTheme"; // Using your custom hook
+import { themes } from "@/lib/themes"; // Your theme definitions
 
-/**
- * Formats a theme string into a more readable label.
- * e.g., "horizon-blaze" → "Horizon Blaze"
- */
-function formatThemeName(theme: string): string {
-  return theme
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-export default function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
+  // Using your custom hook's return values
+  const { theme: currentTheme, setTheme } = useTheme();
 
-  useEffect(() => setMounted(true), []);
-
-  const activeTheme = theme ?? "light"; // Fallback to "light" to prevent hook error
-
-  const buttonClass = useMemo(() => {
-    const base =
-      "px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
-
-    const themeStyles: Record<ThemeName, string> = {
-      light: "bg-gray-100 text-black hover:bg-gray-200",
-      dark: "bg-neutral-800 text-white hover:bg-neutral-700 ring-1 ring-white",
-      cyberpunk:
-        "bg-cyan-500 text-black hover:shadow-cyan-400/70 neon-glow-cyan",
-      ethereal: "bg-pink-100 text-pink-800 hover:bg-pink-200",
-      "horizon-blaze": "bg-orange-500 text-white hover:bg-orange-600",
-      "neo-mirage": "bg-indigo-400 text-white hover:bg-indigo-500",
-      "high-contrast":
-        "bg-black text-yellow-300 hover:bg-yellow-300 hover:text-black",
-      "reduced-motion": "bg-gray-600 text-white hover:bg-gray-700",
-    };
-
-    return `${base} ${
-      themeStyles[activeTheme as ThemeName] ?? "bg-gray-300 text-black"
-    }`;
-  }, [activeTheme]);
-
-  if (!mounted) return null;
-
-  const handleThemeCycle = () => {
-    const index = customThemes.indexOf(activeTheme as ThemeName);
-    const nextIndex = (index + 1) % customThemes.length;
-    setTheme(customThemes[nextIndex]);
-  };
-
-  const formatted = formatThemeName(activeTheme);
+  // Standard hydration safety check
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
-    <button
-      onClick={handleThemeCycle}
-      className={buttonClass}
-      aria-label={`Switch theme. Current: ${formatted}`}
-      title={`Current theme: ${formatted} (Click to switch)`}
-    >
-      Theme: {formatted}
-    </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          aria-label={`Current theme: ${currentTheme?.displayName || "Loading..."}`}
+          // --- FIXED SIZE & LAYOUT ---
+          // `w-36` gives a generous, fixed width for your theme names.
+          // `justify-start` prevents the text from jumping when the name changes.
+          className="w-36 justify-start font-medium text-sm"
+        >
+          {mounted && currentTheme ? (
+            // Use AnimatePresence for a smooth text transition
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={currentTheme.displayName}
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-2"
+              >
+                {/* Display the theme's icon (if it exists) and name */}
+                {currentTheme.icon && <currentTheme.icon className="h-4 w-4" />}
+                {currentTheme.displayName}
+              </motion.span>
+            </AnimatePresence>
+          ) : (
+            // Skeleton loader for initial render and hydration
+            <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-36">
+        {/* Map over your defined themes to create the dropdown items */}
+        {themes.map((theme) => (
+          <DropdownMenuItem
+            key={theme.name}
+            // Use your custom `setTheme` function
+            onClick={() => setTheme(theme)}
+          >
+            {/* Display icon in the dropdown */}
+            {theme.icon && <theme.icon className="mr-2 h-4 w-4" />}
+            {theme.displayName}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

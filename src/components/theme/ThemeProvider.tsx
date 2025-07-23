@@ -1,55 +1,26 @@
+// src/components/theme/ThemeProvider.tsx
+
 "use client";
 
-import { useEffect } from "react";
-import {
-  ThemeProvider as NextThemesProvider,
-  type ThemeProviderProps,
-} from "next-themes";
+import type { ThemeProviderProps } from "next-themes";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { themes } from "@/lib/themes";
 
-import { customThemes } from "@/lib/themeClassMap";
-import { geistMono, geistSans } from "@/lib/fonts";
-import BodyClassWrapper from "./BodyClassWrapper";
-
-/**
- * Applies global font, selection, and transition styles to the <body> tag.
- * Ensures no SSR mismatch by running only on the client.
- */
-function BaseBodySetup() {
-  useEffect(() => {
-    document.body.classList.add(
-      "antialiased",
-      "transition-colors",
-      "duration-300",
-      "selection:bg-black/90",
-      "selection:text-white",
-      "dark:selection:bg-purple-800",
-      "print:bg-white",
-      geistSans.variable,
-      geistMono.variable,
-    );
-  }, []);
-
-  return null;
-}
-
-/**
- * Custom ThemeProvider combining:
- * - next-themes for theme context and switching
- * - Tailwind class support via `attribute="class"`
- * - App-wide body class setup and wrapper
- */
+// This is the definitive ThemeProvider for your world-class portfolio.
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return (
     <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      themes={[...customThemes]}
+      // THE OPTIMAL FIX: Use `data-theme` to match our globals.css
+      attribute="data-theme"
+      // Provide the full list of themes to next-themes.
+      themes={themes.map((t) => t.name)}
+      // Disable the system theme preference, as we have custom themes.
+      enableSystem={false}
+      // Set a default theme to prevent flashes of unstyled content.
+      defaultTheme="light"
       {...props}
     >
-      <BaseBodySetup />
-      <BodyClassWrapper>{children}</BodyClassWrapper>
+      {children}
     </NextThemesProvider>
   );
 }

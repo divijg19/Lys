@@ -1,21 +1,21 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
+  "style": "new-york",
   "rsc": true,
   "tsx": true,
   "tailwind": {
     "config": "tailwind.config.ts",
-    "css": "app/globals.css",
-    "baseColor": "neutral",
+    "css": "src/styles/globals.css",
+    "baseColor": "slate",
     "cssVariables": true,
     "prefix": ""
   },
   "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+    "components": "#velite/components",
+    "utils": "#velite/lib/utils",
+    "ui": "#velite/components/ui",
+    "lib": "#velite/lib",
+    "hooks": "#velite/hooks"
   },
   "iconLibrary": "lucide"
 }
