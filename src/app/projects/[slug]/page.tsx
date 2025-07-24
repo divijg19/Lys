@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   const project = projects.find((p) => p.slug === params.slug);
   if (!project) return {};
 
-  const siteUrl = "https://your-domain.com";
+  const siteUrl = "https://divijganjoo.me"; // IMPORTANT: Replace with your actual domain
   const ogImage = project.cover ? `${siteUrl}${project.cover}` : `${siteUrl}/og-image.png`;
 
   return {

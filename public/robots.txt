@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Provide the location of the sitemap
-Sitemap: https://your-domain.com/sitemap.xml
+Sitemap: https://divijganjoo.me/sitemap.xml

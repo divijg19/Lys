@@ -18,12 +18,12 @@ export const metadata: Metadata = {
   },
   description:
     "Portfolio of Divij Ganjoo – a software developer crafting performant and accessible digital experiences.",
-  authors: [{ name: "Divij Ganjoo", url: "https://divijg19.vercel.app/" }], // Use your actual domain
-  metadataBase: new URL("https://divijg19.vercel.app/"), // Use your actual domain
+  authors: [{ name: "Divij Ganjoo", url: "https://divijganjoo.me/" }], // Use your actual domain
+  metadataBase: new URL("https://divijganjoo.me/"), // Use your actual domain
   openGraph: {
     title: "Divij Ganjoo | Software Developer",
     description: "Performant and accessible digital experiences.",
-    url: "https://divijg19.vercel.app/",
+    url: "https://divijganjoo.me/",
     siteName: "Divij Ganjoo's Portfolio",
     locale: "en_US",
     type: "website",

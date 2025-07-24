@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-// 1. --- IMPORT THE REQUIRED ICONS & TYPES ---
 import {
   CheckCircle,
   Github,
@@ -11,10 +10,10 @@ import {
   Loader2,
   Mail,
   MessageCircle,
-} from "lucide-react";
+  XCircle,
+} from "lucide-react"; // Added XCircle for errors
 import { useState } from "react";
 import { bio } from "#velite";
-// 2. --- IMPORT THE REUSABLE SOCIAL LINK COMPONENT ---
 import { SocialLink } from "@/components/layout/SocialLink";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -22,7 +21,6 @@ import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 
 // --- THE SOCIALS DATA FOR THIS SECTION ---
-// This now matches the structure required by the SocialLink component.
 const socials: {
   href: string;
   name: string;
@@ -30,16 +28,16 @@ const socials: {
   colorClass: string;
 }[] = [
   {
-    href: bio.social.github,
-    name: "GitHub",
-    icon: Github,
-    colorClass: "hover:bg-[#181717] hover:text-white",
-  },
-  {
     href: `mailto:${bio.email}`,
     name: "Gmail",
     icon: Mail,
     colorClass: "hover:bg-[#EA4335] hover:text-white",
+  },
+  {
+    href: bio.social.github,
+    name: "GitHub",
+    icon: Github,
+    colorClass: "hover:bg-[#181717] hover:text-white",
   },
   {
     href: bio.social.linkedin,
@@ -55,21 +53,55 @@ const socials: {
   },
 ];
 
-const FADE_UP_VARIANTS = {
+import type { Variants } from "framer-motion";
+
+const FADE_UP_VARIANTS: Variants = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.8 } },
+  show: { opacity: 1, y: 0, transition: { type: "spring", duration: 0.8 } },
 };
 
-type FormStatus = "idle" | "loading" | "success" | "error";
+// --- ENHANCED FORM STATE to handle error messages ---
+type FormStatus =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success" }
+  | { status: "error"; message: string };
 
 export function Contact() {
-  const [status, setStatus] = useState<FormStatus>("idle");
+  const [status, setStatus] = useState<FormStatus>({ status: "idle" });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus("loading");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setStatus("success");
+    setStatus({ status: "loading" });
+
+    // 1. --- EXTRACT FORM DATA ---
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      message: formData.get("message") as string,
+    };
+
+    try {
+      // 2. --- SEND DATA TO THE API ROUTE ---
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        // Handle server-side errors (e.g., Resend API is down)
+        throw new Error("Something went wrong. Please try again later.");
+      }
+
+      // 3. --- UPDATE STATE TO SUCCESS ---
+      setStatus({ status: "success" });
+    } catch (error) {
+      // Handle network errors or other exceptions
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      setStatus({ status: "error", message: errorMessage });
+    }
   };
 
   return (
@@ -90,19 +122,24 @@ export function Contact() {
             Have a project in mind, a question, or just want to say hello? My inbox is always open.
             I'll do my best to get back to you!
           </p>
-          {/* --- 3. RENDER THE WORLD-CLASS SOCIAL LINKS --- */}
           <div className="flex items-center gap-4">
             {socials.map((social) => (
               <SocialLink key={social.name} {...social} />
             ))}
           </div>
         </motion.div>
+
         <motion.div variants={FADE_UP_VARIANTS} className="rounded-lg border bg-card p-8 shadow-sm">
           <AnimatePresence mode="wait">
-            {status === "success" ? (
+            {status.status === "success" ? (
               <SuccessMessage />
+            ) : status.status === "error" ? (
+              <ErrorMessage
+                message={status.message}
+                onRetry={() => setStatus({ status: "idle" })}
+              />
             ) : (
-              <ContactForm key="form" onSubmit={handleSubmit} status={status} />
+              <ContactForm key="form" onSubmit={handleSubmit} status={status.status} />
             )}
           </AnimatePresence>
         </motion.div>
@@ -111,20 +148,19 @@ export function Contact() {
   );
 }
 
-// ... (ContactForm and SuccessMessage sub-components remain unchanged)
 function ContactForm({
   onSubmit,
   status,
 }: {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  status: FormStatus;
+  status: "idle" | "loading";
 }) {
   return (
     <motion.form
       key="form"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       onSubmit={onSubmit}
       className="space-y-6"
@@ -174,15 +210,36 @@ function SuccessMessage() {
   return (
     <motion.div
       key="success"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       className="flex flex-col items-center justify-center text-center"
     >
       <CheckCircle className="h-16 w-16 text-green-500" />
       <h3 className="mt-4 font-bold text-2xl">Thank You!</h3>
       <p className="mt-2 text-muted-foreground">Your message has been sent successfully.</p>
+    </motion.div>
+  );
+}
+
+// --- WORLD-CLASS SUB-COMPONENT: Error Message ---
+function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <motion.div
+      key="error"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col items-center justify-center text-center"
+    >
+      <XCircle className="h-16 w-16 text-destructive" />
+      <h3 className="mt-4 font-bold text-2xl">Oops!</h3>
+      <p className="mt-2 text-muted-foreground">{message}</p>
+      <Button onClick={onRetry} variant="outline" className="mt-6">
+        Try Again
+      </Button>
     </motion.div>
   );
 }
