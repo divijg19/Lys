@@ -204,7 +204,7 @@ const nextConfig: NextConfig = {
   onDemandEntries: { maxInactiveAge: 60 * 1000, pagesBufferLength: 5 },
   productionBrowserSourceMaps: false,
   env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "https://yourportfolio.com",
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "https://divijganjoo.me",
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
     NEXT_PUBLIC_UMAMI_ID: process.env.NEXT_PUBLIC_UMAMI_ID,
   },

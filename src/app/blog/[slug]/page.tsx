@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
     return {};
   }
 
-  const siteUrl = "https://your-domain.com"; // IMPORTANT: Replace with your actual domain
+  const siteUrl = "https://divijganjoo.me"; // IMPORTANT: Replace with your actual domain
   const ogImage = blog.cover ? `${siteUrl}${blog.cover}` : `${siteUrl}/og-image.png`;
 
   return {
