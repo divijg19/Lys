@@ -45,6 +45,11 @@
 /* 3. --- MULTI-THEME DEFINITIONS --- */
 /* Define the values for our semantic variables for each of your 7 themes. */
 @layer base {
+  html {
+    overflow-y: scroll;
+    /* Default to light theme */
+    color-scheme: light;
+  }
   /* Default Theme: Light (matches shadcn default) */
   :root,
   [data-theme="light"] {

@@ -9,61 +9,54 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
-import { useTheme } from "@/hooks/useTheme"; // Using your custom hook
-import { themes } from "@/lib/themes"; // Your theme definitions
+import { useTheme } from "@/hooks/useTheme";
+import { themes } from "@/lib/themes";
 
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  // Using your custom hook's return values
   const { theme: currentTheme, setTheme } = useTheme();
 
-  // Standard hydration safety check
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    <DropdownMenu>
+    // --- THE FIX ---
+    // Add the modal={false} prop here. This tells the underlying Radix UI
+    // component not to lock the body scroll when the dropdown is open,
+    // which is the root cause of the layout shift.
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
           aria-label={`Current theme: ${currentTheme?.displayName || "Loading..."}`}
-          // --- FIXED SIZE & LAYOUT ---
-          // `w-36` gives a generous, fixed width for your theme names.
-          // `justify-start` prevents the text from jumping when the name changes.
-          className="w-36 justify-start font-medium text-sm"
+          className="relative h-9 w-32 justify-start overflow-hidden px-3 font-medium text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
         >
-          {mounted && currentTheme ? (
-            // Use AnimatePresence for a smooth text transition
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={currentTheme.displayName}
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 5 }}
-                transition={{ duration: 0.15 }}
-                className="flex items-center gap-2"
-              >
-                {/* Display the theme's icon (if it exists) and name */}
-                {currentTheme.icon && <currentTheme.icon className="h-4 w-4" />}
-                {currentTheme.displayName}
-              </motion.span>
-            </AnimatePresence>
-          ) : (
-            // Skeleton loader for initial render and hydration
-            <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+          {!mounted && (
+            <div className="absolute inset-0 h-full w-full animate-pulse rounded-md bg-muted" />
           )}
+          {mounted &&
+            themes.map((theme) => (
+              <AnimatePresence key={theme.name} initial={false}>
+                {currentTheme.name === theme.name && (
+                  <motion.span
+                    initial={{ y: "150%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "-150%" }}
+                    transition={{ type: "spring", duration: 0.35, bounce: 0 }}
+                    className="absolute flex items-center gap-2"
+                  >
+                    {theme.icon && <theme.icon className="h-4 w-4" />}
+                    {theme.displayName}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            ))}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-36">
-        {/* Map over your defined themes to create the dropdown items */}
+      <DropdownMenuContent align="end" className="w-32">
         {themes.map((theme) => (
-          <DropdownMenuItem
-            key={theme.name}
-            // Use your custom `setTheme` function
-            onClick={() => setTheme(theme)}
-          >
-            {/* Display icon in the dropdown */}
+          <DropdownMenuItem key={theme.name} onClick={() => setTheme(theme)}>
             {theme.icon && <theme.icon className="mr-2 h-4 w-4" />}
             {theme.displayName}
           </DropdownMenuItem>
