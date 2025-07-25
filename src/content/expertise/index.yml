@@ -1,0 +1,469 @@
+categories:
+  - name: "Core Programming Languages"
+    icon: "Code"
+    skills:
+      - name: "Python"
+        iconPath: "/assets/icons/python.svg"
+        level: "Proficient"
+        keyCompetencies:
+          - "Backend Development"
+          - "Data Analysis & Science"
+          - "Scripting & Automation"
+        details: "Extensive experience building robust APIs with Django and FastAPI. Highly skilled in using libraries like Pandas and NumPy for complex data manipulation and scientific computing tasks."
+        rationale: "Python's versatility makes it my go-to for projects requiring a blend of high-performance backend logic and sophisticated data processing, all within a single, cohesive ecosystem."
+        highlights:
+          - "Built type-safe, asynchronous APIs using FastAPI and Pydantic for data validation."
+          - "Engineered complex data transformation pipelines with Pandas for analytics dashboards."
+          - "Developed automation scripts to streamline data collection and processing tasks."
+        ecosystem:
+          - "Web Frameworks: FastAPI, Django"
+          - "Data Science: Pandas, NumPy, Scikit-learn"
+          - "Task Queues: Celery"
+        projectSlugs: []
+      - name: "JavaScript"
+        iconPath: "/assets/icons/javascript.svg"
+        level: "Proficient"
+        keyCompetencies:
+          - "Modern ES6+ Syntax"
+          - "Asynchronous Patterns"
+          - "DOM Manipulation"
+        details: "Deep understanding of modern ES6+ features, asynchronous patterns (async/await, promises), and DOM manipulation for creating interactive and responsive user experiences."
+        rationale: "JavaScript is the backbone of the modern web. My proficiency in it is essential for creating the interactive, client-side experiences users expect from high-quality applications."
+        highlights:
+          - "Manipulated the DOM to create dynamic and responsive user interfaces."
+          - "Managed complex application state on the client-side."
+          - "Handled asynchronous operations efficiently using Promises and async/await."
+        ecosystem:
+          - "Runtimes: Node.js, Bun"
+          - "Libraries: React, Next.js"
+          - "Tooling: ESLint, Prettier"
+        projectSlugs: ["lys"]
+      - name: "TypeScript"
+        iconPath: "/assets/icons/typescript.svg"
+        level: "Proficient"
+        keyCompetencies:
+          - "Type-Safe Applications"
+          - "Advanced Generics & Interfaces"
+          - "React/Next.js Integration"
+        details: "Leveraged advanced features like generics, interfaces, and utility types to improve code quality and developer experience in large codebases, especially within the React/Next.js ecosystem."
+        rationale: "I adopt TypeScript in all significant projects to enforce type safety, which drastically reduces runtime errors, improves maintainability, and enables a superior developer experience through autocompletion."
+        highlights:
+          - "Refactored a large JavaScript codebase to be fully type-safe with TypeScript."
+          - "Created reusable, type-safe components using advanced generics and interfaces."
+          - "Integrated with Zod for end-to-end type safety from the API to the frontend."
+        ecosystem:
+          - "Frameworks: Next.js, React"
+          - "Validation: Zod"
+          - "Tooling: TS-Node, Vitest"
+        projectSlugs: ["lys"]
+      - name: "GoLang"
+        iconPath: "/assets/icons/golang.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Goroutines & Channels"
+          - "Standard Library Usage"
+          - "CLI Tool Development"
+        details: "Currently learning Goroutines and Channels for concurrent programming. I have built small-scale CLI tools to better understand its powerful standard library and performance characteristics."
+        rationale: "I'm learning Go for its exceptional performance in concurrent operations and its straightforward approach to building compiled, cross-platform applications, particularly for CLI tools and microservices."
+        highlights:
+          - "Built a small CLI tool to manage local development environments."
+          - "Experimented with goroutines and channels to understand concurrent data processing patterns."
+        ecosystem:
+          - "Web: Gin, Chi"
+          - "CLI: Cobra"
+        projectSlugs: []
+      - name: "C++"
+        iconPath: "/assets/icons/c++.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Object-Oriented Programming"
+          - "Data Structures & Algorithms"
+          - "Low-Level Memory Management"
+        details: "University-level experience focusing on data structures, algorithms, and low-level memory management principles. Provides a strong base for understanding system performance."
+        rationale: "My foundational knowledge of C++ provides a deep understanding of computer science fundamentals like memory management and performance optimization, which informs how I write code in any language."
+        highlights:
+          - "Implemented various data structures (Linked Lists, Trees, Graphs) from scratch."
+          - "Solved complex algorithmic problems as part of university coursework."
+        ecosystem:
+          - "Compilers: GCC, Clang"
+          - "Build Systems: CMake"
+        projectSlugs: []
+      - name: "Lua"
+        iconPath: "/assets/icons/lua.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Game Logic Scripting"
+          - "Embeddable Configurations"
+          - "Lightweight Syntax"
+        details: "Used for scripting game logic and creating embeddable configurations, appreciating its lightweight nature and simple syntax."
+        projectSlugs: []
+
+  - name: "Frontend Development"
+    icon: "Feather"
+    skills:
+      - name: "React"
+        iconPath: "/assets/icons/react.svg"
+        level: "Proficient"
+        keyCompetencies:
+          - "Component Architecture"
+          - "Hooks & State Management"
+          - "Performance Optimization"
+        details: "Highly skilled in component architecture, state management with Hooks, and performance optimization using techniques like memoization and code splitting."
+        rationale: "React's component-based model is my preferred way to build scalable and maintainable UIs. Its declarative nature simplifies the process of creating complex, stateful interfaces."
+        highlights:
+          - "Designed and implemented a library of reusable, accessible (WCAG) UI components."
+          - "Managed server state and caching effectively with React Query (TanStack Query)."
+          - "Optimized component rendering using memoization and virtualized lists for large data sets."
+        ecosystem:
+          - "State Management: Zustand, React Query"
+          - "UI Libraries: Radix UI, Shadcn/UI"
+          - "Animation: Framer Motion"
+        projectSlugs: ["lys"]
+      - name: "Next.js"
+        iconPath: "/assets/icons/nextjs.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "App Router & RSC"
+          - "Full-Stack Development"
+          - "API Route Implementation"
+        details: "Built multiple projects using the App Router, leveraging Server Components for speed, creating API routes for backend functionality, and deploying seamlessly via Vercel."
+        rationale: "Next.js is my framework of choice for production applications due to its hybrid rendering, file-based routing, and seamless integration with the Vercel ecosystem, enabling rapid development and deployment."
+        highlights:
+          - "Architected full-stack applications leveraging the App Router and React Server Components."
+          - "Built and secured API routes for handling authentication and database operations."
+          - "Utilized Static Site Generation (SSG) for marketing pages to ensure optimal SEO and performance."
+        ecosystem:
+          - "Deployment: Vercel"
+          - "Authentication: NextAuth.js"
+          - "Server State: SWR, React Query"
+        projectSlugs: ["lys"]
+      - name: "Tailwind CSS"
+        iconPath: "/assets/icons/tailwind.svg"
+        level: "Proficient"
+        keyCompetencies:
+          - "Utility-First Styling"
+          - "Responsive Design"
+          - "Theme Customization"
+        details: "Proficient in using its utility classes to build complex, responsive layouts quickly. Experienced in customizing the theme and using the JIT compiler for optimized builds."
+        rationale: "I use Tailwind CSS for its exceptional development speed. It allows me to build custom, responsive designs directly in my markup without context-switching or writing custom CSS files."
+        highlights:
+          - "Built fully responsive and accessible UIs using utility classes."
+          - "Extended the default theme with custom colors, fonts, and spacing for brand consistency."
+          - "Maintained a clean codebase using the official Prettier plugin for class sorting."
+        ecosystem:
+          - "Plugins: prettier-plugin-tailwindcss"
+          - "UI Kits: Tailwind UI"
+          - "Base Libraries: Headless UI"
+        projectSlugs: ["lys"]
+      - name: "Bootstrap"
+        iconPath: "/assets/icons/bootstrap.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Grid System"
+          - "Component Library"
+          - "Rapid Prototyping"
+        details: "Used in earlier projects for rapid prototyping and leveraging its extensive component library to build standard, responsive user interfaces."
+        rationale: "Bootstrap is excellent for rapid prototyping and projects where leveraging a comprehensive, pre-built component library is more important than a fully custom design."
+        highlights:
+          - "Rapidly built responsive layouts using the Bootstrap grid system."
+          - "Customized themes by overriding SASS variables."
+        ecosystem:
+          - "Versioning: Bootstrap 4 & 5"
+          - "Icons: Bootstrap Icons"
+          - "Compiler: SASS"
+        projectSlugs: []
+
+  - name: "Backend & Data"
+    icon: "Server"
+    skills:
+      - name: "Node.js"
+        iconPath: "/assets/icons/nodejs.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "RESTful API Development"
+          - "Asynchronous I/O"
+          - "Custom Middleware"
+        details: "Developed several RESTful APIs, implementing custom middleware for authentication and logging, and handling asynchronous operations efficiently for non-blocking I/O."
+        rationale: "Node.js excels in building fast, I/O-heavy applications. Its event-driven, non-blocking architecture makes it perfect for developing scalable APIs and real-time services."
+        highlights:
+          - "Built secure REST APIs with JWT-based authentication and role-based access control."
+          - "Wrote custom middleware for request logging, error handling, and caching."
+          - "Integrated with third-party services like Stripe for payment processing."
+        ecosystem:
+          - "Package Manager: npm, pnpm"
+          - "Testing: Jest, Vitest"
+          - "ORM: Prisma, Mongoose"
+        projectSlugs: ["skill-sharing-platform"]
+      - name: "FastAPI"
+        iconPath: "/assets/icons/fastapi.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "Auto Data Validation"
+          - "API Documentation (OpenAPI)"
+          - "Type-Driven Development"
+        details: "Utilized Python's type hints for automatic data validation, serialization, and OpenAPI documentation, resulting in faster development cycles and cleaner, more maintainable code."
+        rationale: "FastAPI is my preferred Python framework for building APIs due to its incredible performance and developer-friendly features like automatic documentation and type-based validation."
+        highlights:
+          - "Built APIs with automatic data validation and serialization using Pydantic."
+          - "Leveraged dependency injection for managing database connections and other resources."
+          - "Generated interactive Swagger UI and ReDoc documentation automatically."
+        ecosystem:
+          - "Validation: Pydantic"
+          - "Server: Uvicorn"
+          - "ORM: SQLAlchemy, Tortoise ORM"
+        projectSlugs: []
+      - name: "GraphQL"
+        iconPath: "/assets/icons/graphql.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Schema Definition"
+          - "Queries & Mutations"
+          - "Resolver Implementation"
+        details: "Explored creating GraphQL schemas, writing queries and mutations, and connecting resolvers to data sources as a powerful alternative to REST for complex applications."
+        rationale: "I'm exploring GraphQL as a powerful alternative to REST, particularly for applications with complex data requirements, as it allows clients to fetch exactly the data they need."
+        highlights:
+          - "Defined GraphQL schemas with types, queries, and mutations."
+          - "Connected resolvers to fetch and manipulate data from various sources."
+        ecosystem:
+          - "Client: Apollo Client, urql"
+          - "Server: Apollo Server"
+        projectSlugs: []
+      - name: "MongoDB"
+        iconPath: "/assets/icons/mongodb.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "Flexible Schema Design"
+          - "Aggregation Pipelines"
+          - "Mongoose ODM"
+        details: "Designed schemas for various use cases and wrote complex aggregation pipelines for data analysis. Proficient in using Mongoose ODM for streamlined application development."
+        rationale: "MongoDB's flexible document model is ideal for applications with evolving requirements, allowing for rapid iteration and easy storage of complex, hierarchical data."
+        highlights:
+          - "Designed and implemented schemas for user profiles, content management, and e-commerce."
+          - "Wrote complex aggregation pipelines to generate analytics and reports."
+          - "Ensured data integrity and simplified interactions using the Mongoose ODM."
+        ecosystem:
+          - "ODM: Mongoose"
+          - "GUI: MongoDB Compass"
+          - "Cloud: MongoDB Atlas"
+        projectSlugs: ["skill-sharing-platform"]
+      - name: "MySQL"
+        iconPath: "/assets/icons/mysql.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Relational Data Modeling"
+          - "Complex SQL Queries"
+          - "Data Integrity"
+        details: "Experienced in designing relational data models (ERDs), writing complex SQL queries with JOINs, and ensuring data integrity with transactions."
+        rationale: "For applications demanding strong consistency and data integrity, MySQL's relational structure and ACID compliance provide a robust and reliable foundation."
+        highlights:
+          - "Designed normalized database schemas using Entity-Relationship Diagrams (ERDs)."
+          - "Wrote complex queries with multiple JOINs to retrieve and aggregate data."
+          - "Used transactions to ensure atomicity for critical financial operations."
+        ecosystem:
+          - "ORMs: Prisma, TypeORM"
+          - "GUI: TablePlus, DBeaver"
+        projectSlugs: []
+      - name: "Firebase"
+        iconPath: "/assets/icons/firebase.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Firestore (NoSQL)"
+          - "User Authentication"
+          - "Realtime Features"
+        details: "Used Firestore for a scalable NoSQL document database and Firebase Authentication to quickly add secure user sign-in flows to applications."
+        rationale: "Firebase is an excellent Backend-as-a-Service (BaaS) for rapid development, providing out-of-the-box solutions for authentication, real-time databases, and hosting."
+        highlights:
+          - "Implemented secure user sign-in flows with Firebase Authentication."
+          - "Used Firestore and its real-time listeners to build collaborative features."
+        ecosystem:
+          - "Services: Firestore, Firebase Auth, Cloud Functions"
+        projectSlugs: []
+
+  - name: "DevOps, Platforms & Tooling"
+    icon: "Cloud"
+    skills:
+      - name: "AWS"
+        iconPath: "/assets/icons/aws.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "EC2 Instance Management"
+          - "S3 for Storage"
+          - "IAM for Security"
+        details: "Experience with deploying applications on EC2 instances, storing static assets and user uploads in S3, and managing user permissions and access with IAM roles."
+        rationale: "Familiarity with AWS is crucial for understanding how to deploy, manage, and scale applications on the world's leading cloud platform."
+        highlights:
+          - "Deployed Node.js applications to EC2 instances."
+          - "Configured S3 buckets for public static asset hosting and private user uploads."
+          - "Managed user and service permissions using IAM roles."
+        ecosystem:
+          - "Core Services: EC2, S3, RDS, IAM"
+        projectSlugs: ["lys"]
+      - name: "Docker"
+        iconPath: "/assets/icons/docker.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Dockerfile Creation"
+          - "Multi-Container Orchestration"
+          - "Dev/Prod Parity"
+        details: "Capable of writing Dockerfiles to package applications and using Docker Compose to orchestrate multi-container setups for development, ensuring parity with production."
+        rationale: "I use Docker to create consistent, portable, and isolated environments. This eliminates the 'it works on my machine' problem and streamlines both development and deployment workflows."
+        highlights:
+          - "Wrote multi-stage Dockerfiles to create lean, optimized production images."
+          - "Orchestrated local development environments using Docker Compose."
+        ecosystem:
+          - "Orchestration: Docker Compose"
+          - "Registries: Docker Hub, AWS ECR"
+        projectSlugs: []
+      - name: "GitHub Actions"
+        iconPath: "/assets/icons/githubactions.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "CI/CD Workflow Automation"
+          - "Code Quality Checks"
+          - "Automated Deployments"
+        details: "Set up complete CI/CD workflows that automatically lint, test, build, and deploy applications on every push, ensuring code quality and rapid iteration."
+        rationale: "Automating the build, test, and deployment pipeline with GitHub Actions is crucial for maintaining code quality, increasing development velocity, and ensuring reliable releases."
+        highlights:
+          - "Configured a CI pipeline to run linting, type-checking, and automated tests on every push."
+          - "Created a CD workflow to automatically deploy the main branch to Vercel."
+          - "Used encrypted secrets to manage API keys and environment variables securely."
+        ecosystem:
+          - "Triggers: on push, on pull_request"
+          - "Jobs & Steps"
+          - "Secrets Management"
+        projectSlugs: ["lys"]
+      - name: "Vercel"
+        iconPath: "/assets/icons/vercel.svg"
+        level: "Proficient"
+        keyCompetencies:
+          - "Instant Deployments"
+          - "Serverless Functions"
+          - "Edge Network Optimization"
+        details: "Deeply familiar with the Vercel ecosystem for instant deployments, serverless functions, and leveraging its global edge network for optimal performance and user experience."
+        rationale: "Vercel is the ideal platform for deploying modern frontend applications, offering zero-configuration deployments, a global edge network, and seamless integration with Next.js."
+        highlights:
+          - "Deployed numerous projects with automatic CI/CD via Git integration."
+          - "Utilized serverless and edge functions for backend logic."
+        ecosystem:
+          - "Frameworks: Next.js"
+          - "Functions: Serverless, Edge"
+        projectSlugs: ["lys"]
+      - name: "YAML"
+        iconPath: "/assets/icons/yaml.svg"
+        level: "Proficient"
+        keyCompetencies:
+          - "CI/CD Configuration"
+          - "Data Serialization"
+          - "Human-Readable Syntax"
+        details: "Regularly use YAML for defining configurations in CI/CD pipelines (GitHub Actions), Docker Compose, and various application settings due to its clean and human-readable syntax."
+        rationale: "YAML's human-readable syntax makes it the standard for configuration-as-code in modern DevOps, from defining CI/CD pipelines to orchestrating containers."
+        highlights:
+          - "Authored complex GitHub Actions workflows for CI/CD."
+          - "Defined multi-service applications using Docker Compose."
+        ecosystem:
+          - "Platforms: GitHub Actions, Docker Compose"
+        projectSlugs: []
+
+  - name: "Data Analysis & Visualization"
+    icon: "BarChart"
+    skills:
+      - name: "Pandas"
+        iconPath: "/assets/icons/pandas.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "Data Cleaning & Wrangling"
+          - "DataFrame Manipulation"
+          - "Data Transformation"
+        details: "Extensive use of DataFrames for cleaning, transforming, merging, and analyzing large datasets from various sources like CSVs and APIs."
+        rationale: "Pandas is the cornerstone of data analysis in Python, providing powerful and flexible data structures to make working with structured data intuitive and efficient."
+        highlights:
+          - "Cleaned and preprocessed large, messy datasets for analysis."
+          - "Performed complex data transformations and aggregations to extract insights."
+        ecosystem:
+          - "Dependencies: NumPy"
+          - "Visualization: Matplotlib, Seaborn"
+        projectSlugs: []
+      - name: "NumPy"
+        iconPath: "/assets/icons/numpy.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "High-Performance Arrays"
+          - "Mathematical Operations"
+          - "Scientific Computing"
+        details: "Utilized NumPy arrays for efficient mathematical and logical operations on large arrays of data, especially in scientific computing and as a foundation for other libraries."
+        rationale: "NumPy provides the fundamental N-dimensional array object and high-performance mathematical functions that form the bedrock of the scientific Python ecosystem."
+        highlights:
+          - "Performed efficient, vectorized computations on large numerical datasets."
+          - "Used as the underlying data structure for analysis in Pandas."
+        ecosystem:
+          - "Core of: Pandas, Scikit-learn, SciPy"
+        projectSloughs: []
+      - name: "Power BI"
+        iconPath: "/assets/icons/powerbi.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Data Visualization"
+          - "Interactive Dashboards"
+          - "Data Source Integration"
+        details: "Connected various data sources to Power BI to build insightful visualizations and business intelligence reports, using DAX for basic custom calculations and measures."
+        rationale: "Power BI is a powerful tool for transforming raw data into clear, interactive visualizations and dashboards that empower data-driven decision-making."
+        highlights:
+          - "Connected and modeled data from SQL databases and Excel files."
+          - "Built interactive dashboards to track key performance indicators."
+        ecosystem:
+          - "Languages: DAX, M"
+          - "Tools: Power Query"
+        projectSlugs: []
+
+  - name: "Continuing Education"
+    icon: "GraduationCap"
+    skills:
+      - name: "Rust"
+        iconPath: "/assets/icons/rust.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Ownership & Borrowing"
+          - "Memory Safety"
+          - "Concurrent Programming"
+        details: "Actively exploring Rust's unique ownership and borrowing model to write memory-safe and highly concurrent software. Fascinated by its performance and reliability."
+        rationale: "I am learning Rust for its promise of building highly performant and reliable systems software, with memory safety guarantees enforced by the compiler."
+        highlights:
+          - "Grasped the core concepts of ownership, borrowing, and lifetimes."
+          - "Built small command-line tools to solidify my understanding."
+        ecosystem:
+          - "Package Manager: Cargo"
+          - "Async: Tokio"
+          - "Serialization: Serde"
+        projectSlugs: []
+      - name: "R"
+        iconPath: "/assets/icons/r.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Statistical Analysis"
+          - "Data Visualization (ggplot)"
+          - "Tidyverse Ecosystem"
+        details: "University coursework involved using R and the Tidyverse for statistical analysis, data cleaning, and generating plots for academic research papers."
+        rationale: "My experience with R and its Tidyverse provides a strong foundation in statistical computing and creating publication-quality data visualizations."
+        highlights:
+          - "Performed statistical analysis and modeling for academic research."
+          - "Created complex plots and charts using ggplot2."
+        ecosystem:
+          - "Core: Tidyverse (dplyr, ggplot2)"
+          - "IDE: RStudio"
+        projectSlugs: []
+      - name: "Ruby on Rails"
+        iconPath: "/assets/icons/rails.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "MVC Architecture"
+          - "Convention over Configuration"
+          - "Active Record ORM"
+        details: "Explored the Rails framework to understand its rapid development capabilities, the MVC architecture, and the powerful Active Record ORM for database interaction."
+        rationale: "I explored Ruby on Rails to understand its renowned 'convention over configuration' philosophy and its powerful tools for rapid, full-stack web development."
+        highlights:
+          - "Built a small blog application to understand the MVC pattern."
+          - "Used Active Record for database migrations and object-relational mapping."
+        ecosystem:
+          - "ORM: Active Record"
+          - "Templating: ERB"
+        projectSlugs: []
