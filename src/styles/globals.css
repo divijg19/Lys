@@ -1,11 +1,13 @@
 /* src/styles/globals.css */
 
-/* 1. --- TAILWIND v4 SETUP --- */
+/* 1. --- IMPORTS --- */
 /* Use the correct v4 directive. This must be the first line. */
 @import "tailwindcss";
+/* Import your custom theme animations */
+@import "./animations.css";
 
 /* 2. --- THEME BRIDGE FOR SHADCN --- */
-/* This is the magic that makes shadcn components work with Tailwind v4. */
+/* This is the magic that makes shadcn components work with Tailwind. */
 /* We define the semantic tokens that shadcn expects (e.g., bg-primary) */
 /* and map them to our CSS variables. This makes every shadcn component */
 /* automatically theme-aware. */
@@ -36,8 +38,7 @@
   --border-radius-md: calc(var(--radius) - 2px);
   --border-radius-sm: calc(var(--radius) - 4px);
 
-  /* THE OPTIMAL FIX: Animations --- */
-  /* We define the `animation` utility here, referencing the keyframes by name. */
+  /* Animations for Shadcn Components */
   --animation-accordion-down: accordion-down 0.2s ease-out;
   --animation-accordion-up: accordion-up 0.2s ease-out;
 }
@@ -47,7 +48,7 @@
 @layer base {
   html {
     overflow-y: scroll;
-    /* Default to light theme */
+    /* Default to light theme for browser scrollbars, etc. */
     color-scheme: light;
   }
   /* Default Theme: Light (matches shadcn default) */
@@ -78,6 +79,7 @@
   /* Dark Theme */
   .dark,
   [data-theme="dark"] {
+    color-scheme: dark;
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -101,6 +103,7 @@
 
   /* Cyberpunk Theme */
   [data-theme="cyberpunk"] {
+    color-scheme: dark;
     --background: 225 6% 10%;
     --foreground: 173 100% 85%;
     --card: 225 6% 13%;
@@ -125,6 +128,7 @@
 
   /* Ethereal Theme */
   [data-theme="ethereal"] {
+    color-scheme: light;
     --background: 220 50% 98%;
     --foreground: 220 20% 25%;
     --card: 0 0% 100%;
@@ -149,6 +153,7 @@
 
   /* Horizon Theme */
   [data-theme="horizon"] {
+    color-scheme: dark;
     --background: 20 14% 4%;
     --foreground: 20 5% 94%;
     --card: 20 14% 8%;
@@ -173,6 +178,7 @@
 
   /* Mirage Theme */
   [data-theme="mirage"] {
+    color-scheme: dark;
     --background: 210 30% 12%;
     --foreground: 190 80% 90%;
     --card: 210 30% 18%;
@@ -197,6 +203,7 @@
 
   /* Simple Theme (High Contrast & Reduced Motion) */
   [data-theme="simple"] {
+    color-scheme: light;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -219,6 +226,7 @@
     --radius: 0.5rem;
   }
 
+  /* 4. --- BASE STYLES --- */
   *,
   *::before,
   *::after {
@@ -230,6 +238,12 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
   /* --- WORLD-CLASS ACCESSIBILITY: Custom Focus Ring --- */
@@ -239,17 +253,6 @@
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
     border-radius: var(--radius);
-  }
-
-  /* 4. --- BASE STYLES --- */
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings:
-      "rlig" 1,
-      "calt" 1;
   }
 
   /* Custom Scrollbar that is automatically theme-aware */
@@ -271,5 +274,11 @@
   ::selection {
     background-color: hsl(var(--accent));
     color: hsl(var(--accent-foreground));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
 }

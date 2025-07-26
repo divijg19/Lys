@@ -1,3 +1,15 @@
+/**
+ * @file: src/components/layout/Navbar.tsx
+ * @description: The main navigation header for the application.
+ *
+ * This component features a responsive design that includes:
+ * - A desktop navigation with an animated active link indicator.
+ * - A full-screen, animated mobile navigation overlay.
+ * - An animation that hides the navbar when scrolling down and reveals it
+ *   when scrolling up.
+ * - Robust centering to prevent layout shifts from scrollbar presence.
+ */
+
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -5,11 +17,13 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+
+// --- CORE COMPONENTS & HOOKS ---
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useScroll } from "@/hooks/useScroll";
 import { cn } from "@/lib/utils";
 
-// --- Data: Navigation Links ---
+// --- DATA ---
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
@@ -18,26 +32,33 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-// --- Main Navbar Component ---
+// --- MAIN NAVBAR COMPONENT ---
 export function Navbar() {
   const { scrolledDown } = useScroll();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // The problematic useEffect has been removed, resolving the linter errors.
-  // The logic is now correctly handled by an onClick in the MobileMenu.
+  // Close the mobile menu when the screen is resized to desktop width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        // md breakpoint
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <header>
+      {/* This motion.nav handles the "hide on scroll" animation */}
       <motion.nav
         initial={{ y: 0 }}
         animate={{ y: scrolledDown ? -100 : 0 }}
         transition={{ type: "spring", bounce: 0.25, duration: 0.8 }}
-        // --- THE DEFINITIVE CENTERING & POSITIONING FIX ---
-        // 1. `fixed` is used to ensure the scroll-up animation works correctly.
-        // 2. `left-1/2 -translate-x-1/2` centers the Navbar based on its own
-        //    width, making it completely immune to scrollbar-induced layout shifts.
-        // 3. `mx-auto` is no longer used for centering.
-        className="-translate-x-1/2 fixed top-4 left-1/2 z-50 flex w-[90%] max-w-screen-md items-center justify-center gap-7 rounded-full border border-border/20 bg-background/80 px-4 py-2 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-lg md:w-full"
+        // This combination of classes is the definitive fix for centering
+        // a fixed element while avoiding layout shift when the scrollbar appears.
+        className="-translate-x-1/2 fixed top-4 left-1/2 z-50 flex w-[90%] max-w-screen-md items-center justify-between rounded-full border border-border/20 bg-background/80 px-4 py-2 shadow-black/5 shadow-lg backdrop-blur-lg"
         aria-label="Main navigation"
       >
         <Link
@@ -47,14 +68,18 @@ export function Navbar() {
         >
           Divij
         </Link>
-        <div className="hidden h-6 w-px bg-border/50 md:block" />
+
+        {/* Desktop Navigation in the center */}
         <DesktopNav />
-        <div className="hidden h-6 w-px bg-border/50 md:block" />
+
+        {/* Right-aligned items */}
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <MobileNavToggle isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
         </div>
       </motion.nav>
+
+      {/* The mobile menu is separate so its state doesn't affect the nav's animation. */}
       <MobileMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
     </header>
   );
@@ -64,6 +89,7 @@ export function Navbar() {
 function DesktopNav() {
   const pathname = usePathname();
   return (
+    // Centered navigation for desktop, hidden on mobile
     <ul className="hidden items-center gap-2 md:flex">
       {navLinks.map((link) => (
         <li key={link.href}>
@@ -71,16 +97,17 @@ function DesktopNav() {
             href={link.href}
             className={cn(
               "relative rounded-full px-3 py-1 font-medium text-base text-muted-foreground transition-colors hover:text-foreground",
-              pathname === link.href && "font-semibold text-primary"
+              pathname === link.href && "text-primary"
             )}
             aria-current={pathname === link.href ? "page" : undefined}
           >
             {link.label}
+            {/* The animated underline for the active link */}
             {pathname === link.href && (
               <motion.div
                 className="absolute inset-x-0 bottom-[-2px] h-[2px] w-full bg-primary"
                 layoutId="underline"
-                transition={{ type: "spring", duration: 0.5 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
               />
             )}
           </Link>
@@ -102,11 +129,21 @@ function MobileNavToggle({
     <button
       type="button"
       onClick={() => setIsMenuOpen(!isMenuOpen)}
-      className="relative z-50 rounded-full p-2 text-foreground transition-colors hover:bg-secondary md:hidden"
+      className="relative z-50 flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary md:hidden"
       aria-label="Toggle menu"
       aria-expanded={isMenuOpen}
     >
-      {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+      <AnimatePresence initial={false} mode="wait">
+        <motion.div
+          key={isMenuOpen ? "close" : "open"}
+          initial={{ rotate: -45, opacity: 0, scale: 0.7 }}
+          animate={{ rotate: 0, opacity: 1, scale: 1 }}
+          exit={{ rotate: 45, opacity: 0, scale: 0.7 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+        >
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </motion.div>
+      </AnimatePresence>
     </button>
   );
 }
@@ -119,14 +156,14 @@ function MobileMenu({
   isMenuOpen: boolean;
   setIsMenuOpen: (isOpen: boolean) => void;
 }) {
-  // This hook is still necessary to prevent body scrolling when the
-  // full-screen mobile menu is open. Its dependency is correct.
+  // This effect correctly prevents body scrolling when the full-screen menu is open.
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
+    // Cleanup function restores scrolling when the component unmounts
     return () => {
       document.body.style.overflow = "auto";
     };
@@ -139,8 +176,9 @@ function MobileMenu({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-x-0 z-40 bg-background/80 backdrop-blur-xl md:hidden"
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          // A fixed container with a high z-index to overlay all other content
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-xl md:hidden"
         >
           <motion.ul
             initial="hidden"
@@ -149,17 +187,20 @@ function MobileMenu({
               hidden: { transition: { staggerChildren: 0.05, staggerDirection: -1 } },
               show: { transition: { staggerChildren: 0.1 } },
             }}
-            className="flex h-full flex-col items-center justify-center gap-10"
+            className="flex h-dvh flex-col items-center justify-center gap-8"
           >
             {navLinks.map((link) => (
               <motion.li
                 key={link.href}
-                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  show: { opacity: 1, y: 0 },
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
                 <Link
                   href={link.href}
-                  // This onClick is the correct way to close the menu, satisfying all linter rules.
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => setIsMenuOpen(false)} // Close menu on link click
                   className="block text-center font-bold text-3xl text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {link.label}

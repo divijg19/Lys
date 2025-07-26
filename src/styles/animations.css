@@ -77,7 +77,7 @@
   background-size: 400% 400%;
 }
 
-/* === HORIZON BLAZE THEME === */
+/* === HORIZON THEME === */
 @keyframes horizon-fade {
   0%,
   100% {
@@ -122,7 +122,7 @@
   animation: heatwave 12s ease-in-out infinite;
 }
 
-/* === NEO MIRAGE THEME === */
+/* === MIRAGE THEME === */
 @keyframes mirage-shift {
   0%,
   100% {
