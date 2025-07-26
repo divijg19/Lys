@@ -46,7 +46,7 @@ const socials: {
     colorClass: "hover:bg-[#0A66C2] hover:text-white",
   },
   {
-    href: "https://instagram.com/divij.ganjoo",
+    href: "https://instagram.com/one_excellent_hope",
     name: "Instagram",
     icon: Instagram,
     colorClass: "hover:bg-[#E4405F] hover:text-white",
