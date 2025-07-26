@@ -137,7 +137,7 @@ categories:
           - "Authentication: NextAuth.js"
           - "Server State: SWR, React Query"
         projectSlugs: ["lys"]
-      - name: "Tailwind CSS"
+      - name: "Tailwind"
         iconPath: "/assets/icons/tailwind.svg"
         level: "Proficient"
         keyCompetencies:
@@ -145,11 +145,11 @@ categories:
           - "Responsive Design"
           - "Theme Customization"
         details: "Proficient in using its utility classes to build complex, responsive layouts quickly. Experienced in customizing the theme and using the JIT compiler for optimized builds."
-        rationale: "I use Tailwind CSS for its exceptional development speed. It allows me to build custom, responsive designs directly in my markup without context-switching or writing custom CSS files."
+        rationale: "I use Tailwind for its exceptional development speed. It allows me to build custom, responsive designs directly in my markup without context-switching or writing custom CSS files."
         highlights:
           - "Built fully responsive and accessible UIs using utility classes."
           - "Extended the default theme with custom colors, fonts, and spacing for brand consistency."
-          - "Maintained a clean codebase using the official Prettier plugin for class sorting."
+          - "Maintained a clean codebase using Biome for linting, sorting and formatting."
         ecosystem:
           - "Plugins: prettier-plugin-tailwindcss"
           - "UI Kits: Tailwind UI"
@@ -349,7 +349,7 @@ categories:
           - "Functions: Serverless, Edge"
         projectSlugs: ["lys"]
       - name: "YAML"
-        iconPath: "/assets/icons/yaml.svg"
+        iconPath: "/assets/icons/YAML.svg"
         level: "Proficient"
         keyCompetencies:
           - "CI/CD Configuration"
