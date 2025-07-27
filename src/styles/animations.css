@@ -1,170 +1,216 @@
+/*
+================================================================================
+|
+| --- Personal Portfolio: Theme Animations ---
+|
+| This file contains all the CSS keyframe animations used across the seven
+| portfolio themes. Each animation is designed to be subtle, performant,
+| and evocative of its corresponding theme's concept.
+|
+| Performance Hint: The 'will-change' property is used to give the browser
+| a heads-up about upcoming transformations, which can help with optimization.
+|
+================================================================================
+*/
+
 /* === GLOBAL PERFORMANCE HINTS === */
-.animate-glitch,
-.animate-float,
-.animate-clouds,
-.animate-horizon-fade,
-.animate-sunrays,
-.animate-heatwave,
-.animate-mirage-shift,
-.animate-refract,
-.animate-blur-pulse {
-  will-change: transform, opacity, backdrop-filter;
+/* Declaring will-change for all animated properties to hint to the browser */
+.animate-gradient-pan,
+.animate-slot-in,
+.animate-star-scroll,
+.animate-deep-star-scroll,
+.animate-defocus-fade,
+.animate-data-rain,
+.animate-neon-flicker,
+.animate-dreamscape-flow,
+.animate-float-subtle,
+.animate-sky-pan,
+.animate-lens-flare-pulse,
+.animate-heat-shimmer-subtle {
+  will-change: transform, opacity, filter, background-position;
 }
 
-/* === CYBERPUNK THEME === */
-@keyframes glitch {
-  0% {
-    opacity: 0.08;
-    transform: translate(0, 0);
+/* === SHARED & UTILITY ANIMATIONS === */
+@keyframes slot-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  20% {
-    opacity: 0.12;
-    transform: translate(-1px, 1px);
-  }
-  40% {
-    opacity: 0.1;
-    transform: translate(1px, -1px);
-  }
-  60% {
-    opacity: 0.15;
-    transform: translate(-2px, 2px);
-  }
-  80% {
-    opacity: 0.1;
-    transform: translate(2px, -2px);
-  }
-  100% {
-    opacity: 0.08;
-    transform: translate(0, 0);
-  }
-}
-
-.animate-glitch {
-  animation: glitch 2.5s infinite ease-in-out;
-}
-
-/* === ETHEREAL THEME === */
-@keyframes float {
-  0% {
+  to {
+    opacity: 1;
     transform: translateY(0);
+  }
+}
+.animate-slot-in {
+  animation: slot-in 0.5s ease-out forwards;
+}
+
+@keyframes defocus-fade {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.animate-defocus-fade {
+  animation: defocus-fade 0.8s ease-in-out forwards;
+}
+
+/* === Theme 1: Light (Illuminated Canvas) === */
+/* A slow, multi-directional pan used for subtle background light shifts. */
+@keyframes gradient-pan {
+  0% {
+    background-position: 0% 50%;
   }
   50% {
-    transform: translateY(-10px);
+    background-position: 100% 50%;
   }
   100% {
-    transform: translateY(0);
+    background-position: 0% 50%;
   }
 }
-
-.animate-float {
-  animation: float 12s ease-in-out infinite;
+.animate-gradient-pan {
+  animation: gradient-pan 25s ease infinite;
 }
 
-@keyframes clouds {
+/* === Theme 2: Dark (Cosmic Noir) === */
+/* Slow scroll for distant, primary starfield */
+@keyframes star-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-2000px, 500px, 0);
+  }
+}
+.animate-star-scroll {
+  animation: star-scroll 300s linear infinite;
+}
+
+/* Faster scroll for closer, parallax star layers */
+@keyframes deep-star-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-3000px, 750px, 0);
+  }
+}
+.animate-deep-star-scroll {
+  animation: deep-star-scroll 250s linear infinite;
+}
+
+/* === Theme 3: Cyberpunk (Midnight Alley, Neon Rain) === */
+/* Simulates the endless scroll of a data rain terminal background */
+@keyframes data-rain {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 -1000px;
+  }
+}
+.animate-data-rain {
+  animation: data-rain 25s linear infinite;
+}
+
+/* The classic, unstable neon sign flicker for primary text elements */
+@keyframes neon-flicker {
+  0%, 18%, 22%, 24%, 53%, 55%, 100% {
+    opacity: 1;
+    text-shadow:
+      0 0 4px #fff,
+      0 0 10px hsl(var(--primary)),
+      0 0 20px hsl(var(--primary) / 0.8),
+      0 0 30px hsl(var(--primary) / 0.7);
+  }
+  20%, 23%, 54% {
+    opacity: 0.7;
+    text-shadow: none;
+  }
+}
+.animate-neon-flicker {
+  animation: neon-flicker 4s linear infinite;
+}
+
+/* === Theme 4: Ethereal (Lucid Dreamscape) === */
+/* Used for the soft, flowing gradients in the Ethereal theme background. */
+@keyframes dreamscape-flow {
   0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.animate-dreamscape-flow {
+  animation: dreamscape-flow 25s ease infinite;
+}
+
+/* The gentle floating motion for UI elements */
+@keyframes float-subtle {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+.animate-float-subtle {
+  animation: float-subtle 10s ease-in-out infinite;
+}
+
+/* === Theme 5: Horizon (Dynamic Day Cycle) === */
+/* Ultra-slow movement for atmospheric cloud layers in the skybox */
+@keyframes sky-pan {
+  from {
     background-position: 0% 0%;
   }
-  50% {
-    background-position: 100% 100%;
-  }
-  100% {
-    background-position: 0% 0%;
+  to {
+    background-position: 200% 0%;
   }
 }
-
-.animate-clouds {
-  animation: clouds 20s linear infinite;
-  background-size: 400% 400%;
+.animate-sky-pan {
+  animation: sky-pan 120s linear infinite;
 }
 
-/* === HORIZON THEME === */
-@keyframes horizon-fade {
-  0%,
-  100% {
-    opacity: 0.25;
+/* Subtle pulsing effect for the "sun" or a lens flare element */
+@keyframes lens-flare-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
   }
   50% {
-    opacity: 0.35;
+    transform: scale(1.1);
+    opacity: 1;
   }
 }
-
-.animate-horizon-fade {
-  animation: horizon-fade 10s ease-in-out infinite;
+.animate-lens-flare-pulse {
+  animation: lens-flare-pulse 9s ease-in-out infinite;
 }
 
-@keyframes sunrays {
-  0% {
-    transform: rotate(0deg) scale(1);
-  }
-  100% {
-    transform: rotate(360deg) scale(1.05);
-  }
-}
-
-.animate-sunrays {
-  animation: sunrays 40s linear infinite;
-  transform-origin: center;
-}
-
-@keyframes heatwave {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.1;
+/* === Theme 6: Mirage (Hallucinatory Oasis) === */
+/* Creates a subtle, wavy distortion effect like desert heat */
+@keyframes heat-shimmer-subtle {
+  0%, 100% {
+    transform: skewX(0deg);
   }
   50% {
-    transform: translateY(-2px);
-    opacity: 0.2;
+    transform: skewX(0.15deg);
   }
 }
-
-.animate-heatwave {
-  animation: heatwave 12s ease-in-out infinite;
+.animate-heat-shimmer-subtle {
+  animation: heat-shimmer-subtle 8s ease-in-out infinite alternate;
 }
 
-/* === MIRAGE THEME === */
-@keyframes mirage-shift {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.25;
-  }
-  50% {
-    transform: translateY(-1.5%) scale(1.01);
-    opacity: 0.3;
-  }
-}
-
-.animate-mirage-shift {
-  animation: mirage-shift 20s ease-in-out infinite;
-}
-
-@keyframes refract {
-  0%,
-  100% {
-    transform: translateX(0);
-    opacity: 0.1;
-  }
-  50% {
-    transform: translateX(2%) scale(1.02);
-    opacity: 0.15;
-  }
-}
-
-.animate-refract {
-  animation: refract 16s ease-in-out infinite;
-}
-
-@keyframes blur-pulse {
-  0%,
-  100% {
-    backdrop-filter: blur(2px);
-  }
-  50% {
-    backdrop-filter: blur(3px);
-  }
-}
-
-.animate-blur-pulse {
-  animation: blur-pulse 14s ease-in-out infinite;
-}
+/* === Theme 7: Simple === */
+/* Intentionally blank to ensure zero motion for maximum accessibility. */

@@ -1,15 +1,3 @@
-/**
- * @file: src/components/layout/Navbar.tsx
- * @description: The main navigation header for the application.
- *
- * This component features a responsive design that includes:
- * - A desktop navigation with an animated active link indicator.
- * - A full-screen, animated mobile navigation overlay.
- * - An animation that hides the navbar when scrolling down and reveals it
- *   when scrolling up.
- * - Robust centering to prevent layout shifts from scrollbar presence.
- */
-
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -18,12 +6,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// --- CORE COMPONENTS & HOOKS ---
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useScroll } from "@/hooks/useScroll";
+import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
-// --- DATA ---
+// --- Data: Navigation Links ---
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
@@ -32,56 +20,86 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-// --- MAIN NAVBAR COMPONENT ---
+// --- Main Navbar Component ---
 export function Navbar() {
   const { scrolledDown } = useScroll();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Close the mobile menu when the screen is resized to desktop width
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        // md breakpoint
-        setIsMenuOpen(false);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
     <header>
-      {/* This motion.nav handles the "hide on scroll" animation */}
       <motion.nav
         initial={{ y: 0 }}
         animate={{ y: scrolledDown ? -100 : 0 }}
         transition={{ type: "spring", bounce: 0.25, duration: 0.8 }}
-        // This combination of classes is the definitive fix for centering
-        // a fixed element while avoiding layout shift when the scrollbar appears.
-        className="-translate-x-1/2 fixed top-4 left-1/2 z-50 flex w-[90%] max-w-screen-md items-center justify-between rounded-full border border-border/20 bg-background/80 px-4 py-2 shadow-black/5 shadow-lg backdrop-blur-lg"
+        className={cn(
+          // --- Core Layout Strategy for a Balanced, Compact Feel ---
+          // 1. `w-auto`: The navbar shrinks to the width of its content.
+          // 2. `justify-center`: All content blocks are centered within the navbar.
+          // 3. `gap-x-4` & `md:gap-x-6`: Creates a healthy, responsive space BETWEEN the main groups.
+          // 4. `px-4`: Provides the essential padding at the far ends, giving the corner elements breathing room.
+          "-translate-x-1/2 fixed top-4 left-1/2 z-50 flex w-auto items-center justify-center gap-x-4 px-4",
+          "rounded-full border border-border/20 bg-background/80 py-2 shadow-lg backdrop-blur-lg md:gap-x-6"
+        )}
         aria-label="Main navigation"
       >
-        <Link
-          href="/"
-          className="bg-gradient-to-r from-primary to-accent bg-clip-text font-extrabold text-2xl text-transparent transition-opacity hover:opacity-80"
-          aria-label="Go to homepage"
-        >
-          Divij
-        </Link>
+        {/* --- Left Group --- */}
+        <div className="flex items-center gap-x-2">
+          <ThemeCycleIcon />
+          <Link
+            href="/"
+            className="bg-gradient-to-r from-primary to-accent bg-clip-text font-extrabold text-transparent text-xl transition-opacity hover:opacity-80"
+            aria-label="Go to homepage"
+          >
+            Divij
+          </Link>
+        </div>
 
-        {/* Desktop Navigation in the center */}
-        <DesktopNav />
+        {/* --- Center Group --- */}
+        <div className="hidden items-center gap-x-4 md:flex">
+          <div className="h-6 w-px bg-border/30" />
+          <DesktopNav />
+          <div className="h-6 w-px bg-border/30" />
+        </div>
 
-        {/* Right-aligned items */}
-        <div className="flex items-center gap-1">
+        {/* --- Right Group --- */}
+        <div className="flex items-center justify-end gap-x-1">
           <ThemeToggle />
           <MobileNavToggle isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
         </div>
       </motion.nav>
-
-      {/* The mobile menu is separate so its state doesn't affect the nav's animation. */}
       <MobileMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
     </header>
+  );
+}
+
+// --- Sub-component: Theme Cycle Icon ---
+function ThemeCycleIcon() {
+  const { cycleTheme, theme, isMounted } = useTheme();
+
+  return (
+    <motion.button
+      key={isMounted ? theme.name : "placeholder"}
+      type="button"
+      onClick={cycleTheme}
+      aria-label="Cycle to next theme"
+      className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-muted-foreground transition-colors duration-500 hover:bg-primary/30"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", duration: 0.2 }}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={isMounted ? theme.name : "icon-placeholder"}
+          initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
+          transition={{ type: "spring", duration: 0.35, bounce: 0 }}
+          className="absolute"
+        >
+          {isMounted ? <theme.icon className="h-5 w-5" /> : <div className="h-5 w-5" />}
+        </motion.div>
+      </AnimatePresence>
+    </motion.button>
   );
 }
 
@@ -89,31 +107,31 @@ export function Navbar() {
 function DesktopNav() {
   const pathname = usePathname();
   return (
-    // Centered navigation for desktop, hidden on mobile
-    <ul className="hidden items-center gap-2 md:flex">
-      {navLinks.map((link) => (
-        <li key={link.href}>
-          <Link
-            href={link.href}
-            className={cn(
-              "relative rounded-full px-3 py-1 font-medium text-base text-muted-foreground transition-colors hover:text-foreground",
-              pathname === link.href && "text-primary"
-            )}
-            aria-current={pathname === link.href ? "page" : undefined}
-          >
-            {link.label}
-            {/* The animated underline for the active link */}
-            {pathname === link.href && (
-              <motion.div
-                className="absolute inset-x-0 bottom-[-2px] h-[2px] w-full bg-primary"
-                layoutId="underline"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
-            )}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <nav>
+      <ul className="flex items-center gap-x-2">
+        {navLinks.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className={cn(
+                "relative rounded-full px-3 py-1 font-medium text-base text-muted-foreground transition-colors hover:text-foreground",
+                pathname === link.href && "font-semibold text-primary"
+              )}
+              aria-current={pathname === link.href ? "page" : undefined}
+            >
+              {link.label}
+              {pathname === link.href && (
+                <motion.div
+                  className="absolute inset-x-0 bottom-[-2px] h-[2px] w-full bg-primary"
+                  layoutId="underline"
+                  transition={{ type: "spring", duration: 0.5 }}
+                />
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -129,21 +147,11 @@ function MobileNavToggle({
     <button
       type="button"
       onClick={() => setIsMenuOpen(!isMenuOpen)}
-      className="relative z-50 flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary md:hidden"
+      className="relative z-50 rounded-full p-2 text-foreground transition-colors hover:bg-secondary md:hidden"
       aria-label="Toggle menu"
       aria-expanded={isMenuOpen}
     >
-      <AnimatePresence initial={false} mode="wait">
-        <motion.div
-          key={isMenuOpen ? "close" : "open"}
-          initial={{ rotate: -45, opacity: 0, scale: 0.7 }}
-          animate={{ rotate: 0, opacity: 1, scale: 1 }}
-          exit={{ rotate: 45, opacity: 0, scale: 0.7 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-        >
-          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </motion.div>
-      </AnimatePresence>
+      {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
     </button>
   );
 }
@@ -156,14 +164,12 @@ function MobileMenu({
   isMenuOpen: boolean;
   setIsMenuOpen: (isOpen: boolean) => void;
 }) {
-  // This effect correctly prevents body scrolling when the full-screen menu is open.
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
-    // Cleanup function restores scrolling when the component unmounts
     return () => {
       document.body.style.overflow = "auto";
     };
@@ -176,9 +182,8 @@ function MobileMenu({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          // A fixed container with a high z-index to overlay all other content
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-xl md:hidden"
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 top-0 z-40 h-dvh bg-background/80 backdrop-blur-xl md:hidden"
         >
           <motion.ul
             initial="hidden"
@@ -187,20 +192,16 @@ function MobileMenu({
               hidden: { transition: { staggerChildren: 0.05, staggerDirection: -1 } },
               show: { transition: { staggerChildren: 0.1 } },
             }}
-            className="flex h-dvh flex-col items-center justify-center gap-8"
+            className="flex h-full flex-col items-center justify-center gap-10"
           >
             {navLinks.map((link) => (
               <motion.li
                 key={link.href}
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  show: { opacity: 1, y: 0 },
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
               >
                 <Link
                   href={link.href}
-                  onClick={() => setIsMenuOpen(false)} // Close menu on link click
+                  onClick={() => setIsMenuOpen(false)}
                   className="block text-center font-bold text-3xl text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {link.label}
