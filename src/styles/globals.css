@@ -50,7 +50,6 @@
   }
 
   /* --- Theme 1: Modernist Gallery --- */
-  /* Identity: Clean, neutral, and professional. Inspired by a high-end art gallery. Timeless and confident. CR > 16:1 */
   :root,
   [data-theme="light"] {
     color-scheme: light;
@@ -77,7 +76,6 @@
   }
 
   /* --- Theme 2: The Abyss --- */
-  /* Identity: The quiet, immense void of deep space, using a serious purple for instrumentation. High-contrast and functional. CR > 15:1 */
   [data-theme="dark"] {
     color-scheme: dark;
     --background: 240 12% 6%;
@@ -102,30 +100,29 @@
     --radius: 0.5rem;
   }
 
-  /* --- Theme 3: Corporate Dystopia --- */
-  /* Identity: An oppressive, cold, corporate-controlled future. The aesthetic is menacing, industrial, and sharp. CR > 9:1 */
+  /* --- Theme 3: Night City Underbelly --- */
   [data-theme="cyberpunk"] {
     color-scheme: dark;
-    --background: 190 20% 6%;
-    --foreground: 180 20% 85%;
-    --card: 190 20% 9%;
-    --card-foreground: 180 20% 85%;
-    --popover: 190 20% 5%;
-    --popover-foreground: 180 20% 85%;
-    --primary: 30 100% 60%;
-    --primary-foreground: 30 100% 5%;
-    --secondary: 190 15% 30%;
-    --secondary-foreground: 180 20% 90%;
-    --muted: 190 20% 12%;
-    --muted-foreground: 180 20% 60%;
-    --accent: 30 100% 65%;
-    --accent-foreground: 30 100% 5%;
-    --destructive: 0 85% 55%;
+    --background: 230 15% 7%;
+    --foreground: 60 100% 95%;
+    --card: 230 15% 10%;
+    --card-foreground: 60 100% 95%;
+    --popover: 230 15% 6%;
+    --popover-foreground: 60 100% 95%;
+    --primary: 180 100% 50%;
+    --primary-foreground: 180 100% 5%;
+    --secondary: 320 100% 60%;
+    --secondary-foreground: 320 100% 10%;
+    --muted: 230 15% 13%;
+    --muted-foreground: 230 15% 65%;
+    --accent: 320 100% 65%;
+    --accent-foreground: 320 100% 10%;
+    --destructive: 0 100% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 190 20% 18%;
-    --input: 190 20% 12%;
-    --ring: 30 100% 65%;
-    --radius: 0.2rem;
+    --border: 180 100% 15%;
+    --input: 230 15% 11%;
+    --ring: 320 100% 65%;
+    --radius: 0.1rem;
   }
 
   /* --- Theme 4: Ethereal (Preserved) --- */
@@ -179,7 +176,6 @@
   }
 
   /* --- Theme 6: Mirage --- */
-  /* Identity: The oppressive heat of a desert, where a cool blue oasis is a deceptive and welcome relief. CR > 11:1 */
   [data-theme="mirage"] {
     color-scheme: light;
     --background: 40 50% 97%;
@@ -205,7 +201,6 @@
   }
 
   /* --- Theme 7: Naturalist --- */
-  /* Identity: The warm, comforting feel of natural, earthy materials. High-readability meets organic comfort. CR > 10:1 */
   [data-theme="simple"] {
     color-scheme: light;
     --background: 35 40% 96%;
@@ -231,17 +226,25 @@
   }
 
   /* 4. --- BASE STYLES --- */
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  /* THE DEFINITIVE FIX: Use a more specific selector to guarantee these base styles are applied. */
+  html[data-theme] body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    transition: background-color 0.4s ease, color 0.4s ease;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    transition:
+      background-color 0.4s ease,
+      color 0.4s ease;
   }
 
   *:focus-visible {
@@ -249,7 +252,6 @@
     outline-offset: 2px;
     border-radius: calc(var(--radius) + 2px);
   }
-
   ::-webkit-scrollbar {
     width: 10px;
   }
@@ -265,7 +267,6 @@
   ::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--ring));
   }
-
   ::selection {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));

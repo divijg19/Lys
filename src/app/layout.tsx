@@ -15,17 +15,16 @@ import { Toaster } from "sonner";
 // --- LAYOUT COMPONENTS ---
 import { ClientFooter } from "@/components/layout/ClientFooter";
 import { Navbar } from "@/components/layout/Navbar";
-import ThemeBackground from "@/components/theme/ThemeBackground"; // <-- IMPORT THEME EFFECTS
+import ThemeBackground from "@/components/theme/ThemeBackground";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 // --- UTILS & STYLES ---
 import { geistMono, geistSans } from "@/lib/fonts";
-import { THEME_NAMES } from "@/lib/themes"; // <-- IMPORT THEME NAMES
+import { THEME_NAMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import "@/styles/globals.css";
 
-// --- METADATA & VIEWPORT (PRESERVED) ---
-// This is perfectly configured for SEO and a great cross-device experience.
+// --- METADATA & VIEWPORT ---
 export const metadata: Metadata = {
   title: {
     default: "Divij Ganjoo",
@@ -69,16 +68,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={cn("scroll-smooth", geistSans.variable, geistMono.variable)}
       suppressHydrationWarning // Essential for next-themes to prevent hydration errors
     >
-      <body className={cn("min-h-screen bg-background font-sans text-foreground antialiased")}>
+      <body
+        // THE DEFINITIVE FIX:
+        // The `text-foreground` class has been REMOVED.
+        // The `color: hsl(var(--foreground))` in globals.css now correctly controls the base text color.
+        className={cn("min-h-screen bg-background font-sans antialiased")}
+      >
         {/* --- THEME PROVIDER SETUP --- */}
         <ThemeProvider
-          attribute="data-theme" // <-- CRITICAL: Aligns with your globals.css
-          defaultTheme="light" // <-- Sets a safe default
-          enableSystem={false} // <-- Disables system preference for full user control
-          themes={[...THEME_NAMES]} // <-- Provides all 7 theme names
+          attribute="data-theme"
+          defaultTheme="light"
+          enableSystem={false}
+          themes={[...THEME_NAMES]}
         >
           {/* --- DYNAMIC BACKGROUND EFFECTS --- */}
-          {/* This renders the animated backgrounds behind all other content */}
           <ThemeBackground />
 
           {/* Accessibility best practice: "Skip to Main Content" link */}
@@ -90,7 +93,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </a>
 
           {/* --- MAIN CONTENT WRAPPER --- */}
-          {/* This div stacks your UI on top of the background effects */}
           <div className="relative z-10 flex min-h-dvh flex-col">
             <Navbar />
             <main id="main-content" className="container flex-1 py-8 md:py-12">
