@@ -67,6 +67,7 @@ src/components/sections/Expertise.tsx
 src/components/sections/Hero.tsx
 src/components/sections/HeroSkeleton.tsx
 src/components/sections/ProjectsPreview.tsx
+src/components/theme/ThemeBackground.tsx
 src/components/theme/ThemeProvider.tsx
 src/components/theme/ThemeToggle.tsx
 src/components/ui/Badge.stories.tsx
@@ -101,7 +102,6 @@ src/lib/types.ts
 src/lib/utils.ts
 src/styles/animations.css
 src/styles/globals.css
-src/styles/themes.css
 tailwind.config.ts
 tsconfig.json
 velite.config.ts

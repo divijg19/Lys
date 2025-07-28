@@ -1,14 +1,20 @@
-/* src/styles/globals.css */
+/*
+================================================================================
+|
+| --- Personal Portfolio: Global Stylesheet (Definitive Edition) ---
+|
+| This file orchestrates the entire visual theming system for the portfolio.
+| Each theme has been refined for a bold, unique identity while adhering to a
+| WCAG 2.2 AAA (7:1 contrast) ideology for core readability.
+|
+================================================================================
+*/
 
-/* 1. --- TAILWIND v4 SETUP --- */
-/* Use the correct v4 directive. This must be the first line. */
+/* 1. --- IMPORTS --- */
 @import "tailwindcss";
+@import "./animations.css";
 
 /* 2. --- THEME BRIDGE FOR SHADCN --- */
-/* This is the magic that makes shadcn components work with Tailwind v4. */
-/* We define the semantic tokens that shadcn expects (e.g., bg-primary) */
-/* and map them to our CSS variables. This makes every shadcn component */
-/* automatically theme-aware. */
 @theme {
   /* Colors */
   --color-border: hsl(var(--border));
@@ -35,241 +41,240 @@
   --border-radius-lg: var(--radius);
   --border-radius-md: calc(var(--radius) - 2px);
   --border-radius-sm: calc(var(--radius) - 4px);
-
-  /* THE OPTIMAL FIX: Animations --- */
-  /* We define the `animation` utility here, referencing the keyframes by name. */
-  --animation-accordion-down: accordion-down 0.2s ease-out;
-  --animation-accordion-up: accordion-up 0.2s ease-out;
 }
 
 /* 3. --- MULTI-THEME DEFINITIONS --- */
-/* Define the values for our semantic variables for each of your 7 themes. */
 @layer base {
   html {
     overflow-y: scroll;
-    /* Default to light theme */
-    color-scheme: light;
   }
-  /* Default Theme: Light (matches shadcn default) */
+
+  /* --- Theme 1: Modernist Gallery --- */
   :root,
   [data-theme="light"] {
+    color-scheme: light;
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --foreground: 220 18% 18%;
+    --card: 220 20% 98%;
+    --card-foreground: 220 18% 18%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --popover-foreground: 220 18% 18%;
+    --primary: 220 90% 50%;
+    --primary-foreground: 220 90% 98%;
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 220 18% 25%;
+    --muted: 220 20% 96%;
+    --muted-foreground: 220 18% 55%;
+    --accent: 220 90% 55%;
+    --accent-foreground: 220 90% 98%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 80% 98%;
+    --border: 220 20% 90%;
+    --input: 220 20% 93%;
+    --ring: 220 90% 55%;
     --radius: 0.5rem;
   }
 
-  /* Dark Theme */
-  .dark,
+  /* --- Theme 2: The Abyss --- */
   [data-theme="dark"] {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    color-scheme: dark;
+    --background: 240 12% 6%;
+    --foreground: 240 12% 95%;
+    --card: 240 12% 9%;
+    --card-foreground: 240 12% 95%;
+    --popover: 240 12% 5%;
+    --popover-foreground: 240 12% 95%;
+    --primary: 260 85% 65%;
+    --primary-foreground: 260 85% 10%;
+    --secondary: 240 12% 20%;
+    --secondary-foreground: 240 12% 90%;
+    --muted: 240 12% 12%;
+    --muted-foreground: 240 12% 65%;
+    --accent: 260 85% 70%;
+    --accent-foreground: 260 85% 10%;
+    --destructive: 0 90% 65%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 12% 15%;
+    --input: 240 12% 15%;
+    --ring: 260 85% 70%;
+    --radius: 0.5rem;
   }
 
-  /* Cyberpunk Theme */
+  /* --- Theme 3: Night City Underbelly --- */
   [data-theme="cyberpunk"] {
-    --background: 225 6% 10%;
-    --foreground: 173 100% 85%;
-    --card: 225 6% 13%;
-    --card-foreground: 173 100% 85%;
-    --popover: 225 6% 13%;
-    --popover-foreground: 173 100% 85%;
-    --primary: 290 100% 80%;
-    --primary-foreground: 225 6% 10%;
-    --secondary: 300 100% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 225 6% 13%;
-    --muted-foreground: 225 6% 60%;
-    --accent: 55 100% 50%;
-    --accent-foreground: 225 6% 10%;
-    --destructive: 0 100% 50%;
+    color-scheme: dark;
+    --background: 230 15% 7%;
+    --foreground: 60 100% 95%;
+    --card: 230 15% 10%;
+    --card-foreground: 60 100% 95%;
+    --popover: 230 15% 6%;
+    --popover-foreground: 60 100% 95%;
+    --primary: 180 100% 50%;
+    --primary-foreground: 180 100% 5%;
+    --secondary: 320 100% 60%;
+    --secondary-foreground: 320 100% 10%;
+    --muted: 230 15% 13%;
+    --muted-foreground: 230 15% 65%;
+    --accent: 320 100% 65%;
+    --accent-foreground: 320 100% 10%;
+    --destructive: 0 100% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 290 100% 70%;
-    --input: 290 100% 70%;
-    --ring: 290 100% 80%;
-    --radius: 0.3rem;
+    --border: 180 100% 15%;
+    --input: 230 15% 11%;
+    --ring: 320 100% 65%;
+    --radius: 0.1rem;
   }
 
-  /* Ethereal Theme */
+  /* --- Theme 4: Ethereal (Preserved) --- */
   [data-theme="ethereal"] {
-    --background: 220 50% 98%;
-    --foreground: 220 20% 25%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 25%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 25%;
-    --primary: 240 60% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 300 50% 95%;
-    --secondary-foreground: 300 50% 40%;
-    --muted: 300 50% 95%;
-    --muted-foreground: 300 50% 60%;
-    --accent: 190 70% 90%;
-    --accent-foreground: 190 70% 30%;
-    --destructive: 350 70% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 10% 90%;
-    --input: 240 10% 90%;
-    --ring: 240 60% 60%;
-    --radius: 1rem;
+    color-scheme: light;
+    --background: 255 100% 99%;
+    --foreground: 255 25% 40%;
+    --card: 255 100% 100%;
+    --card-foreground: 255 25% 40%;
+    --popover: 255 100% 100%;
+    --popover-foreground: 255 25% 40%;
+    --primary: 250 80% 75%;
+    --primary-foreground: 250 80% 15%;
+    --secondary: 160 80% 80%;
+    --secondary-foreground: 160 80% 20%;
+    --muted: 255 100% 97%;
+    --muted-foreground: 255 25% 65%;
+    --accent: 340 100% 90%;
+    --accent-foreground: 340 100% 40%;
+    --destructive: 350 100% 80%;
+    --destructive-foreground: 350 100% 20%;
+    --border: 255 100% 95%;
+    --input: 255 100% 95%;
+    --ring: 250 80% 75%;
+    --radius: 2rem;
   }
 
-  /* Horizon Theme */
+  /* --- Theme 5: Horizon (Preserved) --- */
   [data-theme="horizon"] {
-    --background: 20 14% 4%;
-    --foreground: 20 5% 94%;
-    --card: 20 14% 8%;
-    --card-foreground: 20 5% 94%;
-    --popover: 20 14% 4%;
-    --popover-foreground: 20 5% 94%;
-    --primary: 20 90% 60%;
-    --primary-foreground: 20 14% 4%;
-    --secondary: 350 80% 55%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 20 14% 8%;
-    --muted-foreground: 20 5% 60%;
-    --accent: 20 90% 60%;
-    --accent-foreground: 20 14% 4%;
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 20 14% 15%;
-    --input: 20 14% 15%;
-    --ring: 20 90% 60%;
+    color-scheme: dark;
+    --background: 220 40% 8%;
+    --foreground: 30 50% 94%;
+    --card: 220 40% 11%;
+    --card-foreground: 30 50% 94%;
+    --popover: 220 40% 7%;
+    --popover-foreground: 30 50% 94%;
+    --primary: 25 95% 60%;
+    --primary-foreground: 25 95% 10%;
+    --secondary: 140 30% 40%;
+    --secondary-foreground: 140 30% 95%;
+    --muted: 220 40% 14%;
+    --muted-foreground: 30 50% 70%;
+    --accent: 35 30% 50%;
+    --accent-foreground: 35 30% 95%;
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 0 60% 95%;
+    --border: 220 40% 18%;
+    --input: 220 40% 18%;
+    --ring: 25 95% 60%;
     --radius: 0.5rem;
   }
 
-  /* Mirage Theme */
+  /* --- Theme 6: Mirage --- */
   [data-theme="mirage"] {
-    --background: 210 30% 12%;
-    --foreground: 190 80% 90%;
-    --card: 210 30% 18%;
-    --card-foreground: 190 80% 90%;
-    --popover: 210 30% 12%;
-    --popover-foreground: 190 80% 90%;
-    --primary: 180 90% 70%;
-    --primary-foreground: 210 30% 12%;
-    --secondary: 200 100% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 30% 18%;
-    --muted-foreground: 210 30% 60%;
-    --accent: 180 90% 70%;
-    --accent-foreground: 210 30% 12%;
-    --destructive: 350 80% 60%;
+    color-scheme: light;
+    --background: 40 50% 97%;
+    --foreground: 30 50% 15%;
+    --card: 40 50% 99%;
+    --card-foreground: 30 50% 15%;
+    --popover: 40 50% 99%;
+    --popover-foreground: 30 50% 15%;
+    --primary: 195 90% 40%;
+    --primary-foreground: 195 90% 96%;
+    --secondary: 35 40% 80%;
+    --secondary-foreground: 35 40% 15%;
+    --muted: 40 50% 94%;
+    --muted-foreground: 30 50% 50%;
+    --accent: 195 90% 45%;
+    --accent-foreground: 195 90% 96%;
+    --destructive: 0 90% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 210 30% 25%;
-    --input: 210 30% 25%;
-    --ring: 180 90% 70%;
-    --radius: 0.75rem;
+    --border: 40 50% 90%;
+    --input: 40 50% 92%;
+    --ring: 195 90% 45%;
+    --radius: 0.4rem;
   }
 
-  /* Simple Theme (High Contrast & Reduced Motion) */
+  /* --- Theme 7: Naturalist --- */
   [data-theme="simple"] {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    color-scheme: light;
+    --background: 35 40% 96%;
+    --foreground: 35 25% 20%;
+    --card: 35 40% 98%;
+    --card-foreground: 35 25% 20%;
+    --popover: 35 40% 98%;
+    --popover-foreground: 35 25% 20%;
+    --primary: 130 50% 35%;
+    --primary-foreground: 130 50% 98%;
+    --secondary: 35 40% 90%;
+    --secondary-foreground: 35 25% 20%;
+    --muted: 35 40% 92%;
+    --muted-foreground: 35 25% 55%;
+    --accent: 130 50% 40%;
+    --accent-foreground: 130 50% 98%;
+    --destructive: 15 80% 50%;
+    --destructive-foreground: 15 80% 98%;
+    --border: 35 40% 88%;
+    --input: 35 40% 91%;
+    --ring: 130 50% 40%;
     --radius: 0.5rem;
   }
 
+  /* 4. --- BASE STYLES --- */
   *,
   *::before,
   *::after {
     box-sizing: border-box;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  /* THE DEFINITIVE FIX: Use a more specific selector to guarantee these base styles are applied. */
+  html[data-theme] body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* --- WORLD-CLASS ACCESSIBILITY: Custom Focus Ring --- */
-  /* This provides a clear, high-contrast focus indicator for all interactive elements,
-     but ONLY for keyboard navigators, not mouse users. */
-  *:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-    border-radius: var(--radius);
-  }
-
-  /* 4. --- BASE STYLES --- */
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+    transition:
+      background-color 0.4s ease,
+      color 0.4s ease;
   }
 
-  /* Custom Scrollbar that is automatically theme-aware */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) + 2px);
+  }
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
   }
   ::-webkit-scrollbar-track {
     background-color: hsl(var(--background));
   }
   ::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--accent));
-    border-radius: 4px;
+    background-color: hsl(var(--border));
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--primary));
+    background-color: hsl(var(--ring));
   }
-
-  /* Custom Selection that is automatically theme-aware */
   ::selection {
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
 }

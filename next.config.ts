@@ -15,8 +15,6 @@ const nextConfig: NextConfig = {
   // Cutting-edge React 19 & Next.js experimental features
   experimental: {
     reactCompiler: true,
-    //ppr: true,
-    //cacheComponents: true,
     inlineCss: true,
     mdxRs: true,
     optimizePackageImports: [
@@ -27,7 +25,6 @@ const nextConfig: NextConfig = {
       "three",
       "@react-three/fiber",
       "@react-three/drei",
-      "@react-three/rapier",
       "date-fns",
       "clsx",
       "tailwind-merge",
@@ -39,6 +36,7 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: ["sharp", "canvas", "jsdom"],
 
+  // Defines how to handle SVGs when using the Turbopack bundler.
   turbopack: {
     rules: {
       "*.svg": { loaders: ["@svgr/webpack"], as: "*.js" },
@@ -76,7 +74,7 @@ const nextConfig: NextConfig = {
     unoptimized: false,
   },
 
-  // Advanced security & performance headers to protect against common attacks
+  // Advanced security & performance headers
   async headers() {
     return [
       {
@@ -98,6 +96,7 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Cache-control headers for static assets
       {
         source: "/images/(.*)",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
@@ -113,7 +112,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Smart redirects for SEO and user convenience
+  // Smart redirects
   async redirects() {
     return [
       { source: "/github", destination: "https://github.com/divijg19", permanent: false },
@@ -126,50 +125,65 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // World-class webpack optimizations
+  // Defines how to handle SVGs when using the standard Webpack bundler.
   webpack: (
     config: WebpackConfiguration,
     { dev, isServer }: { dev: boolean; isServer: boolean }
   ) => {
+    // Enable bundle analysis if requested
     if (process.env.ANALYZE === "true") {
       const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
       config.plugins = config.plugins || [];
-      config.plugins.push(
-        new BundleAnalyzerPlugin({
-          // analyzerMode: "server",
-          // openAnalyzer: true,
-        })
-      );
+      config.plugins.push(new BundleAnalyzerPlugin());
     }
 
     config.module = config.module || {};
     config.module.rules = config.module.rules || [];
-    // This rule is for SVGs, it should not conflict with the MDX loader
+
+    // --- REFINED SVG HANDLING FOR WEBPACK ---
+    // This pattern finds Next.js's default image rule and excludes SVGs from it.
+    // Then, it adds a new, dedicated rule to handle SVGs as React components using @svgr/webpack.
+    // This is the most stable and conflict-free method.
+    const imageRule = config.module.rules.find((rule) => {
+      if (rule && typeof rule === "object" && rule.test instanceof RegExp) {
+        return rule.test.test(".svg");
+      }
+      return false;
+    });
+
+    if (imageRule && typeof imageRule === "object") {
+      imageRule.exclude = /\.svg$/;
+    }
+
     config.module.rules.push({
       test: /\.svg$/,
       use: [
         {
           loader: "@svgr/webpack",
           options: {
-            /* svgr options */
+            icon: true, // A good default for consistent sizing
+            svgoConfig: {
+              plugins: [
+                { name: "preset-default", params: { overrides: { removeViewBox: false } } },
+              ],
+            },
           },
         },
       ],
     });
+    // --- End SVG Handling ---
 
+    // Production-specific optimizations
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
-        splitChunks: {
-          // Your cacheGroups config can go here
-        },
         usedExports: true,
         sideEffects: false,
         concatenateModules: true,
       };
     }
 
-    // --- OPTIMIZATION: Robust Path Aliasing ---
+    // Path aliasing for a clean codebase
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -181,14 +195,13 @@ const nextConfig: NextConfig = {
     };
 
     config.performance = {
-      maxAssetSize: 250000,
-      maxEntrypointSize: 250000,
       hints: process.env.NODE_ENV === "production" ? "warning" : false,
     };
 
     return config;
   },
 
+  // General configuration
   output: process.env.EXPORT === "true" ? "export" : undefined,
   distDir: ".next",
   async generateBuildId() {
