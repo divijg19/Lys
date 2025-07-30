@@ -36,10 +36,17 @@ type Story = StoryObj<typeof Label>;
 export const Default: Story = {
   render: (args) => (
     <>
-      <Label htmlFor="email-default" {...args}>
+      <Label
+        htmlFor="email-default"
+        {...args}
+      >
         Your Email
       </Label>
-      <Input id="email-default" type="email" placeholder="your@email.com" />
+      <Input
+        id="email-default"
+        type="email"
+        placeholder="your@email.com"
+      />
     </>
   ),
 };
@@ -52,10 +59,18 @@ export const Default: Story = {
 export const Disabled: Story = {
   render: (args) => (
     <>
-      <Label htmlFor="email-disabled" {...args}>
+      <Label
+        htmlFor="email-disabled"
+        {...args}
+      >
         Your Email (Disabled)
       </Label>
-      <Input id="email-disabled" type="email" placeholder="your@email.com" disabled />
+      <Input
+        id="email-disabled"
+        type="email"
+        placeholder="your@email.com"
+        disabled
+      />
     </>
   ),
 };

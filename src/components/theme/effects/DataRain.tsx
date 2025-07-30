@@ -16,5 +16,10 @@ export const DataRain: React.FC = () => {
   // has been updated to accept this exact type.
   useDataRain(canvasRef);
 
-  return <canvas ref={canvasRef} className="-z-50 pointer-events-none fixed inset-0 opacity-30" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="-z-50 pointer-events-none fixed inset-0 opacity-30"
+    />
+  );
 };

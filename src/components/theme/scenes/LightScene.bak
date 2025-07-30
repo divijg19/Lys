@@ -1,0 +1,230 @@
+/**
+ * @file: src/components/theme/scenes/LightScene.tsx
+ * @description: Renders the "White Void" experience for the Light theme.
+ * Core Identity: "The White Void / The Anomaly and its Shroud"
+ *
+ * This definitive version creates a complete, interactive experience of a shuttle
+ * navigating a field of crystalline shards around a central anomaly, featuring
+ * a user-triggered, cinematic third-person camera view and interactive scanning.
+ * It is built to be stable, performant, and fully type-safe.
+ */
+
+'use client';
+
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { Starfield } from '@/components/theme/effects/Starfield'; // <-- DEFINITIVE FIX: Correctly import the polished Starfield component
+
+// --- 1. A strict TypeScript type for instance data. ---
+type InstanceData = {
+  id: number;
+  position: THREE.Vector3;
+  scale: THREE.Vector3;
+  rotation: THREE.Euler;
+  orbitAxis: THREE.Vector3;
+  orbitSpeed: number;
+};
+
+// --- 2. The Interactive Crystalline Shard Field ---
+function CelestialDebrisField({ setScanTarget }: { setScanTarget: (id: string | null) => void }) {
+  const count = 750;
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const [hoveredInstance, setHoveredInstance] = useState<number | null>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  const instances = useMemo<InstanceData[]>(() => {
+    const temp: InstanceData[] = [];
+    for (let i = 0; i < count; i++) {
+      const axis = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+      if (axis.lengthSq() > 0) axis.normalize();
+      temp.push({
+        id: i,
+        position: new THREE.Vector3((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80),
+        scale: new THREE.Vector3(0.1 + Math.random() * 0.2, 0.1 + Math.random() * 0.8, 0.1 + Math.random() * 0.2),
+        rotation: new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI),
+        orbitAxis: axis,
+        orbitSpeed: 0.0001 + Math.random() * 0.0005,
+      });
+    }
+    return temp;
+  }, []);
+
+  const baseColor = useMemo(() => new THREE.Color('hsl(var(--foreground))'), []);
+  const scanColor = useMemo(() => new THREE.Color('#5A4F8B'), []);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (mesh) {
+      instances.forEach((data, i) => {
+        dummy.position.copy(data.position);
+        dummy.scale.copy(data.scale);
+        dummy.rotation.copy(data.rotation);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+        mesh.setColorAt(i, baseColor);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
+  }, [instances, baseColor, dummy]);
+
+  useFrame((state) => {
+    const mesh = meshRef.current;
+    if (mesh) {
+      state.raycaster.setFromCamera(state.pointer, state.camera);
+      const intersection = state.raycaster.intersectObject(mesh);
+      const newHoveredId = intersection.length > 0 ? intersection[0].instanceId ?? null : null;
+
+      if (newHoveredId !== hoveredInstance) {
+        if (hoveredInstance !== null) mesh.setColorAt(hoveredInstance, baseColor);
+        if (newHoveredId !== null) {
+          mesh.setColorAt(newHoveredId, scanColor);
+          setScanTarget(`Shard-${newHoveredId}`);
+        } else {
+          setScanTarget(null);
+        }
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+        setHoveredInstance(newHoveredId);
+      }
+
+      instances.forEach((data, i) => {
+        dummy.position.copy(data.position);
+        dummy.scale.copy(data.scale);
+        dummy.position.applyAxisAngle(data.orbitAxis, data.orbitSpeed);
+        data.position.copy(dummy.position);
+        data.rotation.y += 0.001;
+        dummy.rotation.copy(data.rotation);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <icosahedronGeometry args={[1, 0]} />
+      <meshStandardMaterial roughness={0.5} metalness={0.2} />
+    </instancedMesh>
+  );
+}
+
+// --- 3. The Central Anomaly Component ---
+function TheAnomaly() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    const mesh = meshRef.current;
+    if (mesh) {
+      mesh.rotation.y += 0.0005;
+      mesh.rotation.x += 0.0002;
+    }
+  });
+  return (
+    <mesh ref={meshRef} scale={5}>
+      <dodecahedronGeometry args={[1, 0]} />
+      <meshStandardMaterial color="hsl(var(--foreground))" roughness={0.2} metalness={0.5} />
+    </mesh>
+  );
+}
+
+// --- 4. The Definitive, Unified Camera and Shuttle Rig ---
+function CameraRig({ isThirdPerson, setDistance }: { isThirdPerson: boolean; setDistance: (d: number) => void }) {
+  const lookAtTarget = useRef(new THREE.Vector3());
+  const shuttleRef = useRef<THREE.Mesh>(null);
+  const playerPosition = useRef(new THREE.Vector3(0, 0, 40));
+
+  useFrame((state, delta) => {
+    // 1. Always update the conceptual "player's" forward motion
+    playerPosition.current.z -= delta * 0.4;
+
+    // 2. Determine camera and look-at targets based on the view mode
+    let targetPos: THREE.Vector3;
+    let lookAtPoint: THREE.Vector3;
+    const anomalyPos = new THREE.Vector3(0, 0, 0);
+
+    if (isThirdPerson) {
+      const midPoint = new THREE.Vector3().lerpVectors(playerPosition.current, anomalyPos, 0.5);
+      const offset = new THREE.Vector3(0, 5, 10);
+      targetPos = midPoint.add(offset);
+      lookAtPoint = midPoint;
+    } else {
+      targetPos = playerPosition.current;
+      lookAtPoint = new THREE.Vector3(state.pointer.x * 2, -state.pointer.y * 2, playerPosition.current.z - 15);
+    }
+
+    // 3. Smoothly interpolate the camera and its target
+    state.camera.position.lerp(targetPos, 0.05);
+    lookAtTarget.current.lerp(lookAtPoint, 0.05);
+    state.camera.lookAt(lookAtTarget.current);
+
+    // 4. Update the shuttle's position and visibility
+    const shuttle = shuttleRef.current;
+    if (shuttle) {
+      shuttle.visible = isThirdPerson;
+      shuttle.position.copy(playerPosition.current);
+      shuttle.lookAt(lookAtTarget.current);
+    }
+
+    // 5. Update the distance readout
+    setDistance(playerPosition.current.length());
+  });
+
+  return (
+    <mesh ref={shuttleRef}>
+      <coneGeometry args={[0.2, 1, 4]} />
+      <meshStandardMaterial color="hsl(var(--foreground))" metalness={0.8} roughness={0.4} />
+    </mesh>
+  );
+}
+
+// --- 5. The Main Scene Component ---
+const LightScene = () => {
+  const [isThirdPerson, setIsThirdPerson] = useState(false);
+  const [distance, setDistance] = useState(0);
+  const [scanTarget, setScanTarget] = useState<string | null>(null);
+
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true">
+        {/* Top Left HUD */}
+        <div className="absolute top-4 left-4 h-8 w-8 border-[hsl(var(--foreground)/0.2)] border-t-2 border-l-2" />
+        {/* Top Right HUD (with Toggle Camera) */}
+        <div className="absolute top-4 right-4 flex h-auto w-auto flex-col items-end border-[hsl(var(--foreground)/0.2)] border-t-2 border-r-2 p-2">
+          <p className="font-mono text-[hsl(var(--foreground)/0.5)] text-xs">
+            VIEW: {isThirdPerson ? 'THIRD-PERSON' : 'FIRST-PERSON'}
+          </p>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setIsThirdPerson((v) => !v); }}
+            className="pointer-events-auto mt-2 px-2 py-1 font-semibold text-[hsl(var(--foreground)/0.7)] text-xs uppercase tracking-widest ring-1 ring-[hsl(var(--foreground)/0.2)] transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-[hsl(var(--foreground))] active:bg-[hsl(var(--foreground)/0.1)]"
+          >
+            Toggle View
+          </button>
+        </div>
+        {/* Bottom Left HUD (Telemetry Panel) */}
+        <div className="absolute bottom-4 left-4 flex h-auto w-auto min-w-[200px] flex-col border-[hsl(var(--foreground)/0.2)] border-b-2 border-l-2 p-2">
+          <p className="font-mono text-[hsl(var(--foreground)/0.5)] text-xs">DIST. TO ANOMALY: {distance.toFixed(2)}</p>
+          <p className="font-mono text-[hsl(var(--foreground)/0.5)] text-xs">SCAN TARGET: {scanTarget ?? "NONE"}</p>
+        </div>
+        {/* Bottom Right HUD */}
+        <div className="absolute right-4 bottom-4 h-8 w-8 border-[hsl(var(--foreground)/0.2)] border-r-2 border-b-2" />
+      </div>
+      <Canvas camera={{ fov: 75, position: [0, 0, 40], near: 0.1, far: 80 }}>
+        <color attach="background" args={['#ffffff']} />
+        <fog attach="fog" args={['#ffffff', 40, 70]} />
+        <ambientLight intensity={3.0} />
+        <directionalLight position={[10, 10, 5]} intensity={1.0} />
+        <Suspense fallback={null}>
+          <TheAnomaly />
+          <CelestialDebrisField setScanTarget={setScanTarget} />
+          {/* --- DEFINITIVE FIX: Use the polished, error-free Starfield component --- */}
+          <Starfield count={500} speed={-0.03} color="hsl(var(--foreground))" size={0.002} radius={200} opacity={0.15} />
+          <CameraRig isThirdPerson={isThirdPerson} setDistance={setDistance} />
+        </Suspense>
+      </Canvas>
+    </>
+  );
+};
+
+export default LightScene;

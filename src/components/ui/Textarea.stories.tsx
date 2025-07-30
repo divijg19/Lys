@@ -59,7 +59,10 @@ export const WithLabel: Story = {
   render: (args) => (
     <>
       <Label htmlFor="message">Your Message</Label>
-      <Textarea id="message" {...args} />
+      <Textarea
+        id="message"
+        {...args}
+      />
     </>
   ),
   args: {
@@ -75,7 +78,10 @@ export const WithText: Story = {
   render: (args) => (
     <>
       <Label htmlFor="bio">Bio</Label>
-      <Textarea id="bio" {...args} />
+      <Textarea
+        id="bio"
+        {...args}
+      />
       <p className="text-muted-foreground text-sm">
         You can <span>@mention</span> other users and organizations.
       </p>

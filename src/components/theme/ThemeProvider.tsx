@@ -40,7 +40,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps): React
       // Set a safe, accessible, and performant default theme.
       defaultTheme="light"
       // Namespace the theme in local storage to prevent conflicts.
-      storageKey="portfolio-v1-theme"
+      storageKey="Lys"
       // --- UX & System Integration ---
       // This is a key decision: We disable system sync to give the user
       // explicit and persistent control over the theme, regardless of OS settings.

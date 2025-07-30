@@ -64,10 +64,16 @@ export function Navbar() {
         {/* --- Right Group --- */}
         <div className="flex items-center justify-end gap-x-1">
           <ThemeToggle />
-          <MobileNavToggle isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+          <MobileNavToggle
+            isMenuOpen={isMenuOpen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
         </div>
       </motion.nav>
-      <MobileMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+      <MobileMenu
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+      />
     </header>
   );
 }
@@ -87,7 +93,10 @@ function ThemeCycleIcon() {
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", duration: 0.2 }}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence
+        mode="wait"
+        initial={false}
+      >
         <motion.div
           key={isMounted ? theme.name : "icon-placeholder"}
           initial={{ opacity: 0, rotate: -45, scale: 0.5 }}

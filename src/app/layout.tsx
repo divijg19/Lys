@@ -95,7 +95,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* --- MAIN CONTENT WRAPPER --- */}
           <div className="relative z-10 flex min-h-dvh flex-col">
             <Navbar />
-            <main id="main-content" className="container flex-1 py-8 md:py-12">
+            <main
+              id="main-content"
+              className="container flex-1 py-8 md:py-12"
+            >
               {children}
             </main>
             <Suspense>

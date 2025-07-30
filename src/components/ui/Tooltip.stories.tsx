@@ -72,7 +72,11 @@ export const WithIconButton: Story = {
   render: (args) => (
     <Tooltip {...args}>
       <TooltipTrigger asChild>
-        <Button variant="outline" size="icon" aria-label="Information">
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Information"
+        >
           <Info className="h-4 w-4" />
         </Button>
       </TooltipTrigger>
