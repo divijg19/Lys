@@ -116,7 +116,10 @@ const HeroContent = memo(() => {
         variants={FADE_UP_ANIMATION_VARIANTS}
         className="flex flex-col items-center lg:items-start"
       >
-        <span className="font-medium text-muted-foreground text-xl md:text-2xl" aria-live="polite">
+        <span
+          className="font-medium text-muted-foreground text-xl md:text-2xl"
+          aria-live="polite"
+        >
           {greeting}
         </span>
 
@@ -174,12 +177,21 @@ const HeroContent = memo(() => {
         variants={FADE_UP_ANIMATION_VARIANTS}
         className="mt-8 flex flex-wrap justify-center gap-4 lg:justify-start"
       >
-        <Button asChild size="lg" aria-label="View Projects">
+        <Button
+          asChild
+          size="lg"
+          aria-label="View Projects"
+        >
           <Link href="/projects">
             View Projects <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
-        <Button asChild variant="outline" size="lg" aria-label="Contact Me">
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          aria-label="Contact Me"
+        >
           <Link href="/contact">Contact Me</Link>
         </Button>
       </motion.div>
@@ -189,7 +201,10 @@ const HeroContent = memo(() => {
         className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start"
       >
         {SOCIALS.map((social) => (
-          <SocialLink key={social.name} {...social} />
+          <SocialLink
+            key={social.name}
+            {...social}
+          />
         ))}
       </motion.div>
     </div>

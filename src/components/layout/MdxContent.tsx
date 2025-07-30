@@ -6,10 +6,16 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 // This allows you to style standard HTML elements or create custom interactive components.
 const components = {
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="mt-8 mb-4 font-bold text-2xl" {...props} />
+    <h2
+      className="mt-8 mb-4 font-bold text-2xl"
+      {...props}
+    />
   ),
   a: (props: React.HTMLAttributes<HTMLAnchorElement>) => (
-    <a className="text-primary underline hover:no-underline" {...props} />
+    <a
+      className="text-primary underline hover:no-underline"
+      {...props}
+    />
   ),
   // Add any other components you want to be available in your MDX here.
 };
@@ -29,7 +35,10 @@ interface MdxProps {
 export function MdxContent({ code }: MdxProps) {
   return (
     <div className="prose dark:prose-invert">
-      <MDXRemote source={code} components={components} />
+      <MDXRemote
+        source={code}
+        components={components}
+      />
     </div>
   );
 }

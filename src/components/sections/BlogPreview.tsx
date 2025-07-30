@@ -48,11 +48,20 @@ export function BlogPreview() {
         // --- THE INSPIRED LAYOUT GRID ---
         className="grid grid-cols-1 grid-rows-2 gap-8 lg:grid-cols-2"
       >
-        <motion.div variants={FADE_UP_VARIANTS} className="lg:row-span-2">
-          <BlogPostCard post={firstPost} isFeatured />
+        <motion.div
+          variants={FADE_UP_VARIANTS}
+          className="lg:row-span-2"
+        >
+          <BlogPostCard
+            post={firstPost}
+            isFeatured
+          />
         </motion.div>
         {otherPosts.map((post) => (
-          <motion.div key={post.slug} variants={FADE_UP_VARIANTS}>
+          <motion.div
+            key={post.slug}
+            variants={FADE_UP_VARIANTS}
+          >
             <BlogPostCard post={post} />
           </motion.div>
         ))}
@@ -65,7 +74,10 @@ export function BlogPreview() {
         variants={FADE_UP_VARIANTS}
         className="mt-16 text-center"
       >
-        <Button asChild size="lg">
+        <Button
+          asChild
+          size="lg"
+        >
           <Link href="/blog">View All Posts</Link>
         </Button>
       </motion.div>

@@ -60,7 +60,10 @@ export const WithLabel: Story = {
   render: (args) => (
     <div className="grid w-full max-w-sm items-center gap-1.5">
       <Label htmlFor="email-with-label">Email</Label>
-      <Input id="email-with-label" {...args} />
+      <Input
+        id="email-with-label"
+        {...args}
+      />
     </div>
   ),
   args: {
@@ -76,7 +79,10 @@ export const WithIcon: Story = {
   render: (args) => (
     <div className="relative">
       <Mail className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
-      <Input {...args} className="pl-10" />
+      <Input
+        {...args}
+        className="pl-10"
+      />
     </div>
   ),
   args: {
@@ -92,7 +98,10 @@ export const FileInput: Story = {
   render: (args) => (
     <div className="grid w-full max-w-sm items-center gap-1.5">
       <Label htmlFor="picture">Picture</Label>
-      <Input id="picture" {...args} />
+      <Input
+        id="picture"
+        {...args}
+      />
     </div>
   ),
   args: {

@@ -9,7 +9,10 @@ export default function NotFound() {
       <p className="mt-2 text-muted-foreground">
         Sorry, the page you are looking for does not exist.
       </p>
-      <Button asChild className="mt-6">
+      <Button
+        asChild
+        className="mt-6"
+      >
         <Link href="/">Return to Home</Link>
       </Button>
     </div>

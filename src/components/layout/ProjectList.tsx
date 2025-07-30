@@ -27,7 +27,10 @@ export function ProjectList() {
       className="grid grid-cols-1 gap-8 sm:grid-cols-2"
     >
       {sortedProjects.map((project) => (
-        <motion.div key={project.slug} variants={FADE_UP_VARIANTS}>
+        <motion.div
+          key={project.slug}
+          variants={FADE_UP_VARIANTS}
+        >
           <ProjectCard {...project} />
         </motion.div>
       ))}
@@ -59,7 +62,10 @@ function ProjectCard(project: (typeof projects)[number]) {
           </p>
           <div className="my-4 flex flex-wrap gap-2">
             {project.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
+              <Badge
+                key={tag}
+                variant="secondary"
+              >
                 {tag}
               </Badge>
             ))}
@@ -77,7 +83,10 @@ function ProjectCard(project: (typeof projects)[number]) {
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`View source code for ${project.title}`}
                 >
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                  >
                     <Github className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -90,7 +99,10 @@ function ProjectCard(project: (typeof projects)[number]) {
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`View live site for ${project.title}`}
                 >
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                  >
                     <ArrowUpRight className="h-5 w-5" />
                   </Button>
                 </Link>

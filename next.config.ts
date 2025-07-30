@@ -1,4 +1,5 @@
 import path from "node:path";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 import type { Configuration as WebpackConfiguration } from "webpack";
 
@@ -34,36 +35,25 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  serverExternalPackages: ["sharp", "canvas", "jsdom"],
-
-  // Defines how to handle SVGs when using the Turbopack bundler.
-  turbopack: {
-    rules: {
-      "*.svg": { loaders: ["@svgr/webpack"], as: "*.js" },
-    },
-  },
+  // Since you are using Tailwind CSS, the styled-components compiler is not needed.
+  // compiler: {
+  //   styledComponents: ...
+  // },
 
   // Ultra-aggressive compiler optimizations for smaller production bundles
   compiler: {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
     reactRemoveProperties: process.env.NODE_ENV === "production",
-    styledComponents: {
-      displayName: process.env.NODE_ENV !== "production",
-      ssr: true,
-      minify: true,
-      transpileTemplateLiterals: true,
-    },
   },
 
   // Next-gen image optimization
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 512],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Removed 512 to keep the list concise
     minimumCacheTTL: 31536000, // 1 year cache
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     loader: "default",
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
@@ -86,27 +76,14 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
-            value:
-              "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
-          {
-            key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
-          },
+          // A more refined Content-Security-Policy will be necessary after identifying inline scripts
         ],
       },
       // Cache-control headers for static assets
       {
-        source: "/images/(.*)",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
-      },
-      {
-        source: "/icons/(.*)",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
-      },
-      {
-        source: "/fonts/(.*)",
+        source: "/assets/(.*)", // Consolidating caching rules
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];
@@ -115,35 +92,28 @@ const nextConfig: NextConfig = {
   // Smart redirects
   async redirects() {
     return [
-      { source: "/github", destination: "https://github.com/divijg19", permanent: false },
+      { source: "/github", destination: "https://github.com/divijg19", permanent: true }, // Set to true for permanent redirects
       {
         source: "/linkedin",
         destination: "https://linkedin.com/in/divij-ganjoo",
-        permanent: false,
+        permanent: true,
+      },
+      {
+        source: "/instagram",
+        destination: "https://instagram.com/one_excellent_hope",
+        permanent: true,
       },
       { source: "/cv", destination: "/resume.pdf", permanent: false },
     ];
   },
 
-  // Defines how to handle SVGs when using the standard Webpack bundler.
   webpack: (
     config: WebpackConfiguration,
     { dev, isServer }: { dev: boolean; isServer: boolean }
   ) => {
-    // Enable bundle analysis if requested
-    if (process.env.ANALYZE === "true") {
-      const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-      config.plugins = config.plugins || [];
-      config.plugins.push(new BundleAnalyzerPlugin());
-    }
-
     config.module = config.module || {};
     config.module.rules = config.module.rules || [];
 
-    // --- REFINED SVG HANDLING FOR WEBPACK ---
-    // This pattern finds Next.js's default image rule and excludes SVGs from it.
-    // Then, it adds a new, dedicated rule to handle SVGs as React components using @svgr/webpack.
-    // This is the most stable and conflict-free method.
     const imageRule = config.module.rules.find((rule) => {
       if (rule && typeof rule === "object" && rule.test instanceof RegExp) {
         return rule.test.test(".svg");
@@ -161,73 +131,49 @@ const nextConfig: NextConfig = {
         {
           loader: "@svgr/webpack",
           options: {
-            icon: true, // A good default for consistent sizing
+            icon: true,
             svgoConfig: {
               plugins: [
                 { name: "preset-default", params: { overrides: { removeViewBox: false } } },
+                "removeDimensions", // Add this plugin to remove width/height attributes
               ],
             },
           },
         },
       ],
     });
-    // --- End SVG Handling ---
 
-    // Production-specific optimizations
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
         usedExports: true,
         sideEffects: false,
         concatenateModules: true,
+        splitChunks: {
+          chunks: "all",
+        },
       };
     }
 
-    // Path aliasing for a clean codebase
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "./src"),
-      "@/components": path.resolve(__dirname, "./src/components"),
-      "@/lib": path.resolve(__dirname, "./src/lib"),
-      "@/styles": path.resolve(__dirname, "./src/styles"),
-      "#velite": path.resolve(__dirname, "./.velite"),
-    };
-
-    config.performance = {
-      hints: process.env.NODE_ENV === "production" ? "warning" : false,
     };
 
     return config;
   },
 
   // General configuration
-  output: process.env.EXPORT === "true" ? "export" : undefined,
-  distDir: ".next",
-  async generateBuildId() {
-    return process.env.BUILD_ID || `build-${Date.now()}`;
-  },
   trailingSlash: false,
-  typescript: { ignoreBuildErrors: false, tsconfigPath: "./tsconfig.json" },
-  eslint: { ignoreDuringBuilds: false, dirs: ["src", "components", "lib", "app", "pages"] },
+  typescript: { ignoreBuildErrors: false },
+  eslint: { ignoreDuringBuilds: false },
   compress: true,
   poweredByHeader: false,
-  generateEtags: true,
-  httpAgentOptions: { keepAlive: true },
-  onDemandEntries: { maxInactiveAge: 60 * 1000, pagesBufferLength: 5 },
   productionBrowserSourceMaps: false,
-  env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "https://divijganjoo.me",
-    NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
-    NEXT_PUBLIC_UMAMI_ID: process.env.NEXT_PUBLIC_UMAMI_ID,
-  },
-  modularizeImports: {
-    "lucide-react": { transform: "lucide-react/dist/esm/icons/{{member}}" },
-    "date-fns": { transform: "date-fns/{{member}}" },
-    lodash: { transform: "lodash/{{member}}" },
-  },
-  logging: { fetches: { fullUrl: true } },
-  crossOrigin: "anonymous",
 };
 
-export default nextConfig;
+// Pass options to withBundleAnalyzer and then wrap nextConfig
+export default withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+})(nextConfig);

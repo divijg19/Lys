@@ -62,7 +62,10 @@ export function Expertise() {
   };
 
   return (
-    <section id="expertise" className="relative mx-auto w-full max-w-screen-xl px-4 py-20">
+    <section
+      id="expertise"
+      className="relative mx-auto w-full max-w-screen-xl px-4 py-20"
+    >
       <motion.div
         initial="hidden"
         whileInView="show"
@@ -99,7 +102,10 @@ export function Expertise() {
 
       <AnimatePresence>
         {selectedSkill && (
-          <ExpandedSkillModal skill={selectedSkill} onClose={() => setSelectedSkill(null)} />
+          <ExpandedSkillModal
+            skill={selectedSkill}
+            onClose={() => setSelectedSkill(null)}
+          />
         )}
       </AnimatePresence>
     </section>
@@ -157,7 +163,12 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
               transition={{ duration: 0.2 }}
               className="flex h-full flex-col items-center justify-center gap-3 text-center"
             >
-              <Image src={skill.iconPath} alt={`${skill.name} icon`} width={50} height={50} />
+              <Image
+                src={skill.iconPath}
+                alt={`${skill.name} icon`}
+                width={50}
+                height={50}
+              />
               <h4 className="font-bold text-lg">{skill.name}</h4>
             </motion.div>
           )}
@@ -173,10 +184,18 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
             >
               <div className="flex w-full items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <Image src={skill.iconPath} alt={`${skill.name} icon`} width={24} height={24} />
+                  <Image
+                    src={skill.iconPath}
+                    alt={`${skill.name} icon`}
+                    width={24}
+                    height={24}
+                  />
                   <h4 className="font-bold text-lg">{skill.name}</h4>
                 </div>
-                <Badge variant="secondary" className="flex-shrink-0">
+                <Badge
+                  variant="secondary"
+                  className="flex-shrink-0"
+                >
                   {skill.level}
                 </Badge>
               </div>
@@ -283,7 +302,11 @@ function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: () => v
                     <h4 className="font-semibold text-lg text-primary">Used In Projects</h4>
                     <div className="flex flex-wrap gap-3">
                       {relevantProjects.map((project) => (
-                        <Link href={project.url} key={project.slug} passHref>
+                        <Link
+                          href={project.url}
+                          key={project.slug}
+                          passHref
+                        >
                           <Badge
                             variant="outline"
                             className="cursor-pointer rounded-md border-primary/20 px-3 py-1.5 text-sm outline-none ring-primary/50 transition-all hover:border-primary hover:bg-primary/10 focus-visible:ring-2"
@@ -303,7 +326,10 @@ function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: () => v
                     <h4 className="font-semibold text-lg text-primary">Related Ecosystem</h4>
                     <div className="flex flex-wrap gap-2">
                       {skill.ecosystem.map((tool) => (
-                        <Badge key={tool} variant="secondary">
+                        <Badge
+                          key={tool}
+                          variant="secondary"
+                        >
                           {tool}
                         </Badge>
                       ))}

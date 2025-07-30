@@ -54,7 +54,10 @@ export function ThemeToggle() {
 
           {/* Once mounted, display the animated theme name and icon. */}
           {isMounted && (
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence
+              mode="wait"
+              initial={false}
+            >
               <motion.span
                 key={currentTheme.name}
                 initial={animationProps.initial}
@@ -63,7 +66,10 @@ export function ThemeToggle() {
                 transition={animationProps.transition}
                 className="absolute flex items-center gap-2"
               >
-                <currentTheme.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <currentTheme.icon
+                  className="h-4 w-4 shrink-0"
+                  aria-hidden="true"
+                />
                 {currentTheme.displayName}
               </motion.span>
             </AnimatePresence>
@@ -72,7 +78,11 @@ export function ThemeToggle() {
       </DropdownMenuTrigger>
 
       {/* Set width to w-36 to match the button and add sideOffset for spacing */}
-      <DropdownMenuContent align="end" className="w-36" sideOffset={4}>
+      <DropdownMenuContent
+        align="end"
+        className="w-36"
+        sideOffset={4}
+      >
         {themes.map((themeOption) => (
           <DropdownMenuItem
             key={themeOption.name}
@@ -81,7 +91,10 @@ export function ThemeToggle() {
             aria-selected={currentTheme.name === themeOption.name}
             className="cursor-pointer"
           >
-            <themeOption.icon className="mr-2 h-4 w-4" aria-hidden="true" />
+            <themeOption.icon
+              className="mr-2 h-4 w-4"
+              aria-hidden="true"
+            />
             <span>{themeOption.displayName}</span>
           </DropdownMenuItem>
         ))}
