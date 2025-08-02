@@ -6,7 +6,7 @@
 
 "use client";
 
-import { DataRain } from "@/components/theme/effects/DataRain";
+import { DataRain } from "@/components/theme/effects/cyberpunk/DataRain";
 
 /**
  * The background scene component for the Cyberpunk theme.
