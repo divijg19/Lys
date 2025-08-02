@@ -25,7 +25,8 @@
         "useKeyWithClickEvents": "error",
         "useValidAnchor": "error",
         "useHeadingContent": "error",
-        "useAriaPropsForRole": "error"
+        "useAriaPropsForRole": "error",
+        "noStaticElementInteractions": "error"
       },
       "correctness": {
         "useExhaustiveDependencies": "error",

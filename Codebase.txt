@@ -50,7 +50,7 @@ public\assets\icons\YAML.svg
 public\assets\images
 public\assets\images\projects
 public\assets\images\projects\Lys.png
-public\assets\images\your-photo.jpg
+public\assets\images\divij-ganjoo.jpg
 public\robots.txt
 public\static
 README.md

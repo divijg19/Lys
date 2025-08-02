@@ -52,13 +52,18 @@ const SOCIALS = [
   },
 ];
 
+// --- ACCESSIBILITY-FIRST NAME GRADIENTS (FINAL VERSION) ---
 const NAME_GRADIENTS: Record<string, string> = {
-  cyberpunk: "from-cyan-400 to-pink-500",
-  ethereal: "from-purple-400 to-pink-300",
-  horizon: "from-orange-400 to-pink-500",
-  mirage: "from-cyan-500 to-teal-400",
-  simple: "from-gray-400 to-gray-500",
-  default: "from-primary to-accent",
+  // UPDATED: Light and Dark now use a single color, implemented as a uniform gradient.
+  light: "bg-gradient-to-r from-blue-600 to-blue-600",
+  dark: "bg-gradient-to-r from-purple-500 to-purple-500",
+
+  // RETAINED: All other themes keep their correct, refined gradients.
+  mirage: "bg-gradient-to-r from-cyan-500 to-teal-400",
+  horizon: "bg-gradient-to-r from-orange-500 via-rose-500 to-pink-600",
+  simple: "bg-gradient-to-r from-green-700 to-green-800",
+  ethereal: "text-gradient-ethereal-readable",
+  cyberpunk: "text-gradient-theme",
 };
 
 const FADE_UP_ANIMATION_VARIANTS = {
@@ -96,7 +101,7 @@ export function Hero() {
 }
 
 const HeroContent = memo(() => {
-  const { theme } = useTheme();
+  const { theme, isMounted } = useTheme();
   const [taglineIndex, setTaglineIndex] = useState(0);
 
   const greeting = useMemo(() => getGreeting(), []);
@@ -108,7 +113,9 @@ const HeroContent = memo(() => {
     return () => clearInterval(interval);
   }, []);
 
-  const nameGradient = NAME_GRADIENTS[theme.name] || NAME_GRADIENTS.default;
+  const nameGradientClass = isMounted
+    ? NAME_GRADIENTS[theme.name] || "text-foreground"
+    : "text-transparent";
 
   return (
     <div className="flex flex-col items-center lg:items-start">
@@ -134,9 +141,9 @@ const HeroContent = memo(() => {
           </div>
           <h1
             className={cn(
-              "bg-gradient-to-r bg-clip-text font-extrabold text-5xl text-transparent md:text-7xl",
-              "leading-snug",
-              nameGradient
+              "bg-clip-text font-extrabold text-5xl text-transparent md:text-7xl",
+              "leading-snug transition-colors duration-500",
+              nameGradientClass
             )}
           >
             {bio.name}
@@ -144,10 +151,8 @@ const HeroContent = memo(() => {
         </div>
       </motion.div>
 
-      {/* --- TAGLINE WITH STATIC "A" --- */}
       <motion.div
         variants={FADE_UP_ANIMATION_VARIANTS}
-        // THE FIX: Changed mt-4 to mt-1 to reduce the gap
         className="mt-1 flex h-10 flex-row items-center gap-x-2"
       >
         <h2 className="font-semibold text-2xl text-primary md:text-3xl">A</h2>
@@ -167,7 +172,6 @@ const HeroContent = memo(() => {
 
       <motion.p
         variants={FADE_UP_ANIMATION_VARIANTS}
-        // THE FIX: Changed mt-6 to mt-4 to bring the paragraph closer
         className="mt-4 max-w-xl text-lg text-muted-foreground leading-snug md:text-xl lg:text-left"
       >
         {bio.summary}
