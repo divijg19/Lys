@@ -223,7 +223,7 @@ const HeroImage = memo(() => {
       className="group -mt-4 relative h-64 w-64 flex-shrink-0 lg:mt-10 lg:h-80 lg:w-80"
     >
       <Image
-        src="/assets/images/your-photo.jpg"
+        src="/assets/images/divij-ganjoo.jpg"
         alt="Divij Ganjoo profile photo"
         fill
         sizes="(max-width: 1023px) 65vw, 30vw"
