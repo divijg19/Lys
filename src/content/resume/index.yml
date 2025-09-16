@@ -13,10 +13,10 @@ history:
       - "PostgreSQL/Redis"
     type: "work"
 
-  - title: "SDE/AIML/Backend Intern"
+  - title: "SDE/AIML/Backend Intern roles"
     company: "Your workplace, perhaps?"
-    period: "Looking for Backend, AIML, AI Systems Engineer roles"
-    description: "Developed and shipped a full-stack feature for a client-facing analytics dashboard. My work on API optimization contributed to a 15% reduction in data-loading times for key customer reports."
+    period: "Looking for:"
+    description: "To learn, develop and create the next in cutting-edge technology."
     tags:
       - "Golang"
       - "Python"
@@ -28,7 +28,7 @@ history:
 
   - title: "Open Source Contributor"
     company: "Open Source"
-    period: "Jun 2023 - Dec 2024"
+    period: "Jun 2023 - Present"
     description: "Worked on Vercel, Next.js, Mojo Lang, and other open-source projects. Contributed to codebases, fixed bugs, and added features that improved readability and re-usability."
     tags:
       - "React"
@@ -39,6 +39,6 @@ history:
   - # --- THE FIX: Changed the `degree` key to `title` to match the unified schema. ---
     title: "B.Tech in Computer Science"
     institution: "VIT Bhopal University"
-    period: "Sep 2022 - September 2026"
-    description: "Focusing on algorithms, distributed systems, and human-computer interaction. "
+    period: "Sep 2022 - Sep 2026"
+    description: "Focusing on algorithms, distributed systems, architecture and deployment."
     type: "education"
