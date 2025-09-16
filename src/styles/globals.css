@@ -305,4 +305,17 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* Theme-aware icon styling for icons that need to invert based on theme */
+  .theme-aware-icon {
+    /* Default: no inversion for light themes */
+    filter: none;
+  }
+
+  /* Invert icons for themes with light foreground text (dark backgrounds) */
+  [data-theme="dark"] .theme-aware-icon,
+  [data-theme="cyberpunk"] .theme-aware-icon,
+  [data-theme="horizon"] .theme-aware-icon {
+    filter: brightness(0) invert(1);
+  }
 }
