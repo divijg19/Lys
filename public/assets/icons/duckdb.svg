@@ -4,8 +4,8 @@
   .duck-body{fill: var(--foreground, #000000)}
   .duck-text{fill: var(--foreground, #000000)}
   @media (prefers-color-scheme: dark) {
-    .duck-body{fill: var(--foreground, #FFFFFF)}
-    .duck-text{fill: var(--foreground, #FFFFFF)}
+    .duck-body{fill: #e5e7eb;}
+    .duck-text{fill: #e5e7eb;}
   }
 </style>
 <g>
