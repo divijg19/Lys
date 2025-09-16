@@ -1,18 +1,6 @@
 # This is the single source of truth for your professional and academic journey.
 # It now uses a unified `title` property for all entries for consistency.
 history:
-  - title: "10 years as SDE"
-    company: "Placeholder Company"
-    period: "Eventually"
-    description: "Be able to build and ship software products and systems solutions end-to-end."
-    tags:
-      - "Golang"
-      - "Python/Mojo"
-      - "AWS/Vercel"
-      - "Docker/Kubernetes"
-      - "PostgreSQL/Redis"
-    type: "work"
-
   - title: "SDE/AIML/Backend Intern roles"
     company: "Your workplace, perhaps?"
     period: "Looking for:"
@@ -41,4 +29,11 @@ history:
     institution: "VIT Bhopal University"
     period: "Sep 2022 - Sep 2026"
     description: "Focusing on algorithms, distributed systems, architecture and deployment."
+    tags:
+      - "Golang"
+      - "Python/Mojo"
+      - "Rust"
+      - "AWS/Vercel"
+      - "Docker/Kubernetes"
+      - "PostgreSQL/Redis"
     type: "education"
