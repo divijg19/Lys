@@ -99,9 +99,9 @@ function TimelineItem({ item, index }: { item: (typeof resume.history)[number]; 
         {/* --- TYPOGRAPHY FIX: Added leading-relaxed for improved readability --- */}
         <p className="mt-4 text-base text-card-foreground leading-relaxed">{item.description}</p>
 
-        {item.type === "work" && item.tags && (
+        {"tags" in item && item.tags && (
           <div className={cn("mt-4 flex flex-wrap gap-2", isLeft && "md:justify-end")}>
-            {item.tags.map((tag) => (
+            {item.tags.map((tag: string) => (
               <Badge
                 key={tag}
                 variant="secondary"
