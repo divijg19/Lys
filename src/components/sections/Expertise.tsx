@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import type React from "react";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 // Assuming data is imported from a source like Velite
 import { expertise, projects } from "#velite";
 import { Badge } from "@/components/ui/Badge";
@@ -133,92 +133,122 @@ function CategoryTitleCard({
   );
 }
 
-function SkillCard({
-  skill,
-  onSelect
-}: {
-  skill: Skill;
-  onSelect: () => void;
-}) {
+function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
-  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
-  const cardTransition = { type: "spring" as const, stiffness: 400, damping: 30 };
-
-  // Calculate if card should expand left based on position
-  const shouldExpandLeft = () => {
-    if (!containerRef) return false;
-    const rect = containerRef.getBoundingClientRect();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Calculate safe expansion direction
+  const getExpansionOffset = () => {
+    if (!cardRef.current) return 0;
+    const rect = cardRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
-    // If card is in the right 40% of viewport, expand left
-    return rect.left > viewportWidth * 0.6;
+    const expandedWidth = 280;
+    const cardWidth = 160;
+
+    // If expanding right would go off-screen, expand left instead
+    if (rect.left + expandedWidth > viewportWidth - 20) {
+      return -(expandedWidth - cardWidth);
+    }
+    return 0;
   };
 
-  // Three states: default (160px), hover (280px), modal (full screen)
-  const cardWidth = isHovered ? "280px" : "160px";
-  const expandLeft = isHovered && shouldExpandLeft();
+  // Stable hover management with debouncing
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Debounce to prevent rapid state changes
+    timeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 100);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <motion.div
-      ref={setContainerRef}
+    <div
       className="relative"
-      style={{ minWidth: "160px" }}
+      style={{ width: "160px", height: "160px" }}
     >
-      <motion.button
-        layoutId={`card-${skill.name}`}
-        transition={cardTransition}
-        type="button"
-        className="relative h-40 cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-lg transition-shadow duration-200 hover:z-10 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/80"
-        style={{
-          width: cardWidth,
-          transformOrigin: expandLeft ? "right center" : "left center"
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+      {/* Base card - always stays in place */}
+      <motion.div
+        ref={cardRef}
+        className="absolute inset-0 cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-lg transition-shadow duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/80"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onClick={onSelect}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             onSelect();
           }
         }}
-        animate={{
-          width: cardWidth,
-          zIndex: isHovered ? 20 : 1
-        }}
+        tabIndex={0}
+        role="button"
         aria-label={`View details for ${skill.name}`}
+        whileHover={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
       >
         <div className="absolute inset-0 p-4">
-          {/* State 1: Default Content (Icon and Title) */}
-          <AnimatePresence>
-            {!isHovered && (
-              <motion.div
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="flex h-full flex-col items-center justify-center gap-3 text-center"
-              >
-                <Image
-                  src={skill.iconPath}
-                  alt={`${skill.name} icon`}
-                  width={48}
-                  height={48}
-                  className="transition-transform duration-200"
-                />
-                <h4 className="font-semibold text-base leading-tight">{skill.name}</h4>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Default state content */}
+          <motion.div
+            className="flex h-full flex-col items-center justify-center gap-3 text-center"
+            animate={{
+              opacity: isHovered ? 0 : 1,
+            }}
+            transition={{ duration: 0.2 }}
+          >
+            <Image
+              src={skill.iconPath}
+              alt={`${skill.name} icon`}
+              width={48}
+              height={48}
+              className="transition-transform duration-200"
+            />
+            <h4 className="font-semibold text-base leading-tight">{skill.name}</h4>
+          </motion.div>
+        </div>
+      </motion.div>
 
-          {/* State 2: Hover Content (Expanded Details) */}
-          <AnimatePresence>
-            {isHovered && (
+      {/* Expanded overlay - appears on top without affecting layout */}
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            className="absolute top-0 left-0 z-20 cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-xl"
+            style={{ width: "280px", height: "160px" }}
+            initial={{ opacity: 0, scale: 0.95, x: getExpansionOffset() }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              x: getExpansionOffset(),
+            }}
+            exit={{ opacity: 0, scale: 0.95, x: getExpansionOffset() }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+              duration: 0.3,
+            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onClick={onSelect}
+          >
+            <div className="absolute inset-0 p-4">
               <motion.div
-                initial={{ opacity: 0, x: expandLeft ? 20 : -20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{
                   opacity: 1,
-                  x: 0,
-                  transition: { delay: 0.1, duration: 0.3 }
+                  y: 0,
+                  transition: { delay: 0.1, duration: 0.2 },
                 }}
-                exit={{ opacity: 0 }}
                 className="flex h-full flex-col justify-between text-left"
               >
                 {/* Header with icon, title, and level */}
@@ -248,7 +278,10 @@ function SkillCard({
                   </h5>
                   <ul className="space-y-1 text-muted-foreground text-xs leading-tight">
                     {skill.keyCompetencies.slice(0, 4).map((competency) => (
-                      <li key={competency} className="line-clamp-1">
+                      <li
+                        key={competency}
+                        className="line-clamp-1"
+                      >
                         • {competency}
                       </li>
                     ))}
@@ -262,16 +295,14 @@ function SkillCard({
 
                 {/* Click to expand hint */}
                 <div className="mt-2 flex items-center justify-center">
-                  <span className="text-muted-foreground/70 text-xs">
-                    Click for details
-                  </span>
+                  <span className="text-muted-foreground/70 text-xs">Click for details</span>
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.button>
-    </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
