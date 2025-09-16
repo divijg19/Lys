@@ -1,20 +1,28 @@
 /**
- * @file: src/components/theme/effects/ethereal/FlowingPlane.tsx
- * @description: Renders the primary flowing wireframe background mesh.
+ * @file: src/components/theme/effects/FlowingPlane.tsx
+ * @description: Renders the primary, non-interactive "Dream-Fabric" visual.
+ * @update: This component is now purely visual. All interaction logic has been removed.
  */
 
 "use client";
 
 import { shaderMaterial } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
-// --- SHADER DEFINITION ---
 const FlowingPlaneMaterial = shaderMaterial(
-    { uTime: 0, uColor: new THREE.Color(0.8, 0.7, 0.9) }, // Default color
-    // Vertex Shader
-    ` uniform float uTime;
+  {
+    uTime: 0,
+    uColor: new THREE.Color(0.8, 0.7, 0.9),
+    uClickPosition: new THREE.Vector3(0, 0, 0),
+    uClickStrength: 0.0,
+  },
+  `
+    uniform float uTime;
+    uniform vec3 uClickPosition;
+    uniform float uClickStrength;
+    varying float vDisplacement;
     varying vec2 vUv;
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -38,61 +46,85 @@ const FlowingPlaneMaterial = shaderMaterial(
     void main() {
       vUv = uv;
       vec3 pos = position;
-      float noise = snoise(vec2(pos.x * 0.1 + uTime * 0.05, pos.y * 0.1 + uTime * 0.05));
-      pos.z += noise * 0.2;
+      float baseNoise = snoise(vec2(pos.x * 0.1, pos.y * 0.1) + uTime * 0.03) * 0.1;
+      float detailNoise = snoise(vec2(pos.x * 0.5, pos.y * 0.5) + uTime * 0.1) * 0.05;
+      float totalNoise = baseNoise + detailNoise;
+      float dist = distance(pos.xz, uClickPosition.xz);
+      float ripple = sin(dist * 2.0 - uTime * 2.0) * uClickStrength;
+      ripple *= (1.0 - smoothstep(0.0, 2.0, dist));
+      pos.z += totalNoise + ripple;
+      vDisplacement = pos.z;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }`,
-    // Fragment Shader
-    ` uniform float uTime;
+  `
+    uniform float uTime;
     uniform vec3 uColor;
+    varying float vDisplacement;
     varying vec2 vUv;
     void main() {
-      float sine = sin(vUv.y * 10.0 + uTime * 0.5) * 0.1 + 0.9;
-      gl_FragColor = vec4(uColor * sine, 0.3);
+      float glow = smoothstep(-0.2, 0.5, vDisplacement) * 0.5 + 0.5;
+      vec2 grid = abs(fract(vUv * 15.0 - 0.5));
+      float line = 1.0 - smoothstep(0.01, 0.05, min(grid.x, grid.y));
+      float edgeFade = smoothstep(0.0, 0.2, vUv.x) * (1.0 - smoothstep(0.8, 1.0, vUv.x)) *
+                       smoothstep(0.0, 0.2, vUv.y) * (1.0 - smoothstep(0.8, 1.0, vUv.y));
+      vec3 finalColor = uColor * glow;
+      gl_FragColor = vec4(finalColor, line * 0.2 * edgeFade);
     }`
 );
 
-// TYPE-SAFE FIX: Create an interface describing our specific ShaderMaterial instance.
 interface IFlowingPlaneMaterial extends THREE.ShaderMaterial {
-    uniforms: {
-        uTime: { value: number };
-        uColor: { value: THREE.Color };
-    };
+  uniforms: {
+    uTime: { value: number };
+    uColor: { value: THREE.Color };
+    uClickPosition: { value: THREE.Vector3 };
+    uClickStrength: { value: number };
+  };
 }
 
-// --- TYPE DEFINITION FOR PROPS ---
 type FlowingPlaneProps = {
-    color: string; // Add color prop
+  color: string;
+  latestClickPosition: THREE.Vector3 | null;
 };
 
-// --- COMPONENT ---
-// UPDATE: Accept 'color' prop
-export const FlowingPlane = ({ color }: FlowingPlaneProps) => {
-    const ref = useRef<IFlowingPlaneMaterial>(null);
+export const FlowingPlane = ({ color, latestClickPosition }: FlowingPlaneProps) => {
+  const ref = useRef<IFlowingPlaneMaterial>(null);
+  const [clickStrength, setClickStrength] = useState(0.0);
 
-    // UPDATE: Material is now dependent on the 'color' prop
-    const material = useMemo(() => {
-        const mat = new FlowingPlaneMaterial();
-        mat.uniforms.uColor.value = new THREE.Color(color);
-        return mat;
-    }, [color]); // Dependency array ensures material updates if color changes
+  const material = useMemo(() => {
+    const mat = new FlowingPlaneMaterial();
+    mat.uniforms.uColor.value = new THREE.Color(color);
+    return mat;
+  }, [color]);
 
-    useFrame(({ clock }) => {
-        if (ref.current) {
-            ref.current.uniforms.uTime.value = clock.getElapsedTime();
-        }
-    });
+  useEffect(() => {
+    if (latestClickPosition && ref.current) {
+      ref.current.uniforms.uClickPosition.value.copy(latestClickPosition);
+      setClickStrength(1.0);
+    }
+  }, [latestClickPosition]);
 
-    return (
-        <mesh rotation={[-Math.PI / 2.2, 0, 0]} position={[0, -2, 0]}>
-            <planeGeometry args={[25, 25, 128, 128]} />
-            <primitive
-                ref={ref}
-                object={material}
-                attach="material"
-                wireframe
-                transparent
-            />
-        </mesh>
-    );
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    ref.current.uniforms.uTime.value = clock.getElapsedTime();
+    if (clickStrength > 0) {
+      const newStrength = clickStrength * 0.95;
+      setClickStrength(newStrength);
+      ref.current.uniforms.uClickStrength.value = newStrength;
+    }
+  });
+
+  return (
+    <mesh
+      rotation={[-Math.PI / 2.1, 0, 0]}
+      position={[0, -3, 0]}
+    >
+      <planeGeometry args={[40, 40, 128, 128]} />
+      <primitive
+        ref={ref}
+        object={material}
+        attach="material"
+        transparent
+      />
+    </mesh>
+  );
 };

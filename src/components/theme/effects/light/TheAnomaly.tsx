@@ -5,21 +5,21 @@
  * and the spectacular, post-collapse supernova nebula effect.
  */
 
-'use client';
+"use client";
 
-import { shaderMaterial } from '@react-three/drei';
-import { extend, useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
-import * as THREE from 'three';
+import { shaderMaterial } from "@react-three/drei";
+import { extend, useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import * as THREE from "three";
 
 // --- 1. The Supernova Material (Shader) ---
 // This shader creates the beautiful, reverse-colored nebula explosion.
 const SupernovaMaterial = shaderMaterial(
-    { uTime: 0, uColor1: new THREE.Color('#6a82fb'), uColor2: new THREE.Color('#fc5c7d') },
-    // Vertex Shader
-    `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    // Fragment Shader
-    `
+  { uTime: 0, uColor1: new THREE.Color("#6a82fb"), uColor2: new THREE.Color("#fc5c7d") },
+  // Vertex Shader
+  `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  // Fragment Shader
+  `
     uniform float uTime;
     uniform vec3 uColor1;
     uniform vec3 uColor2;
@@ -85,47 +85,55 @@ extend({ SupernovaMaterial });
 
 // --- 2. The Anomaly Component ---
 export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }) {
-    const solidRef = useRef<THREE.Mesh>(null);
-    const explosionRef = useRef<THREE.Mesh>(null);
-    const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const solidRef = useRef<THREE.Mesh>(null);
+  const explosionRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-    useFrame((_, delta) => {
-        // Animate the solid dodecahedron before the collapse
-        const solidMesh = solidRef.current;
-        if (solidMesh) {
-            solidMesh.rotation.y += 0.0005;
-            solidMesh.rotation.x += 0.0002;
-        }
-        // Animate the supernova shader after the collapse
-        const material = materialRef.current;
-        if (hasReachedAnomaly && material) {
-            material.uniforms.uTime.value += delta;
-        }
-    });
+  useFrame((_, delta) => {
+    // Animate the solid dodecahedron before the collapse
+    const solidMesh = solidRef.current;
+    if (solidMesh) {
+      solidMesh.rotation.y += 0.0005;
+      solidMesh.rotation.x += 0.0002;
+    }
+    // Animate the supernova shader after the collapse
+    const material = materialRef.current;
+    if (hasReachedAnomaly && material) {
+      material.uniforms.uTime.value += delta;
+    }
+  });
 
-    return (
-        <>
-            {/* The solid, pre-collapse object */}
-            <mesh ref={solidRef} scale={5} visible={!hasReachedAnomaly}>
-                <dodecahedronGeometry args={[1, 0]} />
-                <meshStandardMaterial
-                    color="hsl(var(--foreground))"
-                    roughness={0.2}
-                    metalness={0.5}
-                />
-            </mesh>
+  return (
+    <>
+      {/* The solid, pre-collapse object */}
+      <mesh
+        ref={solidRef}
+        scale={5}
+        visible={!hasReachedAnomaly}
+      >
+        <dodecahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial
+          color="hsl(var(--foreground))"
+          roughness={0.2}
+          metalness={0.5}
+        />
+      </mesh>
 
-            {/* The supernova effect, rendered inside a sphere for an immersive feel */}
-            <mesh ref={explosionRef} scale={30} visible={hasReachedAnomaly}>
-                <sphereGeometry args={[1, 64, 64]} />
-                {/* @ts-ignore */}
-                <supernovaMaterial
-                    ref={materialRef}
-                    transparent
-                    depthWrite={false}
-                    side={THREE.BackSide}
-                />
-            </mesh>
-        </>
-    );
+      {/* The supernova effect, rendered inside a sphere for an immersive feel */}
+      <mesh
+        ref={explosionRef}
+        scale={30}
+        visible={hasReachedAnomaly}
+      >
+        <sphereGeometry args={[1, 64, 64]} />
+        {/* @ts-ignore */}
+        <supernovaMaterial
+          ref={materialRef}
+          transparent
+          depthWrite={false}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </>
+  );
 }

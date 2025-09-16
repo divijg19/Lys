@@ -104,9 +104,9 @@ export const useDataRain = (canvasRef: RefObject<HTMLCanvasElement | null>) => {
     const animate = () => {
       ctx.fillStyle = backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      streamsRef.current.forEach((stream) =>
-        stream.render(ctx, window.innerHeight, primaryColor, accentColor)
-      );
+      streamsRef.current.forEach((stream) => {
+        stream.render(ctx, window.innerHeight, primaryColor, accentColor);
+      });
       animationFrameId.current = requestAnimationFrame(animate);
     };
 

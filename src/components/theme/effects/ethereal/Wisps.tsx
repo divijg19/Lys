@@ -1,6 +1,7 @@
 /**
  * @file: src/components/theme/effects/ethereal/Wisps.tsx
  * @description: Manages and renders the on-demand particle wisps.
+ * @update: Particle physics have been refined for a more organic, swirling, and buoyant motion.
  */
 
 "use client";
@@ -10,119 +11,147 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-// REFINEMENT: Configuration constants are now clearly defined and easy to tweak.
-const WISP_LIFESPAN_SECONDS = 3.0;
-const PARTICLE_COUNT = 50;
-const WISP_MAX_OPACITY = 0.8;
-const PARTICLE_BASE_SIZE = 0.1;
+// Configuration constants for the wisp effect.
+const WISP_LIFESPAN_SECONDS = 3.5; // Slightly longer lifespan
+const PARTICLE_COUNT = 70; // A few more particles for a fuller effect
+const WISP_MAX_OPACITY = 0.7;
+const PARTICLE_BASE_SIZE = 0.08;
 
 // --- TYPE DEFINITIONS ---
 type WispProps = {
-    id: number;
-    position: THREE.Vector3;
-    creationTime: number;
-    onComplete: (id: number) => void;
-    color: string;
+  id: number;
+  position: THREE.Vector3;
+  creationTime: number;
+  onComplete: (id: number) => void;
+  color: string;
 };
 
+// Particle data structure now includes velocity and rotation for more complex physics.
 type Particle = {
-    t: number;
-    factor: number;
-    speed: number;
-    xFactor: number;
-    yFactor: number;
-    zFactor: number;
+  position: THREE.Vector3;
+  velocity: THREE.Vector3;
+  rotation: THREE.Euler;
+  size: number;
 };
 
 export type WispData = { id: number; position: THREE.Vector3; creationTime: number };
-
-export type WispsProps = {
-    wisps: WispData[];
-    onComplete: (id: number) => void;
-    color: string;
-};
+export type WispsProps = { wisps: WispData[]; onComplete: (id: number) => void; color: string };
 
 // --- COMPONENTS ---
 const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
-    const ref = useRef<THREE.Points>(null);
-    const hasCompleted = useRef(false);
+  const ref = useRef<THREE.Points>(null);
+  const hasCompleted = useRef(false);
 
-    const particles = useMemo(() => {
-        const temp: Particle[] = [];
-        for (let i = 0; i < PARTICLE_COUNT; i++) {
-            temp.push({
-                t: Math.random() * 100,
-                factor: 20 + Math.random() * 100,
-                speed: 0.01 + Math.random() / 200,
-                xFactor: -50 + Math.random() * 100,
-                yFactor: -50 + Math.random() * 100,
-                zFactor: -50 + Math.random() * 100,
-            });
-        }
-        return temp;
-    }, []);
+  // Initialize particles with random positions and velocities around the origin point.
+  const particles = useMemo(() => {
+    const temp: Particle[] = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * 0.2;
+      temp.push({
+        position: new THREE.Vector3(
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          (Math.random() - 0.5) * 0.2
+        ),
+        velocity: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.005,
+          0.002 + Math.random() * 0.003, // Give them a slight upward "buoyancy"
+          (Math.random() - 0.5) * 0.005
+        ),
+        rotation: new THREE.Euler(0, 0, 0),
+        size: PARTICLE_BASE_SIZE * (0.5 + Math.random() * 0.5),
+      });
+    }
+    return temp;
+  }, []);
 
-    const dummy = useMemo(() => new THREE.Object3D(), []);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
-    useFrame(({ clock }) => {
-        if (!ref.current || !ref.current.geometry) return;
+  useFrame(({ clock }) => {
+    if (!ref.current?.geometry || !ref.current?.material) return;
 
-        const elapsedTime = clock.getElapsedTime() - creationTime;
-        const progress = elapsedTime / WISP_LIFESPAN_SECONDS;
+    const elapsedTime = clock.getElapsedTime() - creationTime;
+    const progress = elapsedTime / WISP_LIFESPAN_SECONDS;
 
-        if (progress >= 1) {
-            if (!hasCompleted.current) { onComplete(id); hasCompleted.current = true; }
-            return;
-        }
+    if (progress >= 1) {
+      if (!hasCompleted.current) {
+        onComplete(id);
+        hasCompleted.current = true;
+      }
+      return;
+    }
 
-        if (!ref.current) return;
+    const positions = ref.current.geometry.attributes.position as THREE.BufferAttribute;
 
-        particles.forEach((particle, i) => {
-            const { t, xFactor, yFactor, zFactor } = particle;
-            particle.t += particle.speed / 2;
-            const a = Math.cos(t) + Math.sin(t * 1) / 10;
-            const b = Math.sin(t) + Math.cos(t * 2) / 10;
-            const s = Math.max(1.5, Math.cos(t) * 5);
+    // Animate each particle based on its unique velocity and add a gentle swirl.
+    particles.forEach((particle, i) => {
+      // Apply a swirling force (curl noise)
+      const swirlStrength = 0.002;
+      particle.velocity.x += Math.sin(elapsedTime + i) * swirlStrength;
+      particle.velocity.z += Math.cos(elapsedTime + i) * swirlStrength;
 
-            dummy.position.set(
-                position.x + (xFactor + a * b) * (progress / 10),
-                position.y + (yFactor + Math.sin(t * 5.0) * 1.5) * progress,
-                position.z + (zFactor + b) * (progress / 10)
-            );
-            dummy.scale.set(s, s, s);
-            dummy.updateMatrix();
+      // Update position
+      particle.position.add(particle.velocity);
 
-            const positions = ref.current?.geometry?.attributes.position as THREE.BufferAttribute;
-            if (positions) {
-                positions.setXYZ(i, dummy.position.x, dummy.position.y, dummy.position.z);
-            }
-        });
+      // Apply drag so they slow down over time
+      particle.velocity.multiplyScalar(0.98);
 
-        if (ref.current?.geometry && ref.current?.material) {
-            (ref.current.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
-            (ref.current.material as THREE.PointsMaterial).opacity = (1.0 - progress) * WISP_MAX_OPACITY;
-        }
+      // Set the final calculated position for this frame
+      dummy.position.copy(particle.position);
+
+      // Set position in the buffer attribute
+      positions.setXYZ(i, dummy.position.x, dummy.position.y, dummy.position.z);
     });
 
-    return (
-        <Points ref={ref}>
-            <PointMaterial
-                transparent
-                color={color}
-                size={PARTICLE_BASE_SIZE}
-                depthWrite={false}
-                blending={THREE.AdditiveBlending}
-            />
-        </Points>
-    );
+    positions.needsUpdate = true;
+    // Fade out the entire wisp as it reaches the end of its life
+    (ref.current.material as THREE.PointsMaterial).opacity =
+      (1.0 - progress ** 2) * WISP_MAX_OPACITY;
+  });
+
+  // We now render a static Points object whose vertices are moved in the useFrame loop.
+  // The initial positions of the points are set from the `particles` array.
+  const initialPositions = useMemo(() => {
+    const pos = new Float32Array(PARTICLE_COUNT * 3);
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      pos[i * 3] = particles[i].position.x;
+      pos[i * 3 + 1] = particles[i].position.y;
+      pos[i * 3 + 2] = particles[i].position.z;
+    }
+    return pos;
+  }, [particles]);
+
+  return (
+    // The entire Points cloud is moved to the click position.
+    <group position={position}>
+      <Points
+        ref={ref}
+        positions={initialPositions}
+      >
+        <PointMaterial
+          transparent
+          color={color}
+          size={PARTICLE_BASE_SIZE}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </Points>
+    </group>
+  );
 };
 
 export const Wisps = ({ wisps, onComplete, color }: WispsProps) => {
-    return (
-        <>
-            {wisps.map((wisp) => (
-                <Wisp key={wisp.id} {...wisp} onComplete={onComplete} color={color} />
-            ))}
-        </>
-    );
+  return (
+    <group>
+      {wisps.map((wisp) => (
+        <Wisp
+          key={wisp.id}
+          {...wisp}
+          onComplete={onComplete}
+          color={color}
+        />
+      ))}
+    </group>
+  );
 };
