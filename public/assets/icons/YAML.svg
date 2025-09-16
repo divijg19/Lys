@@ -1,13 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
   <style>
     .text {
-      fill: #000000; /* Default color for light mode */
-      font-family: sans-serif;
-      font-size: 8px;
+      fill: var(--foreground, #000000); /* Use theme foreground color */
+      font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', 'Roboto Mono', monospace;
+      font-size: 7px;
+      font-weight: 600;
     }
     @media (prefers-color-scheme: dark) {
       .text {
-        fill: #FFFFFF; /* Color for dark mode */
+        fill: var(--foreground, #FFFFFF); /* Fallback for dark mode */
       }
     }
   </style>
