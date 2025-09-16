@@ -36,6 +36,25 @@ const iconMap: Record<string, React.FC<LucideProps>> = {
   GraduationCap,
 };
 
+// Icons that need special theme-aware handling (invert for dark-background themes)
+const ICONS_NEEDING_INVERSION = [
+  'mojo.svg',
+  'duckdb.svg',
+  'vercel.svg',
+  'YAML.svg'
+];
+
+// Helper function to get icon classes based on icon path and theme context
+const getIconClasses = (iconPath: string, baseClasses: string = "") => {
+  const iconName = iconPath.split('/').pop() || '';
+  const needsInversion = ICONS_NEEDING_INVERSION.includes(iconName);
+
+  return cn(
+    baseClasses,
+    needsInversion && "theme-aware-icon"
+  );
+};
+
 // --- MAIN COMPONENT ---
 export function Expertise() {
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
@@ -200,7 +219,7 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
         <div className="absolute inset-0 p-4">
           {/* Default state content */}
           <motion.div
-            className="flex h-full flex-col items-center justify-center text-center"
+            className="relative h-full w-full"
             animate={{
               opacity: isHovered ? 0 : 1,
             }}
@@ -209,26 +228,29 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
               ease: "easeOut"
             }}
           >
-            <motion.div
-              className="mb-3"
-              animate={{
-                scale: isHovered ? 0.9 : 1,
-              }}
-              transition={{
-                duration: 0.2,
-                ease: "easeOut"
-              }}
-            >
-              <Image
-                src={skill.iconPath}
-                alt={`${skill.name} icon`}
-                width={48}
-                height={48}
-                className="transition-all duration-200"
-              />
-            </motion.div>
-            {/* Fixed positioning for consistent text alignment */}
-            <div className="flex h-12 items-center justify-center">
+            {/* Icon positioned in center */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <motion.div
+                animate={{
+                  scale: isHovered ? 0.9 : 1,
+                }}
+                transition={{
+                  duration: 0.2,
+                  ease: "easeOut"
+                }}
+              >
+                <Image
+                  src={skill.iconPath}
+                  alt={`${skill.name} icon`}
+                  width={48}
+                  height={48}
+                  className={getIconClasses(skill.iconPath, "transition-all duration-200")}
+                />
+              </motion.div>
+            </div>
+
+            {/* Name consistently positioned at bottom */}
+            <div className="absolute right-0 bottom-0 left-0 flex h-12 items-center justify-center px-2">
               <h4 className="text-center font-semibold text-base leading-tight">
                 {skill.name}
               </h4>
@@ -282,7 +304,7 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
                       alt={`${skill.name} icon`}
                       width={24}
                       height={24}
-                      className="flex-shrink-0"
+                      className={getIconClasses(skill.iconPath, "flex-shrink-0")}
                     />
                     <h4 className="truncate font-semibold text-sm leading-tight">{skill.name}</h4>
                   </div>
