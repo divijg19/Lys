@@ -157,17 +157,10 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
   const cardRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Calculate safe expansion direction
   const getExpansionOffset = () => {
-    if (!cardRef.current) return 0;
-    const rect = cardRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
+    // Always center the expanded card over the original card
     const expandedWidth = 280;
     const cardWidth = 160;
-
-    // If expanding right would go off-screen, expand left instead
-    if (rect.left + expandedWidth > viewportWidth - 20) {
-      return -(expandedWidth - cardWidth);
-    }
-    return 0;
+    return -(expandedWidth - cardWidth) / 2;
   };
 
   // Stable hover management with debouncing
