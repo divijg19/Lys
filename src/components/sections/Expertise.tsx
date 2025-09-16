@@ -88,7 +88,7 @@ export function Expertise() {
               iconName={category.icon}
               isFirst={index === 0}
             />
-            <div className="flex flex-wrap justify-start gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {category.skills.map((skill) => (
                 <SkillCard
                   key={skill.name}
@@ -142,7 +142,7 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
       layoutId={`card-${skill.name}`}
       transition={cardTransition}
       type="button"
-      className="relative h-40 w-40 cursor-pointer overflow-hidden rounded-2xl border bg-card p-4 text-left shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/80"
+      className="group relative h-40 w-full cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-lg transition-shadow duration-200 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/80"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onSelect}
@@ -152,9 +152,9 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
         }
       }}
       aria-label={`View details for ${skill.name}`}
-      animate={{ width: isHovered ? "17rem" : "10rem" }} // 10rem -> 17rem (1.7x)
     >
-      <div className="relative h-full w-full">
+      {/* Fixed container to prevent layout shift */}
+      <div className="absolute inset-0 p-4">
         {/* State 1: Default Content (Icon and Title) */}
         <AnimatePresence>
           {!isHovered && (
@@ -167,10 +167,11 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
               <Image
                 src={skill.iconPath}
                 alt={`${skill.name} icon`}
-                width={50}
-                height={50}
+                width={48}
+                height={48}
+                className="transition-transform duration-200 group-hover:scale-110"
               />
-              <h4 className="font-bold text-lg">{skill.name}</h4>
+              <h4 className="font-semibold text-base leading-tight">{skill.name}</h4>
             </motion.div>
           )}
         </AnimatePresence>
@@ -181,33 +182,44 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { delay: 0.1 } }}
-              className="flex h-full flex-col justify-between"
+              className="flex h-full flex-col justify-between text-left"
             >
               <div className="flex w-full items-start justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
                   <Image
                     src={skill.iconPath}
                     alt={`${skill.name} icon`}
-                    width={24}
-                    height={24}
+                    width={20}
+                    height={20}
+                    className="flex-shrink-0"
                   />
-                  <h4 className="font-bold text-lg">{skill.name}</h4>
+                  <h4 className="truncate font-semibold text-sm leading-tight">{skill.name}</h4>
                 </div>
                 <Badge
                   variant="secondary"
-                  className="flex-shrink-0"
+                  className="ml-1 flex-shrink-0 text-xs"
                 >
                   {skill.level}
                 </Badge>
               </div>
-              <div>
-                <h5 className="mb-1 font-bold text-primary text-xs uppercase tracking-widest">
-                  Key Competencies
+              <div className="mt-2">
+                <h5 className="mb-1.5 font-semibold text-primary text-xs uppercase tracking-wider">
+                  Competencies
                 </h5>
-                <ul className="list-disc space-y-0.5 pl-4 text-muted-foreground text-sm">
-                  {skill.keyCompetencies.map((c) => (
-                    <li key={c}>{c}</li>
+                <ul className="space-y-0.5 text-muted-foreground text-xs leading-tight">
+                  {skill.keyCompetencies.slice(0, 3).map((c) => (
+                    <li
+                      key={c}
+                      className="line-clamp-1"
+                    >
+                      • {c}
+                    </li>
                   ))}
+                  {skill.keyCompetencies.length > 3 && (
+                    <li className="font-medium text-primary">
+                      +{skill.keyCompetencies.length - 3} more
+                    </li>
+                  )}
                 </ul>
               </div>
             </motion.div>
