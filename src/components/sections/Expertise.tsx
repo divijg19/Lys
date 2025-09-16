@@ -160,10 +160,10 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
   };
 
   const handleMouseLeave = () => {
-    // Debounce to prevent rapid state changes
+    // Shorter debounce for more responsive feel
     timeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-    }, 100);
+    }, 50);
   };
 
   // Cleanup timeout on unmount
@@ -200,20 +200,39 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
         <div className="absolute inset-0 p-4">
           {/* Default state content */}
           <motion.div
-            className="flex h-full flex-col items-center justify-center gap-3 text-center"
+            className="flex h-full flex-col items-center justify-center text-center"
             animate={{
               opacity: isHovered ? 0 : 1,
             }}
-            transition={{ duration: 0.2 }}
+            transition={{
+              duration: 0.15,
+              ease: "easeOut"
+            }}
           >
-            <Image
-              src={skill.iconPath}
-              alt={`${skill.name} icon`}
-              width={48}
-              height={48}
-              className="transition-transform duration-200"
-            />
-            <h4 className="font-semibold text-base leading-tight">{skill.name}</h4>
+            <motion.div
+              className="mb-3"
+              animate={{
+                scale: isHovered ? 0.9 : 1,
+              }}
+              transition={{
+                duration: 0.2,
+                ease: "easeOut"
+              }}
+            >
+              <Image
+                src={skill.iconPath}
+                alt={`${skill.name} icon`}
+                width={48}
+                height={48}
+                className="transition-all duration-200"
+              />
+            </motion.div>
+            {/* Fixed positioning for consistent text alignment */}
+            <div className="flex h-12 items-center justify-center">
+              <h4 className="text-center font-semibold text-base leading-tight">
+                {skill.name}
+              </h4>
+            </div>
           </motion.div>
         </div>
       </motion.div>
@@ -233,9 +252,9 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
             exit={{ opacity: 0, scale: 0.95, x: getExpansionOffset() }}
             transition={{
               type: "spring",
-              stiffness: 400,
-              damping: 30,
-              duration: 0.3,
+              stiffness: 500,
+              damping: 35,
+              mass: 0.8,
             }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -243,11 +262,15 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
           >
             <div className="absolute inset-0 p-4">
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{
                   opacity: 1,
                   y: 0,
-                  transition: { delay: 0.1, duration: 0.2 },
+                  transition: {
+                    delay: 0.08,
+                    duration: 0.15,
+                    ease: "easeOut"
+                  },
                 }}
                 className="flex h-full flex-col justify-between text-left"
               >

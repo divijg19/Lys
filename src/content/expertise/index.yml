@@ -16,6 +16,7 @@ categories:
           - "Engineered complex data transformation pipelines with Pandas for analytics dashboards."
           - "Developed automation scripts to streamline data collection and processing tasks."
         ecosystem:
+          - "Package Manager: uv"
           - "Web Frameworks: FastAPI, Django"
           - "Data Science: Pandas, NumPy, Scikit-learn"
           - "Task Queues: Celery"
@@ -229,7 +230,7 @@ categories:
           - "Wrote custom middleware for request logging, error handling, and caching."
           - "Integrated with third-party services like Stripe for payment processing."
         ecosystem:
-          - "Package Manager: npm, pnpm"
+          - "Package Manager: bun, npm, pnpm"
           - "Testing: Jest, Vitest"
           - "ORM: Prisma, Mongoose"
         projectSlugs: ["skill-sharing-platform"]
