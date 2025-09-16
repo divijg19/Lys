@@ -4,7 +4,7 @@ categories:
     skills:
       - name: "Python"
         iconPath: "/assets/icons/python.svg"
-        level: "Proficient"
+        level: "Experienced"
         keyCompetencies:
           - "Backend Development"
           - "Data Analysis & Science"
@@ -19,6 +19,22 @@ categories:
           - "Web Frameworks: FastAPI, Django"
           - "Data Science: Pandas, NumPy, Scikit-learn"
           - "Task Queues: Celery"
+        projectSlugs: []
+      - name: "Mojo"
+        iconPath: "/assets/icons/mojo.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Python Interop"
+          - "High-Performance Kernels"
+          - "JIT Compilation"
+        details: "Exploring Mojo for writing high-performance kernels that interoperate with Python while benefiting from static typing and a modern compiler toolchain."
+        rationale: "Mojo promises Python ergonomics with systems-level performance, making it compelling for compute-heavy data and AI workloads."
+        highlights:
+          - "Ported Python loops to Mojo kernels for speedups in numeric routines."
+          - "Experimented with type annotations and ownership-inspired patterns."
+        ecosystem:
+          - "Interop: Python, NumPy"
+          - "Use-cases: Data, ML"
         projectSlugs: []
       - name: "JavaScript"
         iconPath: "/assets/icons/javascript.svg"
@@ -36,7 +52,7 @@ categories:
         ecosystem:
           - "Runtimes: Node.js, Bun"
           - "Libraries: React, Next.js"
-          - "Tooling: ESLint, Prettier"
+          - "Tooling: Biome"
         projectSlugs: ["lys"]
       - name: "TypeScript"
         iconPath: "/assets/icons/typescript.svg"
@@ -72,6 +88,23 @@ categories:
           - "Web: Gin, Chi"
           - "CLI: Cobra"
         projectSlugs: []
+      - name: "Rust"
+        iconPath: "/assets/icons/rust.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Ownership & Borrowing"
+          - "Memory Safety"
+          - "Concurrent Programming"
+        details: "Actively exploring Rust's ownership model to build reliable, performant systems software with strong compile-time guarantees."
+        rationale: "Rust combines low-level control with memory safety, ideal for high-performance services and tooling."
+        highlights:
+          - "Built small CLI tools using Cargo and Serde."
+          - "Experimented with async runtimes like Tokio."
+        ecosystem:
+          - "Package Manager: Cargo"
+          - "Async: Tokio"
+          - "Serialization: Serde"
+        projectSlugs: []
       - name: "C++"
         iconPath: "/assets/icons/c++.svg"
         level: "Familiar"
@@ -80,22 +113,13 @@ categories:
           - "Data Structures & Algorithms"
           - "Low-Level Memory Management"
         details: "University-level experience focusing on data structures, algorithms, and low-level memory management principles. Provides a strong base for understanding system performance."
-        rationale: "My foundational knowledge of C++ provides a deep understanding of computer science fundamentals like memory management and performance optimization, which informs how I write code in any language."
+        rationale: "Learning C++ provides a deep understanding of computer science fundamentals like memory management and performance optimization, and helps inform me for any C-derived language I learn, like Rust, Zig, Golang"
         highlights:
           - "Implemented various data structures (Linked Lists, Trees, Graphs) from scratch."
           - "Solved complex algorithmic problems as part of university coursework."
         ecosystem:
           - "Compilers: GCC, Clang"
           - "Build Systems: CMake"
-        projectSlugs: []
-      - name: "Lua"
-        iconPath: "/assets/icons/lua.svg"
-        level: "Familiar"
-        keyCompetencies:
-          - "Game Logic Scripting"
-          - "Embeddable Configurations"
-          - "Lightweight Syntax"
-        details: "Used for scripting game logic and creating embeddable configurations, appreciating its lightweight nature and simple syntax."
         projectSlugs: []
 
   - name: "Frontend Development"
@@ -172,6 +196,21 @@ categories:
           - "Icons: Bootstrap Icons"
           - "Compiler: SASS"
         projectSlugs: []
+      - name: "Tauri"
+        iconPath: "/assets/icons/tauri.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Desktop App Packaging"
+          - "Rust + WebView"
+          - "Secure IPC"
+        details: "Experimenting with Tauri to build lightweight, secure desktop apps using a Rust core and web frontends."
+        rationale: "Tauri enables small, secure desktop apps by pairing Rust with familiar web UI stacks."
+        highlights:
+          - "Wrapped a Next.js UI as a desktop app for offline usage."
+        ecosystem:
+          - "Core: Rust"
+          - "UI: React/Next.js"
+        projectSlugs: []
 
   - name: "Backend & Data"
     icon: "Server"
@@ -228,24 +267,19 @@ categories:
           - "Client: Apollo Client, urql"
           - "Server: Apollo Server"
         projectSlugs: []
-      - name: "MongoDB"
-        iconPath: "/assets/icons/mongodb.svg"
-        level: "Experienced"
+      - name: "PostgreSQL"
+        iconPath: "/assets/icons/postgresql.svg"
+        level: "Familiar"
         keyCompetencies:
-          - "Flexible Schema Design"
-          - "Aggregation Pipelines"
-          - "Mongoose ODM"
-        details: "Designed schemas for various use cases and wrote complex aggregation pipelines for data analysis. Proficient in using Mongoose ODM for streamlined application development."
-        rationale: "MongoDB's flexible document model is ideal for applications with evolving requirements, allowing for rapid iteration and easy storage of complex, hierarchical data."
+          - "SQL & Query Optimization"
+          - "Indexes & Constraints"
+          - "Schema Design"
+        details: "Experience modeling relational schemas, writing performant SQL, and using indexes/constraints for integrity and speed."
         highlights:
-          - "Designed and implemented schemas for user profiles, content management, and e-commerce."
-          - "Wrote complex aggregation pipelines to generate analytics and reports."
-          - "Ensured data integrity and simplified interactions using the Mongoose ODM."
+          - "Wrote complex joins and window functions for analytics."
         ecosystem:
-          - "ODM: Mongoose"
-          - "GUI: MongoDB Compass"
-          - "Cloud: MongoDB Atlas"
-        projectSlugs: ["skill-sharing-platform"]
+          - "GUI: TablePlus, DBeaver"
+        projectSlugs: []
       - name: "MySQL"
         iconPath: "/assets/icons/mysql.svg"
         level: "Familiar"
@@ -253,15 +287,34 @@ categories:
           - "Relational Data Modeling"
           - "Complex SQL Queries"
           - "Data Integrity"
-        details: "Experienced in designing relational data models (ERDs), writing complex SQL queries with JOINs, and ensuring data integrity with transactions."
-        rationale: "For applications demanding strong consistency and data integrity, MySQL's relational structure and ACID compliance provide a robust and reliable foundation."
-        highlights:
-          - "Designed normalized database schemas using Entity-Relationship Diagrams (ERDs)."
-          - "Wrote complex queries with multiple JOINs to retrieve and aggregate data."
-          - "Used transactions to ensure atomicity for critical financial operations."
+        details: "Designed relational models (ERDs), wrote complex SQL with JOINs, and used transactions to ensure data integrity."
         ecosystem:
           - "ORMs: Prisma, TypeORM"
           - "GUI: TablePlus, DBeaver"
+        projectSlugs: []
+      - name: "MongoDB"
+        iconPath: "/assets/icons/mongodb.svg"
+        level: "Experienced"
+        keyCompetencies:
+          - "Flexible Schema Design"
+          - "Aggregation Pipelines"
+          - "Mongoose ODM"
+        details: "Designed schemas and aggregation pipelines for analytics; proficient with Mongoose ODM for app development."
+        ecosystem:
+          - "ODM: Mongoose"
+          - "GUI: MongoDB Compass"
+          - "Cloud: MongoDB Atlas"
+        projectSlugs: ["skill-sharing-platform"]
+      - name: "DuckDB"
+        iconPath: "/assets/icons/duckdb.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "In-Process Analytics"
+          - "SQL on Files"
+          - "Columnar Storage"
+        details: "Exploring DuckDB for fast, in-process analytics using SQL directly on Parquet/CSV files—ideal for local data workflows."
+        highlights:
+          - "Queried Parquet/CSV via SQL for quick analyses without a server."
         projectSlugs: []
       - name: "Firebase"
         iconPath: "/assets/icons/firebase.svg"
@@ -314,6 +367,20 @@ categories:
           - "Orchestration: Docker Compose"
           - "Registries: Docker Hub, AWS ECR"
         projectSlugs: []
+      - name: "Kubernetes"
+        iconPath: "/assets/icons/kubernetes.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Container Orchestration"
+          - "Deployments & Services"
+          - "Helm & Manifests"
+        details: "Learning Kubernetes basics: deploying containerized apps, managing services, and packaging with Helm for repeatable deployments."
+        rationale: "Kubernetes is the industry standard for orchestrating and scaling containerized workloads."
+        highlights:
+          - "Deployed a multi-service app locally with kind/minikube."
+        ecosystem:
+          - "Tools: kubectl, Helm"
+        projectSlugs: []
       - name: "GitHub Actions"
         iconPath: "/assets/icons/githubactions.svg"
         level: "Experienced"
@@ -348,23 +415,8 @@ categories:
           - "Frameworks: Next.js"
           - "Functions: Serverless, Edge"
         projectSlugs: ["lys"]
-      - name: "YAML"
-        iconPath: "/assets/icons/YAML.svg"
-        level: "Proficient"
-        keyCompetencies:
-          - "CI/CD Configuration"
-          - "Data Serialization"
-          - "Human-Readable Syntax"
-        details: "Regularly use YAML for defining configurations in CI/CD pipelines (GitHub Actions), Docker Compose, and various application settings due to its clean and human-readable syntax."
-        rationale: "YAML's human-readable syntax makes it the standard for configuration-as-code in modern DevOps, from defining CI/CD pipelines to orchestrating containers."
-        highlights:
-          - "Authored complex GitHub Actions workflows for CI/CD."
-          - "Defined multi-service applications using Docker Compose."
-        ecosystem:
-          - "Platforms: GitHub Actions, Docker Compose"
-        projectSlugs: []
 
-  - name: "Data Analysis & Visualization"
+  - name: "Data Analysis, Visualization & Scripting"
     icon: "BarChart"
     skills:
       - name: "Pandas"
@@ -397,7 +449,7 @@ categories:
           - "Used as the underlying data structure for analysis in Pandas."
         ecosystem:
           - "Core of: Pandas, Scikit-learn, SciPy"
-        projectSloughs: []
+        projectSlugs: []
       - name: "Power BI"
         iconPath: "/assets/icons/powerbi.svg"
         level: "Familiar"
@@ -414,26 +466,19 @@ categories:
           - "Languages: DAX, M"
           - "Tools: Power Query"
         projectSlugs: []
-
-  - name: "Continuing Education"
-    icon: "GraduationCap"
-    skills:
-      - name: "Rust"
-        iconPath: "/assets/icons/rust.svg"
-        level: "Familiar"
+      - name: "YAML"
+        iconPath: "/assets/icons/YAML.svg"
+        level: "Proficient"
         keyCompetencies:
-          - "Ownership & Borrowing"
-          - "Memory Safety"
-          - "Concurrent Programming"
-        details: "Actively exploring Rust's unique ownership and borrowing model to write memory-safe and highly concurrent software. Fascinated by its performance and reliability."
-        rationale: "I am learning Rust for its promise of building highly performant and reliable systems software, with memory safety guarantees enforced by the compiler."
+          - "Data Serialization"
+          - "Notebook/Tooling Configs"
+          - "Human-Readable Syntax"
+        details: "Use YAML for reproducible configurations in data tooling, experiment tracking, and pipeline definitions."
+        rationale: "Clean, human-readable configuration for data and scripting workflows."
         highlights:
-          - "Grasped the core concepts of ownership, borrowing, and lifetimes."
-          - "Built small command-line tools to solidify my understanding."
+          - "Versioned pipeline and tooling configs alongside code."
         ecosystem:
-          - "Package Manager: Cargo"
-          - "Async: Tokio"
-          - "Serialization: Serde"
+          - "Platforms: GitHub Actions, Docker Compose"
         projectSlugs: []
       - name: "R"
         iconPath: "/assets/icons/r.svg"
@@ -442,28 +487,20 @@ categories:
           - "Statistical Analysis"
           - "Data Visualization (ggplot)"
           - "Tidyverse Ecosystem"
-        details: "University coursework involved using R and the Tidyverse for statistical analysis, data cleaning, and generating plots for academic research papers."
-        rationale: "My experience with R and its Tidyverse provides a strong foundation in statistical computing and creating publication-quality data visualizations."
+        details: "Coursework and experiments with R and Tidyverse for data cleaning, modeling, and publication-quality plots."
+        rationale: "Strong statistical tooling and visualization libraries complement my Python stack."
         highlights:
-          - "Performed statistical analysis and modeling for academic research."
-          - "Created complex plots and charts using ggplot2."
+          - "Built exploratory plots and statistical summaries with ggplot2."
         ecosystem:
           - "Core: Tidyverse (dplyr, ggplot2)"
           - "IDE: RStudio"
         projectSlugs: []
-      - name: "Ruby on Rails"
-        iconPath: "/assets/icons/rails.svg"
+      - name: "Lua"
+        iconPath: "/assets/icons/lua.svg"
         level: "Familiar"
         keyCompetencies:
-          - "MVC Architecture"
-          - "Convention over Configuration"
-          - "Active Record ORM"
-        details: "Explored the Rails framework to understand its rapid development capabilities, the MVC architecture, and the powerful Active Record ORM for database interaction."
-        rationale: "I explored Ruby on Rails to understand its renowned 'convention over configuration' philosophy and its powerful tools for rapid, full-stack web development."
-        highlights:
-          - "Built a small blog application to understand the MVC pattern."
-          - "Used Active Record for database migrations and object-relational mapping."
-        ecosystem:
-          - "ORM: Active Record"
-          - "Templating: ERB"
+          - "Lightweight Scripting"
+          - "Embeddable Configurations"
+          - "Data Processing Scripts"
+        details: "Used Lua for lightweight scripting and embedding configuration logic; simple, fast, and pragmatic."
         projectSlugs: []

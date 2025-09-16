@@ -282,7 +282,12 @@
 @layer utilities {
   /* Default gradient for themes with suitable p-s-a variables (e.g., Cyberpunk) */
   .text-gradient-theme {
-    background-image: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--accent)));
+    background-image: linear-gradient(
+      45deg,
+      hsl(var(--primary)),
+      hsl(var(--secondary)),
+      hsl(var(--accent))
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -290,7 +295,12 @@
 
   /* SMOOTH & READABLE: A dedicated, hand-tuned gradient for the Ethereal theme text */
   .text-gradient-ethereal-readable {
-    background-image: linear-gradient(45deg, hsl(250, 85%, 65%), hsl(300, 85%, 68%), hsl(340, 90%, 70%));
+    background-image: linear-gradient(
+      45deg,
+      hsl(250, 85%, 65%),
+      hsl(300, 85%, 68%),
+      hsl(340, 90%, 70%)
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

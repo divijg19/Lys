@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 // Assuming data is imported from a source like Velite
 import { expertise, projects } from "#velite";
 import { Badge } from "@/components/ui/Badge";
@@ -39,6 +39,7 @@ const iconMap: Record<string, React.FC<LucideProps>> = {
 // --- MAIN COMPONENT ---
 export function Expertise() {
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  const expertiseId = useId();
 
   // Lock body scroll when the modal is open
   useEffect(() => {
@@ -63,7 +64,7 @@ export function Expertise() {
 
   return (
     <section
-      id="expertise"
+      id={expertiseId}
       className="relative mx-auto w-full max-w-screen-xl px-4 py-20"
     >
       <motion.div

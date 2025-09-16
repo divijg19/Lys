@@ -12,7 +12,7 @@ import {
   MessageCircle,
   XCircle,
 } from "lucide-react"; // Added XCircle for errors
-import { useState } from "react";
+import { useId, useState } from "react";
 import { bio } from "#velite";
 import { SocialLink } from "@/components/layout/SocialLink";
 import { Button } from "@/components/ui/Button";
@@ -69,6 +69,7 @@ type FormStatus =
 
 export function Contact() {
   const [status, setStatus] = useState<FormStatus>({ status: "idle" });
+  const sectionId = useId();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,7 +107,7 @@ export function Contact() {
 
   return (
     <section
-      id="contact"
+      id={sectionId}
       className="mx-auto w-full max-w-screen-xl px-4 py-16"
     >
       <motion.div
@@ -171,6 +172,10 @@ function ContactForm({
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   status: "idle" | "loading";
 }) {
+  const nameId = useId();
+  const emailId = useId();
+  const messageId = useId();
+
   return (
     <motion.form
       key="form"
@@ -183,9 +188,9 @@ function ContactForm({
       autoComplete="off"
     >
       <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor={nameId}>Name</Label>
         <Input
-          id="name"
+          id={nameId}
           name="name"
           type="text"
           placeholder="Your Name"
@@ -194,9 +199,9 @@ function ContactForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor={emailId}>Email</Label>
         <Input
-          id="email"
+          id={emailId}
           name="email"
           type="email"
           placeholder="your@email.com"
@@ -205,9 +210,9 @@ function ContactForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="message">Message</Label>
+        <Label htmlFor={messageId}>Message</Label>
         <Textarea
-          id="message"
+          id={messageId}
           name="message"
           placeholder="Your message..."
           required
