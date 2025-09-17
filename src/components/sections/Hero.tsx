@@ -39,7 +39,7 @@ const SOCIALS = [
     colorClass: "hover:bg-[#0A66C2] hover:text-white",
   },
   {
-    href: "https://instagram.com/divij.ganjoo",
+    href: bio.social.instagram,
     name: "Instagram",
     icon: Instagram,
     colorClass: "hover:bg-[#E4405F] hover:text-white",
