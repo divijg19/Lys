@@ -157,9 +157,21 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
   const cardRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Calculate safe expansion direction
   const getExpansionOffset = () => {
-    // Always center the expanded card over the original card
     const expandedWidth = 280;
     const cardWidth = 160;
+    const mobileBreakpoint = 640;
+    if (typeof window !== "undefined" && window.innerWidth < mobileBreakpoint && cardRef.current) {
+      // On mobile, expand to the right unless near the right edge
+      const rect = cardRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      if (rect.left + expandedWidth > viewportWidth - 16) {
+        // Expand left if too close to right edge
+        return -(expandedWidth - cardWidth);
+      }
+      // Otherwise, expand to the right
+      return 0;
+    }
+    // On desktop, center
     return -(expandedWidth - cardWidth) / 2;
   };
 
@@ -189,8 +201,8 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
 
   return (
     <div
-      className="relative"
-      style={{ width: "160px", height: "160px" }}
+      className="relative w-full max-w-xs sm:w-[160px] sm:max-w-none"
+      style={{ height: "160px" }}
     >
       {/* Base card - always stays in place */}
       <motion.div
@@ -256,8 +268,8 @@ function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) 
       <AnimatePresence>
         {isHovered && (
           <motion.div
-            className="absolute top-0 left-0 z-20 cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-xl"
-            style={{ width: "280px", height: "160px" }}
+            className="absolute top-0 left-0 z-20 w-full max-w-[90vw] cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-xl sm:w-[280px] sm:max-w-none"
+            style={{ height: "160px" }}
             initial={{ opacity: 0, scale: 0.95, x: getExpansionOffset() }}
             animate={{
               opacity: 1,

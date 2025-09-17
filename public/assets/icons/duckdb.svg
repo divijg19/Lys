@@ -1,12 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="Ebene_1" x="0" y="0" version="1.1" viewBox="0 0 769.5 591.9" style="enable-background:new 0 0 769.5 591.9" xml:space="preserve">
 <style type="text/css">
   .st0{fill:#fff100}
-  .duck-body{fill: var(--foreground, #000000)}
-  .duck-text{fill: var(--foreground, #000000)}
-  @media (prefers-color-scheme: dark) {
-    .duck-body{fill: #e5e7eb;}
-    .duck-text{fill: #e5e7eb;}
-  }
+  .duck-body{fill: var(--color-foreground, #e5e7eb);}
+  .duck-text{fill: var(--color-foreground, #e5e7eb);}
 </style>
 <g>
 <path d="M384.8,344.4L384.8,344.4c-92.5,0-167.2-74.7-167.2-167.2l0,0C217.6,84.7,292.3,10,384.8,10l0,0 C477.3,10,552,84.7,552,177.2l0,0C552,269.6,477.3,344.4,384.8,344.4z" class="duck-body"/>
