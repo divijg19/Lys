@@ -45,6 +45,7 @@ public/assets/icons/typescript.svg
 public/assets/icons/vercel.svg
 public/assets/images/divij-ganjoo.jpg
 public/assets/images/projects/Lys.png
+public/resume.pdf
 public/robots.txt
 src/app/about/page.tsx
 src/app/api/contact/route.ts
