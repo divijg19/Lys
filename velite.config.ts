@@ -94,6 +94,7 @@ const bio = defineCollection({
     social: s.object({
       github: s.string().url(),
       linkedin: s.string().url(),
+      instagram: s.string().url(),
     }),
   }),
 });
