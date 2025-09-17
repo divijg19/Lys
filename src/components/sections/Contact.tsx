@@ -27,6 +27,7 @@ const socials: {
   icon: LucideIcon;
   colorClass: string;
 }[] = [
+
     {
       href: bio.social.github,
       name: "GitHub",
@@ -52,6 +53,7 @@ const socials: {
       colorClass: "hover:bg-[#E4405F] hover:text-white",
     },
   ];
+
 
 import type { Variants } from "framer-motion";
 
