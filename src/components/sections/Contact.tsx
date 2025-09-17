@@ -27,31 +27,33 @@ const socials: {
   icon: LucideIcon;
   colorClass: string;
 }[] = [
-  {
-    href: `mailto:${bio.email}`,
-    name: "Gmail",
-    icon: Mail,
-    colorClass: "hover:bg-[#EA4335] hover:text-white",
-  },
-  {
-    href: bio.social.github,
-    name: "GitHub",
-    icon: Github,
-    colorClass: "hover:bg-[#181717] hover:text-white",
-  },
-  {
-    href: bio.social.linkedin,
-    name: "LinkedIn",
-    icon: Linkedin,
-    colorClass: "hover:bg-[#0A66C2] hover:text-white",
-  },
-  {
-    href: "https://instagram.com/one_excellent_hope",
-    name: "Instagram",
-    icon: Instagram,
-    colorClass: "hover:bg-[#E4405F] hover:text-white",
-  },
-];
+
+    {
+      href: bio.social.github,
+      name: "GitHub",
+      icon: Github,
+      colorClass: "hover:bg-[#181717] hover:text-white",
+    },
+    {
+      href: `mailto:${bio.email}`,
+      name: "Gmail",
+      icon: Mail,
+      colorClass: "hover:bg-[#EA4335] hover:text-white",
+    },
+    {
+      href: bio.social.linkedin,
+      name: "LinkedIn",
+      icon: Linkedin,
+      colorClass: "hover:bg-[#0A66C2] hover:text-white",
+    },
+    {
+      href: "https://instagram.com/one_excellent_hope",
+      name: "Instagram",
+      icon: Instagram,
+      colorClass: "hover:bg-[#E4405F] hover:text-white",
+    },
+  ];
+
 
 import type { Variants } from "framer-motion";
 

@@ -74,7 +74,7 @@
     "three": "0.180.0",
     "vaul": "1.1.2",
     "velite": "0.3.0",
-    "zod": "4.1.8",
+    "zod": "4.1.9",
     "zustand": "5.0.8"
   },
   "devDependencies": {
@@ -93,7 +93,7 @@
     "@tailwindcss/postcss": "4.1.13",
     "@testing-library/jest-dom": "6.8.0",
     "@testing-library/react": "16.3.0",
-    "@types/node": "24.5.0",
+    "@types/node": "24.5.1",
     "@types/react": "19.1.13",
     "@types/react-dom": "19.1.9",
     "@types/webpack": "5.28.5",
