@@ -10,6 +10,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
+import { createPRNG, seedHash } from "@/lib/utils";
 
 // --- 1. A strict TypeScript type for instance data. ---
 type InstanceData = {
@@ -40,29 +41,18 @@ export function CelestialDebrisField({
   // `useMemo` generates the stable "birth certificate" for each shard once.
   const instances = useMemo<InstanceData[]>(() => {
     const temp: InstanceData[] = [];
+    const rng = createPRNG(seedHash(`debris:${count}`));
+    const randS = () => rng() - 0.5;
     for (let i = 0; i < count; i++) {
-      const axis = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+      const axis = new THREE.Vector3(randS(), randS(), randS());
       if (axis.lengthSq() > 0) axis.normalize();
-
       temp.push({
         id: i,
-        position: new THREE.Vector3(
-          (Math.random() - 0.5) * 80,
-          (Math.random() - 0.5) * 80,
-          (Math.random() - 0.5) * 80
-        ),
-        scale: new THREE.Vector3(
-          0.1 + Math.random() * 0.2,
-          0.1 + Math.random() * 0.8,
-          0.1 + Math.random() * 0.2
-        ),
-        rotation: new THREE.Euler(
-          Math.random() * Math.PI,
-          Math.random() * Math.PI,
-          Math.random() * Math.PI
-        ),
+        position: new THREE.Vector3(randS() * 80, randS() * 80, randS() * 80),
+        scale: new THREE.Vector3(0.1 + rng() * 0.2, 0.1 + rng() * 0.8, 0.1 + rng() * 0.2),
+        rotation: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
         orbitAxis: axis,
-        orbitSpeed: 0.0001 + Math.random() * 0.0005,
+        orbitSpeed: 0.0001 + rng() * 0.0005,
       });
     }
     return temp;

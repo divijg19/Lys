@@ -52,10 +52,17 @@ function ThemeBackground() {
   const SceneComponent = themeScenes[sceneKey] || (() => null);
 
   // Environment-derived gating flags (applied by ClientAttrWrapper and user prefs)
+  // Detect user / system preferences. We only suppress heavy scenes if BOTH low-data and reduce-motion
+  // are explicitly signaled, unless an override env disables suppression.
   const isLowData = (() => {
     if (typeof document === "undefined") return false;
     const root = document.documentElement;
-    return root.hasAttribute("data-low-data") || root.hasAttribute("data-reduce-motion");
+    const lowData = root.hasAttribute("data-low-data");
+    const reduceMotion = root.hasAttribute("data-reduce-motion");
+    const override = process.env.NEXT_PUBLIC_FORCE_SCENES === "1";
+    if (override) return false;
+    // Previously: lowData OR reduceMotion (overly aggressive). Now require both.
+    return lowData && reduceMotion;
   })();
 
   const fallbackClass = FALLBACK_GRADIENTS[themeName] || FALLBACK_GRADIENTS.light;
@@ -68,7 +75,7 @@ function ThemeBackground() {
       {/* Fallback gradient (z-order below scene) */}
       <div className={`absolute inset-0 z-[-1] transition-opacity duration-500 ${fallbackClass}`} />
       <AnimatePresence mode="wait">
-        {isMounted && (process.env.NODE_ENV !== "production" ? true : !isLowData) && (
+        {isMounted && !isLowData && (
           <motion.div
             key={themeName}
             initial={{ opacity: 0 }}

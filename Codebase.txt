@@ -1,3 +1,4 @@
+.env.production
 .gitignore
 .storybook/main.ts
 .storybook/preview.ts
