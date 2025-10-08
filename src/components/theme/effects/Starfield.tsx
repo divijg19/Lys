@@ -12,6 +12,7 @@ import { useFrame } from "@react-three/fiber";
 import type { ComponentPropsWithoutRef } from "react";
 import { useRef, useState } from "react";
 import type * as THREE from "three";
+import { createPRNG, seedHash } from "@/lib/utils";
 
 /**
  * The props for the Starfield component, allowing full customization.
@@ -77,14 +78,14 @@ export function Starfield({
 
   // --- DEFINITIVE FIX: Replace `random.inSphere` with a mathematically stable method. ---
   const [sphere] = useState(() => {
+    const rng = createPRNG(seedHash(`starfield:${count}:${radius}`));
     const points = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      // This robust method for generating a point in a sphere CANNOT produce NaN values.
-      const u = Math.random();
-      const v = Math.random();
+      const u = rng();
+      const v = rng();
       const theta = 2 * Math.PI * u;
       const phi = Math.acos(2 * v - 1);
-      const r = radius * Math.cbrt(Math.random());
+      const r = radius * Math.cbrt(rng());
       const x = r * Math.sin(phi) * Math.cos(theta);
       const y = r * Math.sin(phi) * Math.sin(theta);
       const z = r * Math.cos(phi);
