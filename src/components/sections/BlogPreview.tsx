@@ -1,23 +1,18 @@
 "use client";
-
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRef } from "react";
 import { blogs } from "#velite";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-
-// Using the same signature animation as the rest of the portfolio
-const FADE_UP_VARIANTS = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { type: "spring" as const, duration: 0.8 } },
-};
 
 export function BlogPreview() {
   const latestPosts = blogs
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
+  const ref = useRef<HTMLElement | null>(null);
 
   if (latestPosts.length === 0) {
     return null; // Don't render if there are no posts
@@ -26,53 +21,47 @@ export function BlogPreview() {
   const [firstPost, ...otherPosts] = latestPosts;
 
   return (
-    <section className="mx-auto w-full max-w-screen-xl px-4 py-16">
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={FADE_UP_VARIANTS}
-        className="mb-12 text-center"
-      >
+    <motion.section
+      ref={ref}
+      className="mx-auto w-full max-w-screen-xl px-4 py-16"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <div className="mb-12 text-center">
         <h2 className="font-bold text-4xl tracking-tight">From the Blog</h2>
         <p className="mt-3 text-lg text-muted-foreground">
           Sharing insights, tutorials, and thoughts on development and design.
         </p>
-      </motion.div>
+      </div>
 
       <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.1 }}
-        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.15 } } }}
-        // --- THE INSPIRED LAYOUT GRID ---
         className="grid grid-cols-1 grid-rows-2 gap-8 lg:grid-cols-2"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <motion.div
-          variants={FADE_UP_VARIANTS}
-          className="lg:row-span-2"
-        >
+        <div className="lg:row-span-2">
           <BlogPostCard
             post={firstPost}
             isFeatured
           />
-        </motion.div>
+        </div>
         {otherPosts.map((post) => (
-          <motion.div
-            key={post.slug}
-            variants={FADE_UP_VARIANTS}
-          >
+          <div key={post.slug}>
             <BlogPostCard post={post} />
-          </motion.div>
+          </div>
         ))}
       </motion.div>
 
       <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.8 }}
-        variants={FADE_UP_VARIANTS}
         className="mt-16 text-center"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
       >
         <Button
           asChild
@@ -81,7 +70,7 @@ export function BlogPreview() {
           <Link href="/blog">View All Posts</Link>
         </Button>
       </motion.div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -96,7 +85,8 @@ function BlogPostCard({
   return (
     <Link
       href={post.url}
-      className="group hover:-translate-y-1 block h-full w-full transform rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg"
+      aria-label={`Read blog post ${post.title}`}
+      className="group hover:-translate-y-1 block h-full w-full transform rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
     >
       <article
         className={cn("flex h-full", isFeatured ? "flex-col" : "flex-col sm:flex-row lg:flex-col")}
@@ -110,10 +100,24 @@ function BlogPostCard({
           )}
         >
           <Image
-            src={post.cover || "/assets/images/placeholder.png"}
+            src={post.cover || "/assets/images/placeholder.svg"}
             alt={`Cover image for ${post.title}`}
             fill
+            loading="lazy"
+            sizes={
+              isFeatured
+                ? "(max-width: 1024px) 100vw, 50vw"
+                : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            }
+            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = "1";
+                target.src = "/assets/images/placeholder.svg";
+              }
+            }}
           />
         </div>
         <div className="flex flex-1 flex-col p-6">

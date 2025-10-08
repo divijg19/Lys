@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { projects } from "#velite";
 import { MdxContent } from "@/components/layout/MdxContent";
+import { ProjectJsonLd } from "@/components/seo/ProjectJsonLd";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
@@ -39,16 +40,32 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 }
 
 export async function generateStaticParams() {
-  return projects.map((project) => ({ slug: project.slug }));
+  try {
+    return projects.map((project) => ({ slug: project.slug }));
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Error generating static params for projects:", error);
+    }
+    return [];
+  }
 }
 
 export default function ProjectPage({ params }: ProjectPageProps) {
   const project = projects.find((p) => p.slug === params.slug);
   if (!project) notFound();
 
+  const siteUrl = "https://divijganjoo.me";
   return (
     <main className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
+        <ProjectJsonLd
+          title={project.title}
+          description={project.description}
+          url={`${siteUrl}${project.url}`}
+          repository={project.repository}
+          tags={project.tags}
+          image={project.cover ? `${siteUrl}${project.cover}` : undefined}
+        />
         <Link
           href="/projects"
           className="mb-8 flex items-center gap-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"

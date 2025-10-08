@@ -1,8 +1,8 @@
 // src/components/ui/Button.stories.ts
 
-import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Ghost } from "lucide-react"; // Correct icon import
+import { fn } from "storybook/test";
 
 // Import the component and its props from the same file.
 import { Button, type ButtonProps } from "./Button";

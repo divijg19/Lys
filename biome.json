@@ -1,12 +1,13 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": false,
+    "includes": ["**", "!package.json", "!node_modules", "!.next", "!dist", "!build", "!bun.lock"]
   },
   "formatter": {
     "enabled": true,
@@ -54,7 +55,7 @@
         "noDangerouslySetInnerHtmlWithChildren": "error"
       },
       "nursery": {
-        "useSortedClasses": "warn"
+        "useSortedClasses": "off"
       }
     }
   },

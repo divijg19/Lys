@@ -11,7 +11,7 @@ import { useEffect, useRef } from "react";
 const ALPHABET =
   "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789";
 const FONT_SIZE = 8;
-const STREAM_DENSITY = FONT_SIZE + 3;
+const STREAM_DENSITY = FONT_SIZE + 6; // Increased from 3 to 6 (20% less dense)
 
 // --- Class Definitions ---
 class RainSymbol {

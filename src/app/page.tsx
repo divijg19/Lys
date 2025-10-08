@@ -1,53 +1,34 @@
+// Home page now renders sections directly (production parity) without extra debug wrappers.
+
 import dynamic from "next/dynamic";
-import type { ComponentType } from "react";
-import { HeroSkeleton } from "@/components/sections/HeroSkeleton";
+import { About } from "@/components/sections/About";
+import { BlogPreview } from "@/components/sections/BlogPreview";
+import { Contact } from "@/components/sections/Contact";
+import { Experience } from "@/components/sections/Experience";
 
-const SectionSkeleton = () => <section className="py-16 md:py-20" />;
-
-const DynamicHero = dynamic(() => import("@/components/sections/Hero").then((mod) => mod.Hero), {
-  loading: () => <HeroSkeleton />,
-});
-const DynamicAbout = dynamic(() => import("@/components/sections/About").then((mod) => mod.About), {
-  loading: () => <SectionSkeleton />,
-});
-const DynamicExperience = dynamic(
-  () => import("@/components/sections/Experience").then((mod) => mod.Experience),
-  { loading: () => <SectionSkeleton /> }
-);
-const DynamicExpertise = dynamic(
-  () => import("@/components/sections/Expertise").then((mod) => mod.Expertise),
-  { loading: () => <SectionSkeleton /> }
-);
-const DynamicProjectsPreview = dynamic(
-  () => import("@/components/sections/ProjectsPreview").then((mod) => mod.ProjectsPreview),
-  { loading: () => <SectionSkeleton /> }
-);
-const DynamicBlogPreview = dynamic(
-  () => import("@/components/sections/BlogPreview").then((mod) => mod.BlogPreview),
-  { loading: () => <SectionSkeleton /> }
-);
-const DynamicContact = dynamic(
-  () => import("@/components/sections/Contact").then((mod) => mod.Contact),
-  { loading: () => <SectionSkeleton /> }
+const Expertise = dynamic(
+  () => import("@/components/sections/Expertise").then((m) => m.Expertise),
+  {
+    ssr: true,
+    loading: () => (
+      <div className="py-24 text-center text-muted-foreground">Loading expertise…</div>
+    ),
+  }
 );
 
-// This is the definitive narrative order for your homepage.
-const sections: { name: string; Component: ComponentType }[] = [
-  { name: "Hero", Component: DynamicHero },
-  { name: "About", Component: DynamicAbout },
-  { name: "Experience", Component: DynamicExperience },
-  { name: "Expertise", Component: DynamicExpertise },
-  { name: "Projects", Component: DynamicProjectsPreview },
-  { name: "Blog", Component: DynamicBlogPreview },
-  { name: "Contact", Component: DynamicContact },
-];
+import { Hero } from "@/components/sections/Hero";
+import { ProjectsPreview } from "@/components/sections/ProjectsPreview";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col">
-      {sections.map(({ name, Component }) => (
-        <Component key={name} />
-      ))}
-    </div>
+    <>
+      <Hero />
+      <About />
+      <Experience />
+      <Expertise />
+      <ProjectsPreview />
+      <BlogPreview />
+      <Contact />
+    </>
   );
 }

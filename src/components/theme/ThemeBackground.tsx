@@ -15,7 +15,19 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { themes } from "@/lib/themes"; // The single source of truth!
+import { type Theme, themes } from "@/lib/themes"; // The single source of truth!
+import { themeScenes } from "./themeScenes";
+
+// Lightweight gradient backgrounds keyed by theme for low-data / reduced-motion situations.
+const FALLBACK_GRADIENTS: Record<string, string> = {
+  light: "bg-gradient-to-br from-white via-neutral-100 to-neutral-200",
+  dark: "bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700",
+  cyberpunk: "bg-gradient-to-br from-fuchsia-700 via-pink-600 to-rose-500",
+  ethereal: "bg-gradient-to-br from-indigo-200 via-violet-200 to-rose-200",
+  horizon: "bg-gradient-to-br from-sky-500 via-amber-300 to-rose-400",
+  mirage: "bg-gradient-to-br from-orange-200 via-amber-100 to-rose-100",
+  simple: "bg-gradient-to-br from-white to-neutral-100 dark:from-black dark:to-neutral-900",
+};
 
 /**
  * Orchestrator component that selects and animates the appropriate background
@@ -36,24 +48,33 @@ function ThemeBackground() {
   const currentTheme = themes.find((t) => t.name === activeThemeName) ?? themes[0];
 
   // Destructure the component and theme name directly from the theme object.
-  const { SceneComponent, name: themeName } = currentTheme;
+  const { sceneKey, name: themeName } = currentTheme as Theme;
+  const SceneComponent = themeScenes[sceneKey] || (() => null);
+
+  // Environment-derived gating flags (applied by ClientAttrWrapper and user prefs)
+  const isLowData = (() => {
+    if (typeof document === "undefined") return false;
+    const root = document.documentElement;
+    return root.hasAttribute("data-low-data") || root.hasAttribute("data-reduce-motion");
+  })();
+
+  const fallbackClass = FALLBACK_GRADIENTS[themeName] || FALLBACK_GRADIENTS.light;
 
   return (
     <div
       className="-z-50 pointer-events-none fixed inset-0"
       aria-hidden="true"
     >
+      {/* Fallback gradient (z-order below scene) */}
+      <div className={`absolute inset-0 z-[-1] transition-opacity duration-500 ${fallbackClass}`} />
       <AnimatePresence mode="wait">
-        {/* Only render on the client after mounting. */}
-        {isMounted && (
+        {isMounted && (process.env.NODE_ENV !== "production" ? true : !isLowData) && (
           <motion.div
-            // The key is crucial! It tells React to unmount the old scene
-            // and mount the new one, which triggers our enter/exit animations.
             key={themeName}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.5, ease: "easeInOut" } }}
-            exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
-            className="absolute inset-0"
+            exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
+            className="absolute inset-0 z-0"
           >
             <SceneComponent />
           </motion.div>

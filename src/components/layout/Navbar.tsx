@@ -103,9 +103,16 @@ function ThemeCycleIcon() {
           animate={{ opacity: 1, rotate: 0, scale: 1 }}
           exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
           transition={{ type: "spring", duration: 0.35, bounce: 0 }}
-          className="absolute"
+          className="absolute text-foreground"
         >
-          {isMounted ? <theme.icon className="h-5 w-5" /> : <div className="h-5 w-5" />}
+          {isMounted ? (
+            <theme.icon
+              className="h-5 w-5 text-foreground"
+              aria-hidden="true"
+            />
+          ) : (
+            <div className="h-5 w-5" />
+          )}
         </motion.div>
       </AnimatePresence>
     </motion.button>

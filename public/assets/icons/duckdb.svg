@@ -1,18 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-labelledby="duckdbTitle">
   <title id="duckdbTitle">DuckDB</title>
-  <desc>Theme-aware DuckDB logo. Black/yellow for light, white/yellow for dark.</desc>
+  <desc>Theme-aware DuckDB logo. White background with yellow details for dark themes, black background for light themes.</desc>
   <style>
     .duckdb-light { display: block; }
     .duckdb-dark { display: none; }
     html[data-theme="dark"] .duckdb-light { display: none; }
     html[data-theme="dark"] .duckdb-dark { display: block; }
+    html[data-theme="cyberpunk"] .duckdb-light { display: none; }
+    html[data-theme="cyberpunk"] .duckdb-dark { display: block; }
+    html[data-theme="horizon"] .duckdb-light { display: none; }
+    html[data-theme="horizon"] .duckdb-dark { display: block; }
   </style>
   <g class="duckdb-light">
     <circle cx="12" cy="12" r="12" fill="#000" />
-    <path fill="#fff100" stroke="#222" stroke-width="1.2" d="M9.502 7.03a4.974 4.974 0 0 1 4.97 4.97 4.974 4.974 0 0 1 -4.97 4.97A4.974 4.974 0 0 1 4.532 12a4.974 4.974 0 0 1 4.97 -4.97zm6.563 3.183h2.351c0.98 0 1.787 0.782 1.787 1.762s-0.807 1.789 -1.787 1.789h-2.351v-3.551z" />
+    <path fill="#fff100" stroke="#333" stroke-width="0.8" d="M9.502 7.03a4.974 4.974 0 0 1 4.97 4.97 4.974 4.974 0 0 1 -4.97 4.97A4.974 4.974 0 0 1 4.532 12a4.974 4.974 0 0 1 4.97 -4.97zm6.563 3.183h2.351c0.98 0 1.787 0.782 1.787 1.762s-0.807 1.789 -1.787 1.789h-2.351v-3.551z" />
   </g>
   <g class="duckdb-dark">
     <circle cx="12" cy="12" r="12" fill="#fff" />
-    <path fill="#fff100" stroke="#222" stroke-width="1.2" d="M9.502 7.03a4.974 4.974 0 0 1 4.97 4.97 4.974 4.974 0 0 1 -4.97 4.97A4.974 4.974 0 0 1 4.532 12a4.974 4.974 0 0 1 4.97 -4.97zm6.563 3.183h2.351c0.98 0 1.787 0.782 1.787 1.762s-0.807 1.789 -1.787 1.789h-2.351v-3.551z" />
+    <path fill="#fff100" stroke="#333" stroke-width="1.2" d="M9.502 7.03a4.974 4.974 0 0 1 4.97 4.97 4.974 4.974 0 0 1 -4.97 4.97A4.974 4.974 0 0 1 4.532 12a4.974 4.974 0 0 1 4.97 -4.97zm6.563 3.183h2.351c0.98 0 1.787 0.782 1.787 1.762s-0.807 1.789 -1.787 1.789h-2.351v-3.551z" />
   </g>
 </svg>
