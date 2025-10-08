@@ -1,66 +1,34 @@
+import type { Metadata } from "next";
+// 1. --- IMPORT THE CORRECT, WORLD-CLASS COMPONENT ---
+import { Contact } from "@/components/sections/Contact";
+
+// 2. --- REFINED METADATA ---
+// This is now cleaner and more focused. The root layout will handle the rest.
+export const metadata: Metadata = {
+  title: "Contact", // The template in layout.tsx will add "| Divij Ganjoo"
+  description:
+    "Get in touch with Divij Ganjoo. I'm always open to new opportunities, collaborations, or just a friendly chat.",
+};
+
 export default function ContactPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
-        Contact Me
-      </h1>
-      <p className="text-gray-700 dark:text-gray-300 text-lg mb-6">
-        Feel free to reach out for collaborations, questions, or just to
-        connect.
-      </p>
-      <form className="space-y-4">
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-900 dark:text-white"
-          >
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-900 dark:text-white"
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="message"
-            className="block text-sm font-medium text-gray-900 dark:text-white"
-          >
-            Message
-          </label>
-          <textarea
-            id="message"
-            name="message"
-            rows={5}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500"
-          ></textarea>
-        </div>
-        <button
-          type="submit"
-          className="px-6 py-2 rounded-xl bg-gray-900 text-white dark:bg-white dark:text-black font-medium hover:scale-105 transition-transform"
-        >
-          Send Message
-        </button>
-      </form>
-    </div>
+    // 3. --- CORRECT ARCHITECTURE ---
+    // The page now correctly returns only its unique content, which will be
+    // rendered inside the main layout defined in `layout.tsx`.
+    // It inherits the Navbar, Footer, and theme provider automatically.
+    <main className="container mx-auto max-w-5xl py-12 md:py-20">
+      {/* --- A NEW, WELCOMING HEADER --- */}
+      <header className="mb-12 text-center">
+        <h1 className="font-extrabold text-4xl tracking-tight">Get in Touch</h1>
+        <p className="mt-3 text-lg text-muted-foreground">
+          Have a project in mind or just want to connect? I'd love to hear from you.
+        </p>
+      </header>
+
+      {/* 4. --- REUSE THE WORLD-CLASS COMPONENT --- */}
+      {/* We render the existing, perfected Contact section. No need to reinvent the wheel. */}
+      {/* Note: The "Let's Connect" title inside the component provides a great secondary heading. */}
+      <Contact />
+    </main>
   );
 }

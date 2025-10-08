@@ -1,317 +1,232 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import Lottie from "lottie-react";
-import clsx from "clsx";
 
-interface ThemeOption {
-  name: string;
-  value: string;
-  animationFile: string;
-}
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useScroll } from "@/hooks/useScroll";
+import { useTheme } from "@/hooks/useTheme";
+import { cn } from "@/lib/utils";
 
-const themes: ThemeOption[] = [
-  {
-    name: "Light Mode",
-    value: "Light",
-    animationFile: "/animations/light.json",
-  },
-  { name: "Dark Mode", value: "Dark", animationFile: "/animations/dark.json" },
-  {
-    name: "Cyberpunk",
-    value: "Cyberpunk",
-    animationFile: "/animations/cyberpunk.json",
-  },
-  {
-    name: "Ethereal",
-    value: "Ethereal",
-    animationFile: "/animations/ethereal.json",
-  },
-  {
-    name: "Horizon Blaze",
-    value: "Horizon Blaze",
-    animationFile: "/animations/horizon.json",
-  },
-  {
-    name: "Neo Mirage",
-    value: "Neo Mirage",
-    animationFile: "/animations/mirage.json",
-  },
-  {
-    name: "High Contrast",
-    value: "High Contrast",
-    animationFile: "/animations/contrast.json",
-  },
-  {
-    name: "Low Motion",
-    value: "Low Motion",
-    animationFile: "/animations/lowmotion.json",
-  },
+// --- Data: Navigation Links ---
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/projects", label: "Projects" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contact", label: "Contact" },
 ];
 
-// 👇 Hook must be used inside a React Component
-const useLottieIcon = (filePath: string) => {
-  try {
-    return require(`@/../public${filePath}`);
-  } catch {
-    return null;
-  }
-};
-
-// ✅ Converted the theme icon renderer into a React component
-const ThemeIcon = ({ index, size = 28 }: { index: number; size?: number }) => {
-  const animationData = useLottieIcon(themes[index].animationFile);
-
-  return animationData ? (
-    <Lottie
-      animationData={animationData}
-      loop
-      autoplay
-      className={`w-[${size}px] h-[${size}px] drop-shadow`}
-    />
-  ) : (
-    <div
-      className={`w-[${size}px] h-[${size}px] rounded-full bg-gray-400 animate-pulse`}
-    />
-  );
-};
-
-export default function Navbar() {
-  const pathname = usePathname();
-  const [themeIndex, setThemeIndex] = useState(0);
-  const [showThemeList, setShowThemeList] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  const theme = themes[themeIndex];
-  const nextTheme = themes[(themeIndex + 1) % themes.length];
-
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    const initialIndex = themes.findIndex((t) => t.value === saved);
-    const index = initialIndex !== -1 ? initialIndex : 0;
-    setThemeIndex(index);
-    applyTheme(index);
-  }, []);
-
-  const applyTheme = (index: number) => {
-    const selected = themes[index];
-    document.documentElement.setAttribute("data-theme", selected.value);
-    localStorage.setItem("theme", selected.value);
-  };
-
-  const handleThemeChange = (index: number) => {
-    setThemeIndex(index);
-    applyTheme(index);
-  };
-
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/projects", label: "Projects" },
-    { href: "/contact", label: "Contact" },
-  ];
+// --- Main Navbar Component ---
+export function Navbar() {
+  const { scrolledDown } = useScroll();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <Tooltip.Provider>
+    <header>
       <motion.nav
-        initial={{ y: -40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="sticky top-0 z-50 w-full backdrop-blur-md bg-transparent shadow-sm"
+        initial={{ y: 0 }}
+        animate={{ y: scrolledDown ? -100 : 0 }}
+        transition={{ type: "spring", bounce: 0.25, duration: 0.8 }}
+        className={cn(
+          // --- Core Layout Strategy for a Balanced, Compact Feel ---
+          // 1. `w-auto`: The navbar shrinks to the width of its content.
+          // 2. `justify-center`: All content blocks are centered within the navbar.
+          // 3. `gap-x-4` & `md:gap-x-6`: Creates a healthy, responsive space BETWEEN the main groups.
+          // 4. `px-4`: Provides the essential padding at the far ends, giving the corner elements breathing room.
+          "-translate-x-1/2 fixed top-4 left-1/2 z-50 flex w-auto items-center justify-center gap-x-4 px-4",
+          "rounded-full border border-border/20 bg-background/80 py-2 shadow-lg backdrop-blur-lg md:gap-x-6"
+        )}
+        aria-label="Main navigation"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="text-xl font-extrabold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent hover:opacity-80"
-            >
-              Divij
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-6">
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={clsx(
-                    "text-sm font-medium transition-colors hover:text-blue-600 dark:hover:text-purple-400",
-                    pathname === href &&
-                      "font-semibold underline underline-offset-4",
-                  )}
-                >
-                  {label}
-                </Link>
-              ))}
-
-              {/* Theme Cycle Button */}
-              <Tooltip.Root>
-                <Tooltip.Trigger asChild>
-                  <button
-                    onClick={() =>
-                      handleThemeChange((themeIndex + 1) % themes.length)
-                    }
-                    aria-label={`Switch to ${nextTheme.name}`}
-                    className="p-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                  >
-                    <ThemeIcon index={themeIndex} />
-                  </button>
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content
-                    className="bg-black text-white px-2 py-1 rounded text-xs"
-                    sideOffset={5}
-                  >
-                    Switch to {nextTheme.name}
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip.Root>
-
-              {/* Dropdown Theme Selector */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowThemeList((prev) => !prev)}
-                  aria-haspopup="listbox"
-                  aria-expanded={showThemeList}
-                  className="ml-2 flex items-center gap-2 px-3 py-1.5 text-sm rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                >
-                  {theme.name}
-                  {showThemeList ? (
-                    <ChevronUp size={14} />
-                  ) : (
-                    <ChevronDown size={14} />
-                  )}
-                </button>
-
-                <AnimatePresence>
-                  {showThemeList && (
-                    <motion.ul
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      role="listbox"
-                      className="absolute right-0 mt-2 w-64 rounded-xl shadow-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 z-50 ring-1 ring-black/10 dark:ring-white/10"
-                    >
-                      {themes.map((t, idx) => (
-                        <motion.li
-                          key={t.value}
-                          role="option"
-                          aria-selected={idx === themeIndex}
-                          onClick={() => {
-                            handleThemeChange(idx);
-                            setShowThemeList(false);
-                          }}
-                          className={clsx(
-                            "px-4 py-3 flex items-center gap-3 cursor-pointer transition-all",
-                            idx === themeIndex
-                              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold"
-                              : "hover:bg-gray-100 dark:hover:bg-gray-800",
-                          )}
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <ThemeIcon index={idx} size={24} />
-                          <span className="text-sm">{t.name}</span>
-                        </motion.li>
-                      ))}
-                    </motion.ul>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-
-            {/* Mobile Toggle */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsMobileOpen(!isMobileOpen)}
-                aria-label="Toggle menu"
-                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {isMobileOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </button>
-            </div>
-          </div>
+        {/* --- Left Group --- */}
+        <div className="flex items-center gap-x-2">
+          <ThemeCycleIcon />
+          <Link
+            href="/"
+            className="bg-gradient-to-r from-primary to-accent bg-clip-text font-extrabold text-transparent text-xl transition-opacity hover:opacity-80"
+            aria-label="Go to homepage"
+          >
+            Divij
+          </Link>
         </div>
 
-        {/* Mobile Dropdown */}
-        <AnimatePresence>
-          {isMobileOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="md:hidden px-4 pt-4 pb-6 bg-white/70 dark:bg-gray-900/80 backdrop-blur-md shadow-xl rounded-b-xl space-y-3 text-sm"
-            >
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setIsMobileOpen(false)}
-                  className={clsx(
-                    "block px-4 py-2 rounded-md",
-                    pathname === href
-                      ? "bg-gray-300 dark:bg-gray-700 font-semibold"
-                      : "hover:bg-gray-200 dark:hover:bg-gray-700",
-                  )}
-                >
-                  {label}
-                </Link>
-              ))}
+        {/* --- Center Group --- */}
+        <div className="hidden items-center gap-x-4 md:flex">
+          <div className="h-6 w-px bg-border/30" />
+          <DesktopNav />
+          <div className="h-6 w-px bg-border/30" />
+        </div>
 
-              {/* Mobile Theme Selector */}
-              <div className="pt-3">
-                <label
-                  htmlFor="mobile-theme-select"
-                  className="block text-xs mb-1 text-gray-700 dark:text-gray-300"
-                >
-                  Theme
-                </label>
-                <select
-                  id="mobile-theme-select"
-                  value={themeIndex}
-                  onChange={(e) => {
-                    handleThemeChange(Number(e.target.value));
-                    setIsMobileOpen(false);
-                  }}
-                  className="w-full px-3 py-2 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  {themes.map((t, idx) => (
-                    <option key={t.value} value={idx}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* --- Right Group --- */}
+        <div className="flex items-center justify-end gap-x-1">
+          <ThemeToggle />
+          <MobileNavToggle
+            isMenuOpen={isMenuOpen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </div>
       </motion.nav>
-    </Tooltip.Provider>
+      <MobileMenu
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+      />
+    </header>
+  );
+}
+
+// --- Sub-component: Theme Cycle Icon ---
+function ThemeCycleIcon() {
+  const { cycleTheme, theme, isMounted } = useTheme();
+
+  return (
+    <motion.button
+      key={isMounted ? theme.name : "placeholder"}
+      type="button"
+      onClick={cycleTheme}
+      aria-label="Cycle to next theme"
+      className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-muted-foreground transition-colors duration-500 hover:bg-primary/30"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", duration: 0.2 }}
+    >
+      <AnimatePresence
+        mode="wait"
+        initial={false}
+      >
+        <motion.div
+          key={isMounted ? theme.name : "icon-placeholder"}
+          initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
+          transition={{ type: "spring", duration: 0.35, bounce: 0 }}
+          className="absolute text-foreground"
+        >
+          {isMounted ? (
+            <theme.icon
+              className="h-5 w-5 text-foreground"
+              aria-hidden="true"
+            />
+          ) : (
+            <div className="h-5 w-5" />
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
+// --- Sub-component: Desktop Navigation ---
+function DesktopNav() {
+  const pathname = usePathname();
+  return (
+    <nav>
+      <ul className="flex items-center gap-x-2">
+        {navLinks.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className={cn(
+                "relative rounded-full px-3 py-1 font-medium text-base text-muted-foreground transition-colors hover:text-foreground",
+                pathname === link.href && "font-semibold text-primary"
+              )}
+              aria-current={pathname === link.href ? "page" : undefined}
+            >
+              {link.label}
+              {pathname === link.href && (
+                <motion.div
+                  className="absolute inset-x-0 bottom-[-2px] h-[2px] w-full bg-primary"
+                  layoutId="underline"
+                  transition={{ type: "spring", duration: 0.5 }}
+                />
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+// --- Sub-component: Mobile Navigation Toggle Button ---
+function MobileNavToggle({
+  isMenuOpen,
+  setIsMenuOpen,
+}: {
+  isMenuOpen: boolean;
+  setIsMenuOpen: (isOpen: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => setIsMenuOpen(!isMenuOpen)}
+      className="relative z-50 rounded-full p-2 text-foreground transition-colors hover:bg-secondary md:hidden"
+      aria-label="Toggle menu"
+      aria-expanded={isMenuOpen}
+    >
+      {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+    </button>
+  );
+}
+
+// --- Sub-component: Mobile Menu Overlay ---
+function MobileMenu({
+  isMenuOpen,
+  setIsMenuOpen,
+}: {
+  isMenuOpen: boolean;
+  setIsMenuOpen: (isOpen: boolean) => void;
+}) {
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isMenuOpen]);
+
+  return (
+    <AnimatePresence>
+      {isMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 top-0 z-40 h-dvh bg-background/80 backdrop-blur-xl md:hidden"
+        >
+          <motion.ul
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { transition: { staggerChildren: 0.05, staggerDirection: -1 } },
+              show: { transition: { staggerChildren: 0.1 } },
+            }}
+            className="flex h-full flex-col items-center justify-center gap-10"
+          >
+            {navLinks.map((link) => (
+              <motion.li
+                key={link.href}
+                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+              >
+                <Link
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block text-center font-bold text-3xl text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              </motion.li>
+            ))}
+          </motion.ul>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

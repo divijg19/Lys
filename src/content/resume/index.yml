@@ -1,0 +1,39 @@
+# This is the single source of truth for your professional and academic journey.
+# It now uses a unified `title` property for all entries for consistency.
+history:
+  - title: "SDE/AIML/Backend Intern roles"
+    company: "Your workplace, perhaps?"
+    period: "Looking for:"
+    description: "To learn, develop and create the next in cutting-edge technology."
+    tags:
+      - "Golang"
+      - "Python"
+      - "AWS"
+      - "Docker/Kubernetes"
+      - "PostgreSQL"
+      - "Learning FastAPI, Mojo, HuggingFace, LangChain"
+    type: "work"
+
+  - title: "Open Source Contributor"
+    company: "Open Source"
+    period: "Jun 2023 - Present"
+    description: "Worked on Vercel, Next.js, Mojo Lang, and other open-source projects. Contributed to codebases, fixed bugs, and added features that improved readability and re-usability."
+    tags:
+      - "React"
+      - "TypeScript"
+      - "Next.js"
+    type: "work"
+
+  - # --- THE FIX: Changed the `degree` key to `title` to match the unified schema. ---
+    title: "B.Tech in Computer Science"
+    institution: "VIT Bhopal University"
+    period: "Sep 2022 - Sep 2026"
+    description: "Focusing on algorithms, distributed systems, architecture and deployment."
+    tags:
+      - "Golang"
+      - "Python/Mojo"
+      - "Rust"
+      - "AWS/Vercel"
+      - "Docker/Kubernetes"
+      - "PostgreSQL/Redis"
+    type: "education"

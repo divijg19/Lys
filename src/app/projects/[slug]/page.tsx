@@ -1,48 +1,136 @@
-import { getAllSlugs, getMarkdownContent } from "@/lib/content";
+import { ArrowLeft, ArrowUpRight, Github } from "lucide-react";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { projects } from "#velite";
+import { MdxContent } from "@/components/layout/MdxContent";
+import { ProjectJsonLd } from "@/components/seo/ProjectJsonLd";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 
-type ProjectPageProps = {
+interface ProjectPageProps {
   params: { slug: string };
-};
-
-// Generate static paths for all project slugs
-export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const slugs = await getAllSlugs("projects");
-  return slugs.map(({ slug }) => ({ slug }));
 }
 
-// Project page component
-export default async function ProjectPage({ params }: ProjectPageProps) {
-  const projectData = await getMarkdownContent("projects", params.slug);
+export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+  const project = projects.find((p) => p.slug === params.slug);
+  if (!project) return {};
 
-  if (!projectData) notFound();
+  const siteUrl = "https://divijganjoo.me"; // IMPORTANT: Replace with your actual domain
+  const ogImage = project.cover ? `${siteUrl}${project.cover}` : `${siteUrl}/og-image.png`;
 
-  const { title, date, tags } = projectData.frontmatter;
+  return {
+    title: project.title,
+    description: project.description,
+    openGraph: {
+      title: project.title,
+      description: project.description || "",
+      type: "article",
+      url: `${siteUrl}${project.url}`,
+      images: [{ url: ogImage }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: project.title,
+      description: project.description || "",
+      images: [ogImage],
+    },
+  };
+}
 
+export async function generateStaticParams() {
+  try {
+    return projects.map((project) => ({ slug: project.slug }));
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Error generating static params for projects:", error);
+    }
+    return [];
+  }
+}
+
+export default function ProjectPage({ params }: ProjectPageProps) {
+  const project = projects.find((p) => p.slug === params.slug);
+  if (!project) notFound();
+
+  const siteUrl = "https://divijganjoo.me";
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-        {title}
-      </h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{date}</p>
-
-      <div
-        className="prose dark:prose-invert"
-        dangerouslySetInnerHTML={{ __html: projectData.contentHtml }}
-      />
-
-      {tags?.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-6">
-          {tags.map((tag: string) => (
-            <span
-              key={tag}
-              className="bg-gray-200 dark:bg-gray-700 text-sm text-gray-800 dark:text-white px-2 py-1 rounded-full"
-            >
-              #{tag}
-            </span>
-          ))}
+    <main className="container mx-auto max-w-3xl py-12 md:py-20">
+      <article>
+        <ProjectJsonLd
+          title={project.title}
+          description={project.description}
+          url={`${siteUrl}${project.url}`}
+          repository={project.repository}
+          tags={project.tags}
+          image={project.cover ? `${siteUrl}${project.cover}` : undefined}
+        />
+        <Link
+          href="/projects"
+          className="mb-8 flex items-center gap-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          All Projects
+        </Link>
+        <header className="mb-8">
+          {project.cover && (
+            <div className="relative mb-8 aspect-video w-full overflow-hidden rounded-xl border">
+              <Image
+                src={project.cover}
+                alt={`${project.title} cover image`}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {project.tags.map((tag) => (
+              <Badge
+                key={tag}
+                variant="secondary"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+          <h1 className="mt-4 font-extrabold text-4xl tracking-tight lg:text-5xl">
+            {project.title}
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">{project.description}</p>
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            {project.liveUrl && (
+              <Button asChild>
+                <Link
+                  href={project.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Live Site <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )}
+            {project.repository && (
+              <Button
+                asChild
+                variant="outline"
+              >
+                <Link
+                  href={project.repository}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Github className="mr-2 h-4 w-4" /> View Source
+                </Link>
+              </Button>
+            )}
+          </div>
+        </header>
+        <div className="prose prose-lg dark:prose-invert w-full max-w-none">
+          <MdxContent code={project.content} />
         </div>
-      )}
-    </div>
+      </article>
+    </main>
   );
 }

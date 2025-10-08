@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <style>
+    .text {
+      fill: var(--color-foreground, #000000); /* Use pre-converted theme foreground color */
+      font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', 'Roboto Mono', monospace;
+      font-size: 7px;
+      font-weight: 600;
+    }
+  </style>
+  <text x="3" y="16" class="text">YAML</text>
+</svg>

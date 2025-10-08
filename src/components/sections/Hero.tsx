@@ -1,131 +1,265 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, FileText, Github, Instagram, Linkedin, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
+import { bio } from "#velite";
+import { SocialLink } from "@/components/layout/SocialLink";
+import { useMotionReady } from "@/components/perf/LazyMotion";
+import { Button } from "@/components/ui/Button";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useTheme } from "@/hooks/useTheme";
+import { fadeUp, staggerContainer } from "@/lib/motionPresets";
+import { cn } from "@/lib/utils";
 
-export default function HeroSection() {
-  const { theme } = useTheme();
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const [greeting, setGreeting] = useState("Hello");
+// --- DATA & CONFIG ---
+const TAGLINES = [
+  "Software Developer",
+  "Systems Thinker",
+  "Community Builder",
+  "Full-Stack Creator",
+];
 
-  useEffect(() => {
-    // Detect reduced motion preference
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handleChange = () => setReduceMotion(mq.matches);
-    handleChange();
-    mq.addEventListener("change", handleChange);
-    return () => mq.removeEventListener("change", handleChange);
-  }, []);
+const SOCIALS = [
+  {
+    href: bio.social.github,
+    name: "GitHub",
+    icon: Github,
+    colorClass: "hover:bg-[#181717] hover:text-white",
+  },
+  {
+    href: `mailto:${bio.email}`,
+    name: "Gmail",
+    icon: Mail,
+    colorClass: "hover:bg-[#EA4335] hover:text-white",
+  },
+  {
+    href: bio.social.linkedin,
+    name: "LinkedIn",
+    icon: Linkedin,
+    colorClass: "hover:bg-[#0A66C2] hover:text-white",
+  },
+  {
+    href: bio.social.instagram,
+    name: "Instagram",
+    icon: Instagram,
+    colorClass: "hover:bg-[#E4405F] hover:text-white",
+  },
+  {
+    href: "/resume.pdf",
+    name: "Resume",
+    icon: FileText,
+    colorClass: "hover:bg-[#1DB954] hover:text-white",
+  },
+];
 
-  useEffect(() => {
-    // Set greeting based on time of day
-    const hour = new Date().getHours();
-    if (hour < 12) {
-      setGreeting("Good morning");
-    } else if (hour < 18) {
-      setGreeting("Good afternoon");
-    } else {
-      setGreeting("Good evening");
-    }
-  }, []);
+// --- ACCESSIBILITY-FIRST NAME GRADIENTS (FINAL VERSION) ---
+const NAME_GRADIENTS: Record<string, string> = {
+  // UPDATED: Light and Dark now use a single color, implemented as a uniform gradient.
+  light: "bg-gradient-to-r from-blue-600 to-blue-600",
+  dark: "bg-gradient-to-r from-purple-500 to-purple-500",
 
-  const themeButtonClass = {
-    cyberpunk:
-      "neon-glow bg-[var(--color-accent)] text-[var(--color-background)]",
-    default:
-      "bg-[var(--color-accent)] text-[var(--color-background)] hover:brightness-110",
-  };
+  // RETAINED: All other themes keep their correct, refined gradients.
+  mirage: "bg-gradient-to-r from-cyan-500 to-teal-400",
+  horizon: "bg-gradient-to-r from-orange-500 via-rose-500 to-pink-600",
+  simple: "bg-gradient-to-r from-green-700 to-green-800",
+  ethereal: "text-gradient-ethereal-readable",
+  cyberpunk: "text-gradient-theme",
+};
 
-  const headingGradient = {
-    ethereal: "from-pink-400 to-indigo-400",
-    horizon: "from-orange-500 via-yellow-400 to-pink-500",
-    mirage: "from-cyan-500 via-teal-400 to-purple-500",
-    default: "from-blue-600 to-purple-500",
-  };
+// Local fade variants replaced by shared presets (fadeUp + staggerContainer)
 
-  const resolvedGradient =
-    headingGradient[theme as keyof typeof headingGradient] ??
-    headingGradient.default;
+import { useDayPhase } from "@/hooks/useDayPhase";
 
-  return (
-    <section
-      className="relative flex flex-col sm:flex-row items-center justify-between gap-10 sm:gap-16 w-full max-w-6xl px-4 py-16 sm:py-24 mx-auto"
-      aria-labelledby="hero-heading"
-    >
-      <div className="absolute inset-0 -z-10 pointer-events-none" />
+export function Hero() {
+  const reduceMotion = usePrefersReducedMotion();
+  const motionReady = useMotionReady();
+  const Inner = (
+    <div className="flex w-full max-w-screen-xl flex-col items-center gap-12 text-center lg:flex-row lg:items-start lg:justify-center lg:gap-20 lg:text-left">
+      <HeroContent
+        reduceMotion={reduceMotion}
+        motionReady={motionReady && !reduceMotion}
+      />
+      <HeroImage
+        reduceMotion={reduceMotion}
+        motionReady={motionReady && !reduceMotion}
+      />
+    </div>
+  );
 
-      {/* Text Content */}
-      <div className="text-center sm:text-left max-w-2xl">
-        <motion.h1
-          id="hero-heading"
-          initial={{ opacity: 0, y: reduceMotion ? 0 : -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className={`text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight bg-gradient-to-r ${resolvedGradient} text-transparent bg-clip-text drop-shadow-md`}
-        >
-          {greeting}, I&apos;m Divij
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: reduceMotion ? 0 : 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="mt-4 text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-xl"
-        >
-          Developer, writer, and systems thinker on a mission to build
-          integrated digital solutions and communities.
-        </motion.p>
-
-        {/* Call to Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: reduceMotion ? 0 : 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="mt-6 flex flex-wrap gap-4 justify-center sm:justify-start"
-        >
-          <Link
-            href="/projects"
-            className={`px-6 py-2 rounded-xl font-medium transition-all focus-visible:ring-2 focus-visible:ring-offset-2 ${
-              theme === "cyberpunk"
-                ? themeButtonClass.cyberpunk
-                : themeButtonClass.default
-            }`}
-            aria-label="View Divij's Projects"
-          >
-            View Projects
-          </Link>
-
-          <Link
-            href="/contact"
-            className="px-6 py-2 rounded-xl border border-[var(--color-foreground)] text-[var(--color-foreground)] font-medium transition-all hover:bg-[var(--color-hover)] hover:text-[var(--color-background)] focus-visible:ring-2 focus-visible:ring-offset-2"
-            aria-label="Contact Divij"
-          >
-            Contact Me
-          </Link>
-        </motion.div>
-      </div>
-
-      {/* Image Section */}
-      <motion.figure
-        initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
-        className="shrink-0"
+  // Plain (non-animated) version until motion is ready (avoids any transient hidden state or variant injection after mount)
+  if (!motionReady || reduceMotion) {
+    return (
+      <section
+        data-section="hero"
+        className="flex min-h-[90vh] items-center justify-center px-4 py-16"
+        aria-label="Hero section"
       >
-        <Image
-          src="/assets/images/your-photo.jpg"
-          alt="Portrait of Divij"
-          width={240}
-          height={240}
-          className="rounded-full shadow-2xl ring-4 ring-[var(--color-accent)] transition-all duration-300 blur-sm hover:blur-0 hover:scale-105"
-        />
-        <figcaption className="sr-only">
-          Divij&apos;s profile picture
-        </figcaption>
-      </motion.figure>
-    </section>
+        {Inner}
+      </section>
+    );
+  }
+
+  // Animated version mounts only once when features loaded so initial/animate works predictably.
+  return (
+    <motion.section
+      key="hero-animated"
+      data-section="hero"
+      initial="hidden"
+      animate="show"
+      viewport={{ once: true }}
+      variants={staggerContainer(0.15)}
+      className="flex min-h-[90vh] items-center justify-center px-4 py-16"
+      aria-label="Hero section"
+    >
+      {Inner}
+    </motion.section>
   );
 }
+
+const HeroContent = memo(
+  ({ reduceMotion, motionReady }: { reduceMotion: boolean; motionReady: boolean }) => {
+    const { theme, isMounted } = useTheme();
+    const { greeting } = useDayPhase();
+    const [taglineIndex, setTaglineIndex] = useState(0);
+
+    useEffect(() => {
+      // Skip animated tagline cycling when user prefers reduced motion (also active in test env)
+      if (reduceMotion) return;
+      const interval = setInterval(() => {
+        setTaglineIndex((prevIndex) => (prevIndex + 1) % TAGLINES.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }, [reduceMotion]);
+
+    // Ensure text is still readable before theme mount (previously text-transparent made section look empty)
+    const nameGradientClass = isMounted
+      ? NAME_GRADIENTS[theme.name] || "text-foreground"
+      : "text-foreground";
+
+    return (
+      <div className="flex flex-col items-center lg:items-start">
+        <motion.div
+          variants={reduceMotion || !motionReady ? undefined : fadeUp}
+          className="flex flex-col items-center lg:items-start"
+        >
+          <span
+            className="font-medium text-muted-foreground text-xl md:text-2xl"
+            aria-live="polite"
+          >
+            {greeting}
+          </span>
+
+          <div className="flex flex-row items-center gap-x-1">
+            <div className="flex translate-y-1 flex-col">
+              <span className="font-medium text-muted-foreground text-xl leading-tight md:text-2xl">
+                Hi!
+              </span>
+              <span className="font-medium text-muted-foreground text-xl leading-tight md:text-2xl">
+                I'm
+              </span>
+            </div>
+            <h1
+              className={cn(
+                "bg-clip-text font-extrabold text-5xl text-transparent md:text-7xl",
+                "leading-snug transition-colors duration-500",
+                nameGradientClass
+              )}
+            >
+              {bio.name?.trim() ? bio.name : "Portfolio"}
+            </h1>
+          </div>
+        </motion.div>
+
+        <motion.div
+          variants={reduceMotion || !motionReady ? undefined : fadeUp}
+          className="mt-1 flex h-10 flex-row items-center gap-x-2"
+        >
+          <h2 className="font-semibold text-2xl text-primary md:text-3xl">A</h2>
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={TAGLINES[taglineIndex]}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="font-semibold text-2xl text-primary md:text-3xl"
+            >
+              {TAGLINES[taglineIndex]}
+            </motion.h2>
+          </AnimatePresence>
+        </motion.div>
+
+        <motion.p
+          variants={reduceMotion || !motionReady ? undefined : fadeUp}
+          className="mt-4 max-w-xl text-lg text-muted-foreground leading-snug md:text-xl lg:text-left"
+        >
+          {bio.summary}
+        </motion.p>
+
+        <motion.div
+          variants={reduceMotion || !motionReady ? undefined : fadeUp}
+          className="mt-8 flex flex-wrap justify-center gap-4 lg:justify-start"
+        >
+          <Button
+            asChild
+            size="lg"
+            aria-label="View Projects"
+          >
+            <Link href="/projects">
+              View Projects <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            aria-label="Contact Me"
+          >
+            <Link href="/contact">Contact Me</Link>
+          </Button>
+        </motion.div>
+
+        <motion.div
+          variants={reduceMotion || !motionReady ? undefined : fadeUp}
+          className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start"
+        >
+          {SOCIALS.map((social) => (
+            <SocialLink
+              key={social.name}
+              {...social}
+            />
+          ))}
+        </motion.div>
+      </div>
+    );
+  }
+);
+HeroContent.displayName = "HeroContent";
+
+const HeroImage = memo(({ reduceMotion }: { reduceMotion: boolean; motionReady: boolean }) => {
+  return (
+    <motion.div
+      // This image subtly fades in only in animated phase; in plain phase parent not motion so it's static.
+      variants={reduceMotion ? undefined : fadeUp}
+      className="group -mt-4 relative h-64 w-64 flex-shrink-0 lg:mt-10 lg:h-80 lg:w-80"
+    >
+      <Image
+        src="/assets/images/divij-ganjoo.jpg"
+        alt="Divij Ganjoo profile photo"
+        fill
+        sizes="(max-width: 1023px) 256px, 320px"
+        quality={95}
+        fetchPriority="high"
+        className={cn(
+          "rounded-full border-4 border-accent object-cover transition-transform duration-300 ease-in-out group-hover:scale-105",
+          reduceMotion ? "" : "animate-float"
+        )}
+        priority
+      />
+    </motion.div>
+  );
+});
+HeroImage.displayName = "HeroImage";
