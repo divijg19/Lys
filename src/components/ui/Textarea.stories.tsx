@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 // Import a related component to show the Textarea's primary use case
 import { Label } from "@/components/ui/Label";
 // Import the component we are documenting

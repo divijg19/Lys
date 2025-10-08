@@ -48,6 +48,7 @@
   html {
     overflow-y: scroll;
   }
+  /* Removed motion-fallback-visible overrides (no longer needed due to static-first rendering strategy). */
 
   /* --- Theme 1: Modernist Gallery --- */
   :root,
@@ -103,26 +104,26 @@
   /* --- Theme 3: Night City Underbelly --- */
   [data-theme="cyberpunk"] {
     color-scheme: dark;
-    --background: 230 15% 7%;
-    --foreground: 60 100% 95%;
-    --card: 230 15% 10%;
-    --card-foreground: 60 100% 95%;
-    --popover: 230 15% 6%;
-    --popover-foreground: 60 100% 95%;
-    --primary: 180 100% 50%;
-    --primary-foreground: 180 100% 5%;
-    --secondary: 320 100% 60%;
-    --secondary-foreground: 320 100% 10%;
-    --muted: 230 15% 13%;
-    --muted-foreground: 230 15% 65%;
-    --accent: 320 100% 65%;
-    --accent-foreground: 320 100% 10%;
-    --destructive: 0 100% 55%;
+    --background: 230 20% 5%;
+    --foreground: 180 100% 95%;
+    --card: 230 18% 8%;
+    --card-foreground: 180 100% 92%;
+    --popover: 230 20% 4%;
+    --popover-foreground: 180 100% 95%;
+    --primary: 180 100% 55%;
+    --primary-foreground: 230 20% 5%;
+    --secondary: 320 100% 65%;
+    --secondary-foreground: 230 20% 5%;
+    --muted: 230 18% 12%;
+    --muted-foreground: 180 50% 70%;
+    --accent: 290 100% 70%;
+    --accent-foreground: 230 20% 5%;
+    --destructive: 0 100% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 180 100% 15%;
-    --input: 230 15% 11%;
-    --ring: 320 100% 65%;
-    --radius: 0.1rem;
+    --border: 180 80% 20%;
+    --input: 230 18% 10%;
+    --ring: 180 100% 55%;
+    --radius: 0.15rem;
   }
 
   /* --- Theme 4: Ethereal (Preserved) --- */
@@ -251,6 +252,8 @@
     outline-offset: 2px;
     border-radius: calc(var(--radius) + 2px);
   }
+
+  /* Inline SVG icons inherit foreground via currentColor now; removed legacy image hacks */
   ::-webkit-scrollbar {
     width: 10px;
   }
@@ -283,7 +286,7 @@
   /* Default gradient for themes with suitable p-s-a variables (e.g., Cyberpunk) */
   .text-gradient-theme {
     background-image: linear-gradient(
-      45deg,
+      135deg,
       hsl(var(--primary)),
       hsl(var(--secondary)),
       hsl(var(--accent))
@@ -306,16 +309,369 @@
     color: transparent;
   }
 
-  /* Theme-aware icon styling for icons that need to invert based on theme */
-  .theme-aware-icon {
-    /* Default: no inversion for light themes */
-    filter: none;
+  /* --- CYBERPUNK-SPECIFIC UTILITIES --- */
+
+  /* Glitch effect for text */
+  .text-glitch {
+    position: relative;
+    animation: glitch-skew 1s infinite linear alternate-reverse;
   }
 
-  /* Invert icons for themes with light foreground text (dark backgrounds) */
-  [data-theme="dark"] .theme-aware-icon,
-  [data-theme="cyberpunk"] .theme-aware-icon,
-  [data-theme="horizon"] .theme-aware-icon {
-    filter: brightness(0) invert(1);
+  .text-glitch::before,
+  .text-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .text-glitch::before {
+    left: 2px;
+    text-shadow: -2px 0 hsl(var(--primary));
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim 5s infinite linear alternate-reverse;
+  }
+
+  .text-glitch::after {
+    left: -2px;
+    text-shadow: -2px 0 hsl(var(--secondary));
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim2 5s infinite linear alternate-reverse;
+  }
+
+  /* Neon glow text */
+  .text-neon {
+    text-shadow:
+      0 0 5px hsl(var(--primary) / 0.5),
+      0 0 10px hsl(var(--primary) / 0.4),
+      0 0 20px hsl(var(--primary) / 0.3),
+      0 0 40px hsl(var(--primary) / 0.2);
+    animation: neon-flicker 3s infinite;
+  }
+
+  /* Holographic shimmer */
+  .holographic {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--secondary)) 25%,
+      hsl(var(--accent)) 50%,
+      hsl(var(--secondary)) 75%,
+      hsl(var(--primary)) 100%
+    );
+    background-size: 200% 100%;
+    animation: holographic-shift 3s linear infinite;
+  }
+
+  /* Scanline overlay */
+  .scanlines {
+    position: relative;
+  }
+
+  .scanlines::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    animation: scanline-move 8s linear infinite;
+    z-index: 1;
+  }
+
+  /* Terminal cursor effect */
+  .terminal-cursor {
+    border-right: 2px solid hsl(var(--primary));
+    animation: cursor-blink 1s step-end infinite;
+  }
+
+  /* Cyber grid background */
+  .cyber-grid {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    animation: grid-pulse 4s ease-in-out infinite;
+  }
+
+  /* Theme-aware icon styling removed - icons now handle their own theme adaptation */
+  /* Icons using CSS variables (var(--foreground)) will automatically adapt */
+  /* Icons needing custom theme handling should implement their own CSS rules */
+}
+
+/* --- CYBERPUNK ANIMATIONS --- */
+@keyframes glitch-anim {
+  0% {
+    clip: rect(31px, 9999px, 94px, 0);
+    transform: skew(0.5deg);
+  }
+  5% {
+    clip: rect(70px, 9999px, 71px, 0);
+    transform: skew(0.3deg);
+  }
+  10% {
+    clip: rect(60px, 9999px, 55px, 0);
+    transform: skew(0.8deg);
+  }
+  15% {
+    clip: rect(86px, 9999px, 98px, 0);
+    transform: skew(0.2deg);
+  }
+  20% {
+    clip: rect(84px, 9999px, 40px, 0);
+    transform: skew(0.6deg);
+  }
+  25% {
+    clip: rect(14px, 9999px, 76px, 0);
+    transform: skew(0.4deg);
+  }
+  30% {
+    clip: rect(47px, 9999px, 34px, 0);
+    transform: skew(0.7deg);
+  }
+  35% {
+    clip: rect(99px, 9999px, 51px, 0);
+    transform: skew(0.1deg);
+  }
+  40% {
+    clip: rect(65px, 9999px, 90px, 0);
+    transform: skew(0.9deg);
+  }
+  45% {
+    clip: rect(27px, 9999px, 33px, 0);
+    transform: skew(0.3deg);
+  }
+  50% {
+    clip: rect(72px, 9999px, 19px, 0);
+    transform: skew(0.5deg);
+  }
+  55% {
+    clip: rect(38px, 9999px, 87px, 0);
+    transform: skew(0.2deg);
+  }
+  60% {
+    clip: rect(11px, 9999px, 42px, 0);
+    transform: skew(0.8deg);
+  }
+  65% {
+    clip: rect(93px, 9999px, 63px, 0);
+    transform: skew(0.4deg);
+  }
+  70% {
+    clip: rect(56px, 9999px, 28px, 0);
+    transform: skew(0.6deg);
+  }
+  75% {
+    clip: rect(79px, 9999px, 95px, 0);
+    transform: skew(0.1deg);
+  }
+  80% {
+    clip: rect(21px, 9999px, 67px, 0);
+    transform: skew(0.7deg);
+  }
+  85% {
+    clip: rect(45px, 9999px, 12px, 0);
+    transform: skew(0.3deg);
+  }
+  90% {
+    clip: rect(88px, 9999px, 49px, 0);
+    transform: skew(0.9deg);
+  }
+  95% {
+    clip: rect(32px, 9999px, 81px, 0);
+    transform: skew(0.2deg);
+  }
+  100% {
+    clip: rect(58px, 9999px, 24px, 0);
+    transform: skew(0.5deg);
+  }
+}
+
+@keyframes glitch-anim2 {
+  0% {
+    clip: rect(65px, 9999px, 119px, 0);
+    transform: skew(0.8deg);
+  }
+  5% {
+    clip: rect(44px, 9999px, 3px, 0);
+    transform: skew(0.4deg);
+  }
+  10% {
+    clip: rect(111px, 9999px, 85px, 0);
+    transform: skew(0.6deg);
+  }
+  15% {
+    clip: rect(28px, 9999px, 36px, 0);
+    transform: skew(0.2deg);
+  }
+  20% {
+    clip: rect(92px, 9999px, 62px, 0);
+    transform: skew(0.9deg);
+  }
+  25% {
+    clip: rect(17px, 9999px, 99px, 0);
+    transform: skew(0.3deg);
+  }
+  30% {
+    clip: rect(75px, 9999px, 41px, 0);
+    transform: skew(0.7deg);
+  }
+  35% {
+    clip: rect(7px, 9999px, 108px, 0);
+    transform: skew(0.1deg);
+  }
+  40% {
+    clip: rect(53px, 9999px, 26px, 0);
+    transform: skew(0.5deg);
+  }
+  45% {
+    clip: rect(96px, 9999px, 71px, 0);
+    transform: skew(0.4deg);
+  }
+  50% {
+    clip: rect(35px, 9999px, 14px, 0);
+    transform: skew(0.8deg);
+  }
+  55% {
+    clip: rect(82px, 9999px, 97px, 0);
+    transform: skew(0.2deg);
+  }
+  60% {
+    clip: rect(23px, 9999px, 59px, 0);
+    transform: skew(0.6deg);
+  }
+  65% {
+    clip: rect(69px, 9999px, 32px, 0);
+    transform: skew(0.3deg);
+  }
+  70% {
+    clip: rect(104px, 9999px, 88px, 0);
+    transform: skew(0.9deg);
+  }
+  75% {
+    clip: rect(46px, 9999px, 9px, 0);
+    transform: skew(0.1deg);
+  }
+  80% {
+    clip: rect(87px, 9999px, 54px, 0);
+    transform: skew(0.7deg);
+  }
+  85% {
+    clip: rect(12px, 9999px, 76px, 0);
+    transform: skew(0.4deg);
+  }
+  90% {
+    clip: rect(61px, 9999px, 21px, 0);
+    transform: skew(0.8deg);
+  }
+  95% {
+    clip: rect(98px, 9999px, 43px, 0);
+    transform: skew(0.2deg);
+  }
+  100% {
+    clip: rect(29px, 9999px, 91px, 0);
+    transform: skew(0.6deg);
+  }
+}
+
+@keyframes glitch-skew {
+  0% {
+    transform: skew(0deg);
+  }
+  10% {
+    transform: skew(-2deg);
+  }
+  20% {
+    transform: skew(1deg);
+  }
+  30% {
+    transform: skew(-1deg);
+  }
+  40% {
+    transform: skew(2deg);
+  }
+  50% {
+    transform: skew(-2deg);
+  }
+  60% {
+    transform: skew(1deg);
+  }
+  70% {
+    transform: skew(-1deg);
+  }
+  80% {
+    transform: skew(2deg);
+  }
+  90% {
+    transform: skew(-1deg);
+  }
+  100% {
+    transform: skew(0deg);
+  }
+}
+
+@keyframes neon-flicker {
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  56%,
+  100% {
+    text-shadow:
+      0 0 5px hsl(var(--primary) / 0.5),
+      0 0 10px hsl(var(--primary) / 0.4),
+      0 0 20px hsl(var(--primary) / 0.3),
+      0 0 40px hsl(var(--primary) / 0.2);
+  }
+  20%,
+  24%,
+  55% {
+    text-shadow: none;
+  }
+}
+
+@keyframes holographic-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes scanline-move {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(10px);
+  }
+}
+
+@keyframes cursor-blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+@keyframes grid-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
   }
 }

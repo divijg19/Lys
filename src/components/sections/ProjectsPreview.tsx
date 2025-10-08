@@ -1,73 +1,62 @@
 "use client";
-
 import { motion } from "framer-motion";
 import { ArrowUpRight, Github } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRef } from "react";
 import { projects } from "#velite";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
-// --- REUSABLE VARIANTS FOR CONSISTENT ANIMATION ---
-const FADE_UP_VARIANTS = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { type: "spring" as const, duration: 0.8 } },
-};
-
 export function ProjectsPreview() {
   const featuredProjects = projects.slice(0, 3);
+  const ref = useRef<HTMLElement | null>(null);
 
   return (
-    <section className="mx-auto w-full max-w-screen-xl px-4 py-16">
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={FADE_UP_VARIANTS}
-        className="mb-12 text-center"
-      >
+    <motion.section
+      ref={ref}
+      className="mx-auto w-full max-w-screen-xl px-4 py-16"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <div className="mb-12 text-center">
         <h2 className="font-bold text-4xl">Featured Projects</h2>
         <p className="mt-2 text-lg text-muted-foreground">
           A selection of my work. See what I've been building.
         </p>
-      </motion.div>
+      </div>
 
       {/* --- PROJECTS GRID --- */}
       <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.1 }}
-        variants={{
-          hidden: {},
-          show: { transition: { staggerChildren: 0.15 } },
-        }}
         className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
       >
         {featuredProjects.map((project) => (
-          <motion.div
+          <ProjectCard
             key={project.title}
-            variants={FADE_UP_VARIANTS}
-          >
-            <ProjectCard
-              url={project.url}
-              title={project.title}
-              description={project.description ?? ""}
-              cover={project.cover}
-              tags={project.tags}
-              liveUrl={project.liveUrl}
-              repository={project.repository}
-            />
-          </motion.div>
+            url={project.url}
+            title={project.title}
+            description={project.description ?? ""}
+            cover={project.cover}
+            tags={project.tags}
+            liveUrl={project.liveUrl}
+            repository={project.repository}
+          />
         ))}
       </motion.div>
 
       {/* --- VIEW ALL PROJECTS BUTTON --- */}
       <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.8 }}
-        variants={FADE_UP_VARIANTS}
         className="mt-16 text-center"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
       >
         <Button
           asChild
@@ -76,7 +65,7 @@ export function ProjectsPreview() {
           <Link href="/projects">View All Projects</Link>
         </Button>
       </motion.div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -101,19 +90,31 @@ function ProjectCard({
   liveUrl,
   repository,
 }: ProjectCardProps) {
+  // Single outer interactive element (anchor). Internal icon actions converted to buttons to avoid nested <a>.
   return (
     <Link
       href={url}
-      className="group hover:-translate-y-1 block h-full w-full transform rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg"
+      aria-label={`View project ${title}`}
+      className="group hover:-translate-y-1 block h-full w-full transform rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
     >
       <div className="flex h-full flex-col">
         {/* --- COVER IMAGE --- */}
         <div className="relative h-48 w-full overflow-hidden rounded-t-xl">
           <Image
-            src={cover || "/assets/images/placeholder.png"} // Fallback image
+            src={cover || "/assets/images/placeholder.svg"}
             alt={`Cover image for ${title}`}
             fill
+            loading="lazy"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = "1";
+                target.src = "/assets/images/placeholder.svg";
+              }
+            }}
           />
         </div>
 
@@ -133,43 +134,39 @@ function ProjectCard({
             ))}
           </div>
 
-          {/* --- ACTION LINKS --- */}
+          {/* --- ACTION CONTROLS (no nested anchors) --- */}
           <div className="mt-auto flex w-full items-center justify-between">
             <span className="flex items-center font-medium text-primary text-sm">
               Read Case Study <ArrowUpRight className="ml-1 h-4 w-4" />
             </span>
             <div className="flex items-center gap-2">
               {repository && (
-                <Link
-                  href={repository}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()} // Prevents navigating the main card link
+                <Button
+                  variant="ghost"
+                  size="icon"
                   aria-label={`View source code for ${title}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(repository, "_blank", "noopener,noreferrer");
+                  }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                  >
-                    <Github className="h-5 w-5" />
-                  </Button>
-                </Link>
+                  <Github className="h-5 w-5" />
+                </Button>
               )}
               {liveUrl && (
-                <Link
-                  href={liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <Button
+                  variant="ghost"
+                  size="icon"
                   aria-label={`View live site for ${title}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(liveUrl, "_blank", "noopener,noreferrer");
+                  }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                  >
-                    <ArrowUpRight className="h-5 w-5" />
-                  </Button>
-                </Link>
+                  <ArrowUpRight className="h-5 w-5" />
+                </Button>
               )}
             </div>
           </div>

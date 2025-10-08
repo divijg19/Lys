@@ -50,6 +50,7 @@ function ProjectCard(project: (typeof projects)[number]) {
             src={project.cover || "/assets/images/placeholder.png"}
             alt={`Cover image for ${project.title}`}
             fill
+            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>

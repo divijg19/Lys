@@ -1,113 +1,224 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  BarChart,
-  Cloud,
-  Code,
-  Database,
-  Feather,
-  GraduationCap,
-  Link as LinkIcon,
-  type LucideProps,
-  Server,
-  X,
-} from "lucide-react";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { BarChart, Cloud, Code, Database, Feather, GraduationCap, Server, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useId, useRef, useState } from "react";
-// Assuming data is imported from a source like Velite
-import { expertise, projects } from "#velite";
+import { type ComponentType, memo, useCallback, useEffect, useId, useRef, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
+import { expertise } from "#velite";
+import { resolveIconFromPath } from "@/components/icons/registry";
 import { Badge } from "@/components/ui/Badge";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
+import type { Skill } from "@/types/expertise";
 
-// --- TYPE DEFINITIONS ---
-type Skill = (typeof expertise.categories)[0]["skills"][0];
+const ExpandedSkillModal = dynamic<{
+  skill: Skill;
+  onClose: () => void;
+}>(() => import("./ExpertiseModal").then((m) => m.ExpandedSkillModal), { ssr: false });
 
-// --- ICON MAPPING ---
-const iconMap: Record<string, React.FC<LucideProps>> = {
-  Code,
-  Feather,
-  Server,
-  Cloud,
-  Database,
-  BarChart,
-  GraduationCap,
-};
+const iconMap = { Code, Feather, Server, Cloud, Database, BarChart, GraduationCap } as const;
 
-// Helper function to get icon classes
-const getIconClasses = (baseClasses: string = "") => cn(baseClasses);
+function TechIcon({
+  path,
+  alt,
+  size = 20,
+  className,
+}: {
+  path: string;
+  alt: string;
+  size?: number;
+  className?: string;
+}) {
+  const Icon = resolveIconFromPath(path);
+  const cls = cn("flex-shrink-0 text-primary", className);
 
-// --- MAIN COMPONENT ---
+  if (Icon) {
+    // Ensure Icon has the expected props (className, title, size) and type it accordingly
+    const IconComponent = Icon as ComponentType<{
+      className?: string;
+      title?: string;
+      size?: number;
+    }>;
+    return (
+      <IconComponent
+        className={cls}
+        title={alt}
+        size={size}
+      />
+    );
+  }
+  return (
+    <Image
+      src={path}
+      alt={alt}
+      width={size}
+      height={size}
+      className={cls}
+      style={{ width: size, height: size }}
+    />
+  );
+}
+
 export function Expertise() {
-  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
-  const expertiseId = useId();
+  const [skill, setSkill] = useState<Skill | null>(null); // modal state (third state)
+  const [previewSkill, setPreviewSkill] = useState<string | null>(null); // expanded preview (second state)
+  const [expandedCardRow, setExpandedCardRow] = useState<number | null>(null); // Track which row the expanded card is in
+  const [expandedCardIsRightEdge, setExpandedCardIsRightEdge] = useState<boolean>(false); // Track if card is at right edge
+  const prevFocus = useRef<HTMLElement | null>(null);
+  const id = useId();
 
-  // Lock body scroll when the modal is open
+  // Debounced hover intent (enter) & collapse (leave) handlers
+  const debouncedPreview = useDebouncedCallback(
+    (name: string | null) => {
+      setPreviewSkill((prev) => (prev === name ? prev : name));
+    },
+    250,
+    { leading: false, trailing: true }
+  );
+
+  const debouncedCollapse = useDebouncedCallback(() => {
+    setPreviewSkill(null);
+    setExpandedCardRow(null);
+    setExpandedCardIsRightEdge(false);
+  }, 180);
+
+  // Calculate which row a card is in and if it's at the right edge when expanded
   useEffect(() => {
-    if (selectedSkill) {
+    if (!previewSkill) {
+      setExpandedCardRow(null);
+      setExpandedCardIsRightEdge(false);
+      return;
+    }
+
+    const cardEl = document.querySelector<HTMLElement>(
+      `[data-skill-card][data-skill='${CSS.escape(previewSkill)}']`
+    );
+    if (!cardEl) return;
+
+    const grid = cardEl.closest("[data-skill-grid]") as HTMLElement | null;
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>("[data-skill-card]"));
+    const tops = cards.map((c) => c.getBoundingClientRect().top);
+    const minTop = Math.min(...tops);
+    const cardTop = cardEl.getBoundingClientRect().top;
+
+    // Determine if card is in first row (row 1) or second row (row 2)
+    const row = cardTop <= minTop + 2 ? 1 : 2;
+    setExpandedCardRow(row);
+
+    // Determine if card is at the right edge of its row
+    const rowCards = cards.filter((c) => {
+      const cTop = c.getBoundingClientRect().top;
+      return row === 1 ? cTop <= minTop + 2 : cTop > minTop + 2;
+    });
+
+    // Sort by left position to find rightmost
+    rowCards.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+    const isRightmost = rowCards.length > 0 && rowCards[rowCards.length - 1] === cardEl;
+    setExpandedCardIsRightEdge(isRightmost);
+  }, [previewSkill]);
+
+  useEffect(() => {
+    if (skill) {
+      prevFocus.current = document.activeElement as HTMLElement;
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "auto";
+      document.body.style.removeProperty("overflow");
+      prevFocus.current?.focus();
     }
     return () => {
-      document.body.style.overflow = "auto";
+      document.body.style.removeProperty("overflow");
     };
-  }, [selectedSkill]);
+  }, [skill]);
 
-  const FADE_UP_VARIANTS = {
-    hidden: { opacity: 0, y: 20 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring" as const, stiffness: 100, damping: 20 },
-    },
-  };
+  // ESC to collapse preview
+  useEffect(() => {
+    if (!previewSkill) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreviewSkill(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [previewSkill]);
 
   return (
     <section
-      id={expertiseId}
+      id={id}
       className="relative mx-auto w-full max-w-screen-xl px-4 py-20"
     >
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={FADE_UP_VARIANTS}
-        className="mb-16 text-center"
-      >
-        <h2 className="font-bold text-4xl tracking-tight sm:text-5xl">Tech Stack & Expertise</h2>
+      <header className="mb-16 animate-fade-in text-center opacity-0">
+        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
+          Tech Stack &amp; Expertise
+        </h2>
         <p className="mt-4 text-lg text-muted-foreground">
           A showcase of my skills. Hover to see competencies, click for a detailed view.
         </p>
-      </motion.div>
-
-      <div className="space-y-12">
-        {expertise.categories.map((category, index) => (
-          <div key={category.name}>
-            <CategoryTitleCard
-              name={category.name}
-              iconName={category.icon}
-              isFirst={index === 0}
+      </header>
+      <div className="space-y-14">
+        {expertise.categories.map((cat, i) => (
+          <div key={cat.name}>
+            <CategoryHeading
+              name={cat.name}
+              iconName={cat.icon}
+              first={i === 0}
             />
-            <div className="flex flex-wrap justify-start gap-4">
-              {category.skills.map((skill) => (
-                <SkillCard
-                  key={skill.name}
-                  skill={skill}
-                  onSelect={() => setSelectedSkill(skill)}
-                />
-              ))}
+            <div className="overflow-x-hidden overflow-visible">
+              <LayoutGroup id={`cat-${cat.name}`}>
+                {/* Grid constrained to 2 rows: All cards maintain position, expanded cards overlay */}
+                <ul
+                  className="grid gap-4 pb-2 justify-center relative"
+                  style={{
+                    gridTemplateColumns: "repeat(auto-fill, 9.5rem)",
+                    gridTemplateRows: "9.5rem 9.5rem", // Exactly 2 rows
+                    gridAutoFlow: "row", // Sequential flow, no dense reordering
+                  }}
+                  data-skill-grid
+                  onMouseLeave={(e) => {
+                    // Collapse when pointer leaves entire grid
+                    if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+                      debouncedPreview.cancel();
+                      debouncedCollapse();
+                    }
+                  }}
+                >
+                  {cat.skills.map((s) => (
+                    <li
+                      key={s.name}
+                      className="relative"
+                      style={{ height: "9.5rem", width: "9.5rem" }}
+                    >
+                      <SkillCard
+                        skill={s}
+                        expanded={previewSkill === s.name}
+                        expandedRow={previewSkill === s.name ? expandedCardRow : null}
+                        isRightEdge={previewSkill === s.name ? expandedCardIsRightEdge : false}
+                        onSelect={() => setSkill(s)}
+                        onPreview={() => {
+                          debouncedCollapse.cancel();
+                          debouncedPreview(s.name);
+                        }}
+                        onCollapse={() => {
+                          debouncedPreview.cancel();
+                          debouncedCollapse();
+                        }}
+                        previewActive={!!previewSkill}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </LayoutGroup>
             </div>
           </div>
         ))}
       </div>
-
       <AnimatePresence>
-        {selectedSkill && (
+        {skill && (
           <ExpandedSkillModal
-            skill={selectedSkill}
-            onClose={() => setSelectedSkill(null)}
+            skill={skill}
+            onClose={() => setSkill(null)}
           />
         )}
       </AnimatePresence>
@@ -115,354 +226,316 @@ export function Expertise() {
   );
 }
 
-// --- SUB-COMPONENTS ---
-
-function CategoryTitleCard({
+function CategoryHeading({
   name,
   iconName,
-  isFirst,
+  first,
 }: {
   name: string;
   iconName: string;
-  isFirst: boolean;
+  first: boolean;
 }) {
-  const Icon = iconMap[iconName];
+  const Icon = iconMap[iconName as keyof typeof iconMap];
   return (
-    <div className={cn("mb-8 flex w-full items-center gap-4", isFirst ? "mt-0" : "mt-12")}>
+    <div className={cn("mb-8 flex items-center gap-4", first ? "mt-0" : "mt-12")}>
       {Icon && <Icon className="h-9 w-9 text-primary" />}
-      <h3 className="font-black text-3xl text-primary tracking-tight">{name}</h3>
+      <h3 className="text-3xl font-black tracking-tight text-primary">{name}</h3>
     </div>
   );
 }
 
-function SkillCard({ skill, onSelect }: { skill: Skill; onSelect: () => void }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Calculate safe expansion direction
-  const getExpansionOffset = () => {
-    const expandedWidth = 280;
-    const cardWidth = 160;
-    const mobileBreakpoint = 640;
-    if (typeof window !== "undefined" && window.innerWidth < mobileBreakpoint && cardRef.current) {
-      // On mobile, expand to the right unless near the right edge
-      const rect = cardRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      if (rect.left + expandedWidth > viewportWidth - 16) {
-        // Expand left if too close to right edge
-        return -(expandedWidth - cardWidth);
+interface SkillCardProps {
+  skill: Skill;
+  onSelect: () => void;
+  expanded: boolean;
+  expandedRow: number | null; // 1 for first row, 2 for second row
+  isRightEdge: boolean; // Whether card is at the rightmost position in its row
+  onPreview: () => void;
+  onCollapse: () => void;
+  previewActive?: boolean;
+}
+
+const SkillCard = memo(function SkillCard({
+  skill,
+  onSelect,
+  expanded,
+  expandedRow,
+  isRightEdge,
+  onPreview,
+  onCollapse,
+  previewActive,
+}: SkillCardProps) {
+  const reduceMotion = usePrefersReducedMotion();
+  const competencies = skill.keyCompetencies || [];
+  const visibleCompetencies = competencies; // collapsed state no preview list anymore
+  // Per-card pointer tracking only (timing handled at parent via debounced callbacks)
+
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "Enter", " "];
+      if (!keys.includes(e.key)) return;
+      const grid = e.currentTarget.closest("[data-skill-grid]") as HTMLElement | null;
+      if (!grid) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onSelect();
+        return;
       }
-      // Otherwise, expand to the right
-      return 0;
-    }
-    // On desktop, center
-    return -(expandedWidth - cardWidth) / 2;
-  };
-
-  // Stable hover management with debouncing
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    // Shorter debounce for more responsive feel
-    timeoutRef.current = setTimeout(() => {
-      setIsHovered(false);
-    }, 50);
-  };
-
-  // Cleanup timeout on unmount
-  // Lint: timeoutRef.current does not need to be a dependency; refs do not trigger re-renders
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      e.preventDefault();
+      const cards = Array.from(grid.querySelectorAll<HTMLDivElement>("[data-skill-card]"));
+      if (!cards.length) return;
+      const currentIndex = cards.indexOf(e.currentTarget);
+      const total = cards.length;
+      // Determine columns by measuring first row top
+      const tops = cards.map((c) => c.getBoundingClientRect().top);
+      const firstTop = tops[0];
+      const columns =
+        tops.findIndex((t) => t > firstTop + 2) === -1
+          ? total
+          : tops.findIndex((t) => t > firstTop + 2);
+      const row = Math.floor(currentIndex / columns);
+      const col = currentIndex % columns;
+      let nextIndex = currentIndex;
+      switch (e.key) {
+        case "ArrowRight": {
+          if (col < columns - 1 && currentIndex + 1 < total) nextIndex = currentIndex + 1;
+          else {
+            // move to start of next row if exists
+            const candidate = (row + 1) * columns;
+            if (candidate < total) nextIndex = candidate;
+            else nextIndex = 0; // wrap
+          }
+          break;
+        }
+        case "ArrowLeft": {
+          if (col > 0) nextIndex = currentIndex - 1;
+          else {
+            // go to end of previous row or wrap to last item
+            const prevRowStart = (row - 1) * columns;
+            if (row > 0) {
+              const lastInPrevRow = Math.min(prevRowStart + columns - 1, total - 1);
+              nextIndex = lastInPrevRow;
+            } else {
+              nextIndex = total - 1;
+            }
+          }
+          break;
+        }
+        case "ArrowDown": {
+          const candidate = currentIndex + columns;
+          if (candidate < total) nextIndex = candidate;
+          else {
+            // stay or wrap? choose stay
+            nextIndex = currentIndex;
+          }
+          break;
+        }
+        case "ArrowUp": {
+          const candidate = currentIndex - columns;
+          if (candidate >= 0) nextIndex = candidate;
+          else nextIndex = currentIndex; // stay
+          break;
+        }
+        case "Home":
+          nextIndex = 0;
+          break;
+        case "End":
+          nextIndex = total - 1;
+          break;
       }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      cards[nextIndex]?.focus();
+    },
+    [onSelect]
+  );
 
   return (
-    <div
-      className="relative w-full max-w-xs sm:w-[160px] sm:max-w-none"
-      style={{ height: "160px" }}
+    <motion.div
+      role="button"
+      tabIndex={0}
+      aria-expanded={expanded}
+      layout
+      transition={{
+        layout: {
+          type: "spring",
+          stiffness: 380,
+          damping: 32,
+          mass: 0.9,
+        },
+      }}
+      whileHover={reduceMotion ? undefined : { scale: expanded ? 1 : 1.02 }}
+      whileTap={reduceMotion ? undefined : { scale: expanded ? 0.995 : 0.98 }}
+      onMouseEnter={() => {
+        if (!expanded) onPreview();
+      }}
+      onMouseLeave={() => {
+        // Grid-level leave handles collapse; allow quick move between cards
+      }}
+      onFocus={onPreview}
+      onKeyDown={onKeyDown}
+      onClick={(e) => {
+        // avoid triggering when clicking collapse button
+        if ((e.target as HTMLElement).closest("[data-collapse-btn]")) return;
+        onSelect();
+      }}
+      style={
+        !expanded
+          ? { height: "9.5rem", width: "9.5rem" } // Default: 1×1 square
+          : undefined // Expanded state uses absolute positioning via className
+      }
+      className={cn(
+        "group flex w-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm outline-none ring-primary/40 transition-all duration-300 focus-visible:ring-2",
+        expanded ? "shadow-xl p-4" : "hover:shadow-md",
+        expanded && !reduceMotion && "[animation-duration:400ms]",
+        !expanded && "items-center justify-center relative", // Default state: center all content
+        !expanded && previewActive && "opacity-90 scale-[0.98]", // subtle de-emphasis with scale
+        // Expanded state: absolute positioning to overlay without grid layout shift
+        expanded && "absolute z-50",
+        expanded && expandedRow === 1 && !isRightEdge && "left-0 top-0", // Row 1 normal: expand right & down from top-left
+        expanded && expandedRow === 1 && isRightEdge && "right-0 top-0", // Row 1 right edge: expand left & down from top-right
+        expanded && expandedRow === 2 && !isRightEdge && "left-0 bottom-0", // Row 2 normal: expand right & up from bottom-left
+        expanded && expandedRow === 2 && isRightEdge && "right-0 bottom-0", // Row 2 right edge: expand left & up from bottom-right
+        expanded && "h-[calc(2*9.5rem+1rem)] w-[calc(2*9.5rem+1rem)]" // Expanded: 2×2 square (20rem)
+      )}
+      data-skill-card
+      data-skill={skill.name}
     >
-      {/* Base card - always stays in place */}
-      <motion.div
-        ref={cardRef}
-        className="absolute inset-0 cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-lg transition-shadow duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/80"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onClick={onSelect}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            onSelect();
-          }
-        }}
-        tabIndex={0}
-        role="button"
-        aria-label={`View details for ${skill.name}`}
-        whileHover={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+      {/* HEADER (shared structure for both states) */}
+      <div
+        className={cn(
+          "relative flex w-full flex-col items-center text-center transition-opacity duration-150",
+          expanded ? "gap-2.5" : "gap-2.5" // Consistent spacing
+        )}
       >
-        <div className="absolute inset-0 p-4">
-          {/* Default state content */}
-          <motion.div
-            className="relative h-full w-full"
-            animate={{
-              opacity: isHovered ? 0 : 1,
-            }}
-            transition={{
-              duration: 0.15,
-              ease: "easeOut",
-            }}
-          >
-            {/* Icon positioned in center */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
-                animate={{
-                  scale: isHovered ? 0.9 : 1,
-                }}
-                transition={{
-                  duration: 0.2,
-                  ease: "easeOut",
-                }}
-              >
-                <Image
-                  src={skill.iconPath}
-                  alt={`${skill.name} icon`}
-                  width={48}
-                  height={48}
-                  className={getIconClasses("transition-all duration-200")}
-                />
-              </motion.div>
-            </div>
-
-            {/* Name consistently positioned at bottom */}
-            <div className="absolute right-0 bottom-0 left-0 flex h-12 items-center justify-center px-2">
-              <h4 className="text-center font-semibold text-base leading-tight">{skill.name}</h4>
-            </div>
-          </motion.div>
+        {/* Icon container - ensures consistent centering */}
+        <div className="flex items-center justify-center h-9">
+          <TechIcon
+            path={skill.iconPath}
+            alt={skill.name}
+            size={36} // Consistent 36px size for both states
+            className="text-primary transition-colors duration-200 flex-shrink-0"
+          />
         </div>
-      </motion.div>
 
-      {/* Expanded overlay - appears on top without affecting layout */}
+        {/* Name and badge container */}
+        <div className="w-full text-center">
+          <h4 className="font-semibold tracking-tight text-card-foreground text-sm truncate px-2 h-5 flex items-center justify-center">
+            {skill.name}
+          </h4>
+          {expanded && (
+            <Badge
+              variant="secondary"
+              className="mt-1.5 px-2 py-0.5 text-[10px]"
+            >
+              {skill.level}
+            </Badge>
+          )}
+        </div>
+        {expanded && (
+          <button
+            type="button"
+            data-collapse-btn
+            onClick={(e) => {
+              e.stopPropagation();
+              onCollapse();
+            }}
+            aria-label="Collapse preview"
+            className="absolute top-2 right-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 bg-background/70 text-muted-foreground transition-colors hover:text-foreground hover:bg-background/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 z-40"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* EXPANDED STATE - description content */}
       <AnimatePresence>
-        {isHovered && (
+        {expanded && (
           <motion.div
-            className="absolute top-0 left-0 z-20 w-full max-w-[90vw] cursor-pointer overflow-hidden rounded-2xl border bg-card shadow-xl sm:w-[280px] sm:max-w-none"
-            style={{ height: "160px" }}
-            initial={{ opacity: 0, scale: 0.95, x: getExpansionOffset() }}
+            key="expanded-content"
+            initial={{ opacity: 0, y: 8 }}
             animate={{
               opacity: 1,
-              scale: 1,
-              x: getExpansionOffset(),
+              y: 0,
+              transition: {
+                type: "spring",
+                stiffness: 400,
+                damping: 28,
+                mass: 0.7,
+              },
             }}
-            exit={{ opacity: 0, scale: 0.95, x: getExpansionOffset() }}
-            transition={{
-              type: "spring",
-              stiffness: 500,
-              damping: 35,
-              mass: 0.8,
+            exit={{
+              opacity: 0,
+              y: 4,
+              transition: { duration: 0.15, ease: [0.4, 0, 1, 1] },
             }}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onClick={onSelect}
+            className="mt-3 flex h-full w-full flex-col overflow-hidden"
           >
-            <div className="absolute inset-0 p-4">
+            {competencies.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 8 }}
+                className="flex-1 overflow-y-auto pr-1 [-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.6),rgba(0,0,0,1)_10%,rgba(0,0,0,1)_90%,rgba(0,0,0,0.6))]"
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 1,
+                  transition: { delay: 0.05, duration: 0.2 },
+                }}
+              >
+                <ul className="space-y-1.5 text-[11px] leading-snug text-muted-foreground">
+                  {visibleCompetencies.map((c, i) => (
+                    <motion.li
+                      key={c}
+                      className="line-clamp-1"
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{
+                        opacity: 1,
+                        x: 0,
+                        transition: {
+                          delay: 0.08 + i * 0.02,
+                          duration: 0.2,
+                        },
+                      }}
+                    >
+                      • {c}
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
+            {skill.ecosystem && skill.ecosystem.length > 0 && (
+              <motion.div
+                className="mt-2 flex flex-wrap gap-1.5"
+                initial={{ opacity: 0, y: 4 }}
                 animate={{
                   opacity: 1,
                   y: 0,
-                  transition: {
-                    delay: 0.08,
-                    duration: 0.15,
-                    ease: "easeOut",
-                  },
+                  transition: { delay: 0.1, duration: 0.2 },
                 }}
-                className="flex h-full flex-col justify-between text-left"
               >
-                {/* Header with icon, title, and level */}
-                <div className="flex w-full items-start justify-between">
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <Image
-                      src={skill.iconPath}
-                      alt={`${skill.name} icon`}
-                      width={24}
-                      height={24}
-                      className={getIconClasses("flex-shrink-0")}
-                    />
-                    <h4 className="truncate font-semibold text-sm leading-tight">{skill.name}</h4>
-                  </div>
+                {skill.ecosystem.slice(0, 8).map((tool) => (
                   <Badge
-                    variant="secondary"
-                    className="ml-2 flex-shrink-0 text-xs"
+                    key={tool}
+                    variant="outline"
+                    className="px-1.5 py-0 text-[10px]"
                   >
-                    {skill.level}
+                    {tool}
                   </Badge>
-                </div>
-
-                {/* Competencies section */}
-                <div className="mt-3 flex-1">
-                  <h5 className="mb-2 font-semibold text-primary text-xs uppercase tracking-wider">
-                    Key Skills
-                  </h5>
-                  <ul className="space-y-1 text-muted-foreground text-xs leading-tight">
-                    {skill.keyCompetencies.slice(0, 4).map((competency) => (
-                      <li
-                        key={competency}
-                        className="line-clamp-1"
-                      >
-                        • {competency}
-                      </li>
-                    ))}
-                    {skill.keyCompetencies.length > 4 && (
-                      <li className="font-medium text-primary">
-                        +{skill.keyCompetencies.length - 4} more
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                {/* Click to expand hint */}
-                <div className="mt-2 flex items-center justify-center">
-                  <span className="text-muted-foreground/70 text-xs">Click for details</span>
-                </div>
+                ))}
               </motion.div>
-            </div>
+            )}
+            <motion.div
+              className="pt-2 text-[9px] font-medium uppercase tracking-wide text-primary/80"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                transition: { delay: 0.15, duration: 0.2 },
+              }}
+            >
+              Click for full details
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      <div className="pointer-events-none absolute inset-0 rounded-lg ring-0 transition-all group-focus-visible:ring-2 group-focus-visible:ring-primary/40" />
+    </motion.div>
   );
-}
+});
 
-function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: () => void }) {
-  const relevantProjects = projects.filter((p) => skill.projectSlugs?.includes(p.slug));
-  const cardTransition = { type: "spring" as const, stiffness: 400, damping: 35 };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      <motion.div
-        layoutId={`card-${skill.name}`}
-        transition={cardTransition}
-        className="relative z-10 h-full max-h-[36rem] w-full max-w-4xl overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-muted/20 shadow-2xl"
-      >
-        <div className="h-full w-full p-8">
-          <motion.button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-20 rounded-full p-2 text-muted-foreground outline-none ring-primary/50 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2"
-            aria-label="Close skill details"
-          >
-            <X size={24} />
-          </motion.button>
-
-          <div className="flex items-start gap-5">
-            <Image
-              src={skill.iconPath}
-              alt={`${skill.name} icon`}
-              width={60}
-              height={60}
-              className="flex-shrink-0"
-            />
-            <div className="text-left">
-              <h3 className="font-bold text-2xl">{skill.name}</h3>
-              <p className="text-md text-muted-foreground">{skill.level}</p>
-            </div>
-          </div>
-
-          <div className="mt-8 h-[calc(100%-6rem)] w-full overflow-y-auto pr-4">
-            <div className="grid h-full grid-cols-1 gap-x-16 gap-y-8 lg:grid-cols-3">
-              {/* --- Main Content Column --- */}
-              <div className="space-y-8 lg:col-span-2">
-                {/* My Expertise Section */}
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-lg text-primary">My Expertise</h4>
-                  <p className="text-base text-muted-foreground leading-relaxed">{skill.details}</p>
-                </div>
-
-                {/* Rationale Section */}
-                {skill.rationale && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-lg text-primary">Rationale</h4>
-                    <p className="text-base text-muted-foreground leading-relaxed">
-                      {skill.rationale}
-                    </p>
-                  </div>
-                )}
-
-                {/* Implementation Highlights Section */}
-                {skill.highlights && skill.highlights.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-lg text-primary">
-                      Implementation Highlights
-                    </h4>
-                    <ul className="list-disc space-y-1 pl-5 text-base text-muted-foreground">
-                      {skill.highlights.map((highlight) => (
-                        <li key={highlight}>{highlight}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              {/* --- Right Column (Projects & Ecosystem) --- */}
-              <div className="space-y-8">
-                {/* Used In Projects Section */}
-                {relevantProjects.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-primary">Used In Projects</h4>
-                    <div className="flex flex-wrap gap-3">
-                      {relevantProjects.map((project) => (
-                        <Link
-                          href={project.url}
-                          key={project.slug}
-                          passHref
-                        >
-                          <Badge
-                            variant="outline"
-                            className="cursor-pointer rounded-md border-primary/20 px-3 py-1.5 text-sm outline-none ring-primary/50 transition-all hover:border-primary hover:bg-primary/10 focus-visible:ring-2"
-                          >
-                            <LinkIcon className="mr-2 h-3.5 w-3.5" />
-                            {project.title}
-                          </Badge>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Related Ecosystem Section */}
-                {skill.ecosystem && skill.ecosystem.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-primary">Related Ecosystem</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {skill.ecosystem.map((tool) => (
-                        <Badge
-                          key={tool}
-                          variant="secondary"
-                        >
-                          {tool}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
+export default Expertise;

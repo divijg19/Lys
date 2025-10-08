@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { blogs } from "#velite";
 import { MdxContent } from "@/components/layout/MdxContent";
+import { ArticleJsonLd } from "@/components/seo/ArticleJsonLd";
 import { Badge } from "@/components/ui/Badge";
 
 interface BlogPageProps {
@@ -43,9 +44,16 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 }
 
 export async function generateStaticParams() {
-  return blogs.map((blog) => ({
-    slug: blog.slug,
-  }));
+  try {
+    return blogs.map((blog) => ({
+      slug: blog.slug,
+    }));
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Error generating static params for blog:", error);
+    }
+    return [];
+  }
 }
 
 export default function BlogPage({ params }: BlogPageProps) {
@@ -55,9 +63,20 @@ export default function BlogPage({ params }: BlogPageProps) {
     return notFound();
   }
 
+  const isoDate = new Date(blog.date).toISOString();
+  const siteUrl = "https://divijganjoo.me";
   return (
     <main className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
+        <ArticleJsonLd
+          title={blog.title}
+          description={blog.description}
+          datePublished={isoDate}
+          url={`${siteUrl}${blog.url}`}
+          tags={blog.tags}
+          image={blog.cover ? `${siteUrl}${blog.cover}` : undefined}
+          readingTime={blog.readingTime}
+        />
         {/* --- Back Link for a Clear User Journey --- */}
         <Link
           href="/blog"
@@ -75,6 +94,7 @@ export default function BlogPage({ params }: BlogPageProps) {
                 src={blog.cover}
                 alt={`${blog.title} cover image`}
                 fill
+                sizes="(max-width: 768px) 100vw, 75vw"
                 className="object-cover"
                 priority
               />

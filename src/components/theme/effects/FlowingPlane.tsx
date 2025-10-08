@@ -8,7 +8,7 @@
 
 import { shaderMaterial } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 const FlowingPlaneMaterial = shaderMaterial(
@@ -88,7 +88,7 @@ type FlowingPlaneProps = {
 
 export const FlowingPlane = ({ color, latestClickPosition }: FlowingPlaneProps) => {
   const ref = useRef<IFlowingPlaneMaterial>(null);
-  const [clickStrength, setClickStrength] = useState(0.0);
+  const clickStrengthRef = useRef(0.0);
 
   const material = useMemo(() => {
     const mat = new FlowingPlaneMaterial();
@@ -99,17 +99,22 @@ export const FlowingPlane = ({ color, latestClickPosition }: FlowingPlaneProps) 
   useEffect(() => {
     if (latestClickPosition && ref.current) {
       ref.current.uniforms.uClickPosition.value.copy(latestClickPosition);
-      setClickStrength(1.0);
+      clickStrengthRef.current = 1.0;
+      ref.current.uniforms.uClickStrength.value = 1.0;
     }
   }, [latestClickPosition]);
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
     ref.current.uniforms.uTime.value = clock.getElapsedTime();
-    if (clickStrength > 0) {
-      const newStrength = clickStrength * 0.95;
-      setClickStrength(newStrength);
+    const cs = clickStrengthRef.current;
+    if (cs > 0.0005) {
+      const newStrength = cs * 0.95;
+      clickStrengthRef.current = newStrength;
       ref.current.uniforms.uClickStrength.value = newStrength;
+    } else if (cs !== 0) {
+      clickStrengthRef.current = 0;
+      ref.current.uniforms.uClickStrength.value = 0;
     }
   });
 

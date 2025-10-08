@@ -28,80 +28,77 @@ import {
   Sparkles, // For the magical, otherworldly feel of Ethereal
   Sun, // For the classic representation of a light theme
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import type { ComponentType } from "react";
+// NOTE: Do NOT use next/dynamic in this server-consumed file. Dynamic scene loading
+// is handled in a client-only mapping (see themeScenes.tsx) to avoid `ssr:false` errors
+// in Server Components.
 
 // --> ADDED: Section for Dynamic Scene Imports
 // -----------------------------------------------------------------------------
-// By using next/dynamic, we lazy-load these large, interactive background
-// components. This prevents them from being included in the initial server bundle,
-// keeping the app's startup fast and lightweight. They are only loaded on the
-// client-side when the theme is active.
-// -----------------------------------------------------------------------------
-const LightScene = dynamic(() => import("@/components/theme/scenes/LightScene"));
-const DarkScene = dynamic(() => import("@/components/theme/scenes/DarkScene"));
-const CyberpunkScene = dynamic(() => import("@/components/theme/scenes/CyberpunkScene"));
-const EtherealScene = dynamic(() => import("@/components/theme/scenes/EtherealScene"));
-const HorizonScene = dynamic(() => import("@/components/theme/scenes/HorizonScene"));
-const MirageScene = dynamic(() => import("@/components/theme/scenes/MirageScene"));
+// Scene components are now referenced indirectly by a string key. The actual
+// dynamic imports live in a client-only module (themeScenes.tsx).
+// This keeps this registry server-safe.
 
-// For the 'simple' theme that has no background effect, we use a "dummy"
-// component that renders nothing. This ensures every theme object has a
-// valid SceneComponent, maintaining a consistent data structure.
-const SimpleScene = (): null => null;
+export type ThemeSceneKey =
+  | "lightScene"
+  | "darkScene"
+  | "cyberpunkScene"
+  | "etherealScene"
+  | "horizonScene"
+  | "mirageScene"
+  | "simpleScene";
 
 // 2. --- MASTER THEME REGISTRY (SINGLE SOURCE OF TRUTH) ---
 // This is the definitive list of all themes available in the portfolio.
-// --> UPDATED: Each theme object now includes a `SceneComponent` property.
+// Each theme object includes a sceneKey referencing a lazily loaded scene component.
 export const themes = [
   {
     name: "light",
     displayName: "Light",
     icon: Sun,
     docs: "Orbital Station: A luminous, high-clarity interface for focused productivity.",
-    SceneComponent: LightScene,
+    sceneKey: "lightScene" as ThemeSceneKey,
   },
   {
     name: "dark",
     displayName: "Dark",
     icon: Moon,
     docs: "Stellar Command: A deep-space, focus-oriented interface for low-light conditions.",
-    SceneComponent: DarkScene,
+    sceneKey: "darkScene" as ThemeSceneKey,
   },
   {
     name: "cyberpunk",
     displayName: "Cyberpunk",
     icon: Bot,
     docs: "Neo-Tokyo Streets: A high-tech, neon-infused theme with rebellious urban energy.",
-    SceneComponent: CyberpunkScene,
+    sceneKey: "cyberpunkScene" as ThemeSceneKey,
   },
   {
     name: "ethereal",
     displayName: "Ethereal",
     icon: Sparkles,
     docs: "Mystic Dreamscape: A soft, otherworldly theme with gentle colors and fluid motion.",
-    SceneComponent: EtherealScene,
+    sceneKey: "etherealScene" as ThemeSceneKey,
   },
   {
     name: "horizon",
     displayName: "Horizon",
     icon: Globe,
     docs: "Earth Observation: A theme inspired by satellite imagery, with natural textures.",
-    SceneComponent: HorizonScene,
+    sceneKey: "horizonScene" as ThemeSceneKey,
   },
   {
     name: "mirage",
     displayName: "Mirage",
     icon: Eye,
     docs: "Desert Illusion: A warm, minimalist theme with shimmering heat-wave effects.",
-    SceneComponent: MirageScene,
+    sceneKey: "mirageScene" as ThemeSceneKey,
   },
   {
     name: "simple",
     displayName: "Simple",
     icon: Contrast,
     docs: "Maximum Accessibility: A high-contrast, motion-free theme for ultimate readability.",
-    SceneComponent: SimpleScene,
+    sceneKey: "simpleScene" as ThemeSceneKey,
   },
 ] as const; // Using 'as const' makes this array and its contents readonly and its types narrow.
 
@@ -128,12 +125,15 @@ export const THEME_NAMES: ThemeName[] = themes.map((t) => t.name);
 /**
  * The definitive TypeScript type for a single theme object.
  * Enforces a consistent structure for all themes defined in the registry.
- * --> UPDATED: Added the `SceneComponent` property to the type definition.
+ * Includes sceneKey which maps to a lazily loaded scene component (client only).
  */
 export type Theme = {
   name: ThemeName;
   displayName: string;
   icon: LucideIcon;
   docs: string;
-  SceneComponent: ComponentType;
+  sceneKey: ThemeSceneKey;
 };
+
+// Convenience constant of all scene keys (optional)
+export const THEME_SCENE_KEYS: ThemeSceneKey[] = themes.map((t) => t.sceneKey);

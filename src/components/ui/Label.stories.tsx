@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 // Import a related component to show the Label's primary use case
 import { Input } from "@/components/ui/Input";
 // Import the component we are documenting
