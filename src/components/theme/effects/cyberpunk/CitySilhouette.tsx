@@ -203,13 +203,13 @@ function AlleyScene() {
     const neonMaterialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
 
     // Shared alley layout constants
-    const BUILDING_PAIRS = 12;
-    const zSpacing = -2.2; // decreased spacing for denser progression (was -3.2)
-    const zStart = -0.8; // start almost at camera plane for immediacy
-    const nearLeftX = -1.4; // narrower near gap
+    const BUILDING_PAIRS = 7;
+    const zSpacing = -2.5; // further decreased spacing for denser progression
+    const zStart = -0.9; // start almost at camera plane for immediacy
+    const nearLeftX = -1.4; // much closer near gap
     const nearRightX = 1.4;
-    const farLeftX = -40;
-    const farRightX = 40;
+    const farLeftX = -14;
+    const farRightX = 14;
 
     // Generate static building data once with increased heights and consistent per row
     const buildingData = useMemo(() => {
@@ -218,7 +218,7 @@ function AlleyScene() {
         // Prior height ranges progressively reduced to make buildings non-imposing.
         // Further reduction: (1.05–2.10) * 1.2 => ~1.26 – 2.52 units total height.
         // Keeps bases consistent while lowering crowns for stronger backdrop emphasis.
-        const heights = Array.from({ length: 12 }, () => (1.05 + rng() * 1.05) * 1.2);
+        const heights = Array.from({ length: 12 }, () => (1.2 + rng() * 1.05) * 1.4);
 
         // Alley runs toward the backdrop (negative Z). Camera stands near z = 0 looking down -Z.
         // We place buildings in pairs along -Z; near pair close to viewer, far pair close to backdrop.
@@ -350,8 +350,8 @@ function AlleyScene() {
                 const distance = -currentRelativeZ;
                 const distanceFactor = Math.max(0, Math.min(1, distance / maxVisibleDistance));
 
-                const nearestBaseY = -2.0;
-                const furthestBaseY = -34;
+                const nearestBaseY = -2.2;
+                const furthestBaseY = -28; // less vertical drop
                 const easedFactorY = distanceFactor ** 1.25;
                 let baseYPos = nearestBaseY + (furthestBaseY - nearestBaseY) * easedFactorY;
                 const pairFactor = building.index * invPairs;
@@ -655,15 +655,24 @@ export function CitySilhouette() {
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-950/30 via-purple-900/10 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cyan-950/20" />
 
-                {/* 80% DATA RAIN (behind skyline) - only upper 25% visible; majority hidden behind skyline */}
+                {/* 80% DATA RAIN (behind skyline) - now vanishes at 40% screen height */}
                 <canvas
                     ref={canvasRefBehind}
                     className="absolute inset-0 pointer-events-none opacity-12"
                     style={{
                         mixBlendMode: "screen",
-                        // show only top quarter for subtle distant streaks
-                        clipPath: "inset(0 0 75% 0)",
+                        clipPath: "inset(0 0 60% 0)",
                         zIndex: 2,
+                    }}
+                />
+                {/* Mask overlay to block rain below skyline silhouette */}
+                <div
+                    className="absolute left-0 right-0 bottom-0"
+                    style={{
+                        height: "60%", // matches the skyline's bottom edge
+                        background: "linear-gradient(to top, #0a0a12 90%, transparent 100%)",
+                        zIndex: 2,
+                        pointerEvents: "none",
                     }}
                 />
 
