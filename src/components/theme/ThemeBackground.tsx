@@ -21,12 +21,13 @@ import { themeScenes } from "./themeScenes";
 // Lightweight gradient backgrounds keyed by theme for low-data / reduced-motion situations.
 const FALLBACK_GRADIENTS: Record<string, string> = {
   light: "bg-gradient-to-br from-white via-neutral-100 to-neutral-200",
-  dark: "bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700",
-  cyberpunk: "bg-gradient-to-br from-fuchsia-700 via-pink-600 to-rose-500",
+  dark: "bg-gradient-to-br from-black via-neutral-900 to-black",
+  cyberpunk: "bg-gradient-to-br from-[#1a0826] via-[#2d0a3a] to-[#4b1760]", // dark moody purples
   ethereal: "bg-gradient-to-br from-indigo-200 via-violet-200 to-rose-200",
-  horizon: "bg-gradient-to-br from-sky-500 via-amber-300 to-rose-400",
+  horizon: "bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600", // sunset blend
   mirage: "bg-gradient-to-br from-orange-200 via-amber-100 to-rose-100",
-  simple: "bg-gradient-to-br from-white to-neutral-100 dark:from-black dark:to-neutral-900",
+  simple:
+    "bg-gradient-to-br from-[#ece7e1] via-[#cfc7b0] to-[#a89f91] dark:from-[#23221e] dark:via-[#3a362c] dark:to-[#5c574a]",
 };
 
 /**
