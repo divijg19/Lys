@@ -29,6 +29,9 @@ const FALLBACK_GRADIENTS: Record<string, string> = {
   simple: "bg-gradient-to-br from-lime-50 via-stone-50 to-emerald-50",
 };
 
+const THEMES_BY_NAME: Map<string, Theme> = new Map(themes.map((theme) => [theme.name, theme]));
+const NULL_SCENE = () => null;
+
 /**
  * Orchestrator component that selects and animates the appropriate background
  * effect based on the active theme.
@@ -45,26 +48,15 @@ function ThemeBackground() {
 
   // Find the complete theme object from our master array using the active theme name.
   // We provide a safe fallback to the first theme in the array (light).
-  const currentTheme = themes.find((t) => t.name === activeThemeName) ?? themes[0];
+  const currentTheme = THEMES_BY_NAME.get(activeThemeName ?? "") ?? themes[0];
 
   // Destructure the component and theme name directly from the theme object.
   const { sceneKey, name: themeName } = currentTheme as Theme;
-  const SceneComponent = themeScenes[sceneKey] || (() => null);
+  const SceneComponent = themeScenes[sceneKey] ?? NULL_SCENE;
 
-  // Environment-derived gating flags (applied by ClientAttrWrapper and user prefs)
-  // Detect user / system preferences. Suppress heavy scenes if either low-data or reduce-motion
-  // is signaled, unless an override env disables suppression.
-  const isLowData = (() => {
-    if (typeof document === "undefined") return false;
-    const root = document.documentElement;
-    const lowData = root.hasAttribute("data-low-data");
-    const reduceMotion = root.hasAttribute("data-reduce-motion");
-    const override = process.env.NEXT_PUBLIC_FORCE_SCENES === "1";
-    if (override) return false;
-    return lowData || reduceMotion;
-  })();
-
-  const fallbackClass = FALLBACK_GRADIENTS[themeName] || FALLBACK_GRADIENTS.light;
+  const fallbackClass = isMounted
+    ? (FALLBACK_GRADIENTS[themeName] ?? FALLBACK_GRADIENTS.light)
+    : FALLBACK_GRADIENTS.light;
   const needsReadabilityScrim = themeName === "horizon";
 
   return (
@@ -75,7 +67,7 @@ function ThemeBackground() {
       {/* Fallback gradient (z-order below scene) */}
       <div className={`absolute inset-0 z-[-1] transition-opacity duration-500 ${fallbackClass}`} />
       <AnimatePresence mode="wait">
-        {isMounted && !isLowData && (
+        {isMounted && (
           <motion.div
             key={themeName}
             initial={{ opacity: 0 }}
