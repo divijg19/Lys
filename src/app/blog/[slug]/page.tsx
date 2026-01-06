@@ -7,6 +7,8 @@ import { blogs } from "#velite";
 import { MdxContent } from "@/components/layout/MdxContent";
 import { ArticleJsonLd } from "@/components/seo/ArticleJsonLd";
 import { Badge } from "@/components/ui/Badge";
+import { ROUTES } from "@/lib/routes";
+import { absoluteUrl } from "@/lib/site";
 
 interface BlogPageProps {
   params: {
@@ -21,8 +23,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
     return {};
   }
 
-  const siteUrl = "https://divijganjoo.me"; // IMPORTANT: Replace with your actual domain
-  const ogImage = blog.cover ? `${siteUrl}${blog.cover}` : `${siteUrl}/og-image.png`;
+  const ogImage = blog.cover ? absoluteUrl(blog.cover) : absoluteUrl("/og-image.png");
 
   return {
     title: blog.title,
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
       title: blog.title,
       description: blog.description || "",
       type: "article",
-      url: `${siteUrl}${blog.url}`,
+      url: absoluteUrl(blog.url),
       images: [{ url: ogImage }],
     },
     twitter: {
@@ -64,7 +65,6 @@ export default function BlogPage({ params }: BlogPageProps) {
   }
 
   const isoDate = new Date(blog.date).toISOString();
-  const siteUrl = "https://divijganjoo.me";
   return (
     <main className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
@@ -72,14 +72,14 @@ export default function BlogPage({ params }: BlogPageProps) {
           title={blog.title}
           description={blog.description}
           datePublished={isoDate}
-          url={`${siteUrl}${blog.url}`}
+          url={absoluteUrl(blog.url)}
           tags={blog.tags}
-          image={blog.cover ? `${siteUrl}${blog.cover}` : undefined}
+          image={blog.cover ? absoluteUrl(blog.cover) : undefined}
           readingTime={blog.readingTime}
         />
         {/* --- Back Link for a Clear User Journey --- */}
         <Link
-          href="/blog"
+          href={ROUTES.blog}
           className="mb-8 flex items-center gap-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />

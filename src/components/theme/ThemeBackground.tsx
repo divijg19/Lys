@@ -23,11 +23,10 @@ const FALLBACK_GRADIENTS: Record<string, string> = {
   light: "bg-gradient-to-br from-white via-neutral-100 to-neutral-200",
   dark: "bg-gradient-to-br from-black via-neutral-900 to-black",
   cyberpunk: "bg-gradient-to-br from-[#1a0826] via-[#2d0a3a] to-[#4b1760]", // dark moody purples
-  ethereal: "bg-gradient-to-br from-indigo-200 via-violet-200 to-rose-200",
-  horizon: "bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600", // sunset blend
+  ethereal: "bg-fallback-ethereal",
+  horizon: "bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950",
   mirage: "bg-gradient-to-br from-orange-200 via-amber-100 to-rose-100",
-  simple:
-    "bg-gradient-to-br from-[#ece7e1] via-[#cfc7b0] to-[#a89f91] dark:from-[#23221e] dark:via-[#3a362c] dark:to-[#5c574a]",
+  simple: "bg-gradient-to-br from-lime-50 via-stone-50 to-emerald-50",
 };
 
 /**
@@ -53,8 +52,8 @@ function ThemeBackground() {
   const SceneComponent = themeScenes[sceneKey] || (() => null);
 
   // Environment-derived gating flags (applied by ClientAttrWrapper and user prefs)
-  // Detect user / system preferences. We only suppress heavy scenes if BOTH low-data and reduce-motion
-  // are explicitly signaled, unless an override env disables suppression.
+  // Detect user / system preferences. Suppress heavy scenes if either low-data or reduce-motion
+  // is signaled, unless an override env disables suppression.
   const isLowData = (() => {
     if (typeof document === "undefined") return false;
     const root = document.documentElement;
@@ -62,11 +61,11 @@ function ThemeBackground() {
     const reduceMotion = root.hasAttribute("data-reduce-motion");
     const override = process.env.NEXT_PUBLIC_FORCE_SCENES === "1";
     if (override) return false;
-    // Previously: lowData OR reduceMotion (overly aggressive). Now require both.
-    return lowData && reduceMotion;
+    return lowData || reduceMotion;
   })();
 
   const fallbackClass = FALLBACK_GRADIENTS[themeName] || FALLBACK_GRADIENTS.light;
+  const needsReadabilityScrim = themeName === "horizon";
 
   return (
     <div
@@ -88,6 +87,17 @@ function ThemeBackground() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Readability scrim (Horizon only): stabilizes contrast over bright scene highlights */}
+      {isMounted && needsReadabilityScrim && (
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            backgroundColor: "hsl(var(--background) / 0.35)",
+          }}
+          aria-hidden
+        />
+      )}
     </div>
   );
 }

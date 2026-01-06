@@ -1,25 +1,34 @@
 "use client";
-import { motion } from "framer-motion";
 import { ArrowUpRight, Github } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
 import { projects } from "#velite";
+import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { ROUTES } from "@/lib/routes";
+
+const ProjectsPreviewAnimated = dynamic(
+  () => import("./ProjectsPreviewAnimated").then((m) => m.ProjectsPreviewAnimated),
+  { ssr: false }
+);
 
 export function ProjectsPreview() {
+  const reduceMotion = usePrefersReducedMotion();
+  const motionReady = useMotionReady();
+
+  if (motionReady && !reduceMotion) {
+    return <ProjectsPreviewAnimated />;
+  }
+
   const featuredProjects = projects.slice(0, 3);
-  const ref = useRef<HTMLElement | null>(null);
 
   return (
-    <motion.section
-      ref={ref}
-      className="mx-auto w-full max-w-screen-xl px-4 py-16"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+    <section
+      className="mx-auto w-full max-w-7xl px-4 py-16"
+      data-section="projects-preview"
     >
       <div className="mb-12 text-center">
         <h2 className="font-bold text-4xl">Featured Projects</h2>
@@ -29,13 +38,7 @@ export function ProjectsPreview() {
       </div>
 
       {/* --- PROJECTS GRID --- */}
-      <motion.div
-        className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.15 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-      >
+      <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {featuredProjects.map((project) => (
           <ProjectCard
             key={project.title}
@@ -48,24 +51,18 @@ export function ProjectsPreview() {
             repository={project.repository}
           />
         ))}
-      </motion.div>
+      </div>
 
       {/* --- VIEW ALL PROJECTS BUTTON --- */}
-      <motion.div
-        className="mt-16 text-center"
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
-      >
+      <div className="mt-16 text-center">
         <Button
           asChild
           size="lg"
         >
-          <Link href="/projects">View All Projects</Link>
+          <Link href={ROUTES.projects}>View All Projects</Link>
         </Button>
-      </motion.div>
-    </motion.section>
+      </div>
+    </section>
   );
 }
 
@@ -106,7 +103,6 @@ function ProjectCard({
             fill
             loading="lazy"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               const target = e.currentTarget as HTMLImageElement;
@@ -120,7 +116,7 @@ function ProjectCard({
 
         <div className="flex flex-1 flex-col p-6">
           <h3 className="mb-2 font-semibold text-xl">{title}</h3>
-          <p className="line-clamp-3 flex-grow text-muted-foreground text-sm">{description}</p>
+          <p className="line-clamp-3 grow text-muted-foreground text-sm">{description}</p>
 
           {/* --- TAGS --- */}
           <div className="my-4 flex flex-wrap gap-2">

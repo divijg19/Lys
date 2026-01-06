@@ -13,9 +13,9 @@ import * as THREE from "three";
 
 // Configuration constants for the wisp effect.
 const WISP_LIFESPAN_SECONDS = 3.5; // Slightly longer lifespan
-const PARTICLE_COUNT = 70; // A few more particles for a fuller effect
-const WISP_MAX_OPACITY = 0.7;
-const PARTICLE_BASE_SIZE = 0.08;
+const PARTICLE_COUNT = 56;
+const WISP_MAX_OPACITY = 0.55;
+const PARTICLE_BASE_SIZE = 0.07;
 
 // --- TYPE DEFINITIONS ---
 type WispProps = {
@@ -55,9 +55,9 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
           (Math.random() - 0.5) * 0.2
         ),
         velocity: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.005,
-          0.002 + Math.random() * 0.003, // Give them a slight upward "buoyancy"
-          (Math.random() - 0.5) * 0.005
+          (Math.random() - 0.5) * 0.004,
+          0.0016 + Math.random() * 0.0026, // Gentle upward buoyancy
+          (Math.random() - 0.5) * 0.004
         ),
         rotation: new THREE.Euler(0, 0, 0),
         size: PARTICLE_BASE_SIZE * (0.5 + Math.random() * 0.5),
@@ -87,7 +87,7 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
     // Animate each particle based on its unique velocity and add a gentle swirl.
     particles.forEach((particle, i) => {
       // Apply a swirling force (curl noise)
-      const swirlStrength = 0.002;
+      const swirlStrength = 0.0014;
       particle.velocity.x += Math.sin(elapsedTime + i) * swirlStrength;
       particle.velocity.z += Math.cos(elapsedTime + i) * swirlStrength;
 
@@ -95,7 +95,7 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
       particle.position.add(particle.velocity);
 
       // Apply drag so they slow down over time
-      particle.velocity.multiplyScalar(0.98);
+      particle.velocity.multiplyScalar(0.982);
 
       // Set the final calculated position for this frame
       dummy.position.copy(particle.position);

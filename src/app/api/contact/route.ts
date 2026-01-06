@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
-import { env } from "@/lib/env";
+import { serverEnv } from "@/lib/env.server";
 
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -24,7 +24,7 @@ function rateLimit(ip: string): boolean {
 }
 
 // --- ENVIRONMENT VARIABLE ---
-const resend = new Resend(env.RESEND_API_KEY);
+const resend = new Resend(serverEnv.RESEND_API_KEY);
 
 // --- DATA VALIDATION SCHEMA ---
 const contactFormSchema = z.object({

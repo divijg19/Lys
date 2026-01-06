@@ -1,13 +1,10 @@
-import path from "node:path";
-import withBundleAnalyzer from "@next/bundle-analyzer";
+import { createRequire } from "node:module";
 import type { NextConfig } from "next";
-import type { RuleSetRule, Configuration as WebpackConfiguration } from "webpack";
 
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
-  pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
-  experimental: { mdxRs: true },
+  pageExtensions: ["js", "jsx", "ts", "tsx"],
   async headers() {
     // Disable CSP/security headers in dev to unblock react-refresh (unsafe-eval not needed in prod build output)
     if (!isProd) return [];
@@ -36,42 +33,32 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       { source: "/cv", destination: "/resume.pdf", permanent: false },
+      { source: "/blogs", destination: "/blog", permanent: true },
+      { source: "/blogs/:slug*", destination: "/blog/:slug*", permanent: true },
     ];
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    qualities: [75, 95],
     dangerouslyAllowSVG: true,
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "cdn.sanity.io" },
     ],
   },
-  webpack(config: WebpackConfiguration, { dev }) {
-    // Exclude .svg from Next's default image loader and handle with @svgr
-    const svgRule = (config.module?.rules as RuleSetRule[])?.find(
-      (rule) => rule && rule.test instanceof RegExp && rule.test.test(".svg")
-    );
-    if (svgRule) svgRule.exclude = /\.svg$/;
-    config.module = config.module || { rules: [] };
-    (config.module.rules as RuleSetRule[]).push({
-      test: /\.svg$/,
-      use: [
-        {
-          loader: "@svgr/webpack",
-          options: { icon: true, svgoConfig: { plugins: ["removeDimensions"] } },
-        },
-      ],
-    });
-    if (dev) config.watchOptions = { ignored: ["**/.next/**", "**/node_modules/**"] };
-    config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...(config.resolve.alias || {}),
-      "@": path.resolve(__dirname, "./src"),
-    };
-    return config;
-  },
   reactStrictMode: true,
   poweredByHeader: false,
 };
 
-export default withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" })(nextConfig);
+// Keep bundle analyzer optional so it doesn't bloat production installs.
+// NOTE: Next transpiles TS config and loads it via require(), so we must avoid top-level await.
+const withBundleAnalyzer = (() => {
+  if (process.env.ANALYZE !== "true") return (config: NextConfig) => config;
+  const require = createRequire(import.meta.url);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const mod = require("@next/bundle-analyzer");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return mod.default({ enabled: true }) as (config: NextConfig) => NextConfig;
+})();
+
+export default withBundleAnalyzer(nextConfig);

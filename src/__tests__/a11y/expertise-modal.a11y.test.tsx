@@ -43,27 +43,18 @@ describe("Expertise modal accessibility", () => {
     // Prefer click (less timing sensitive than keyboard simulation here)
     fireEvent.click(button);
 
-    // Robust wait: quick polling loop before falling back to waitFor
-    let dialogEl: HTMLElement | null = null;
-    for (let i = 0; i < 10; i++) {
-      dialogEl = screen.queryByRole("dialog");
-      if (dialogEl) break;
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise((r) => setTimeout(r, 30));
-    }
-    if (!dialogEl) {
-      // Fallback to waitFor (in case animation took longer)
-      dialogEl = await waitFor(() => screen.getByRole("dialog"), { timeout: 3000 });
-    }
+    // Wait via Testing Library (act-wrapped) so dynamic import updates are tracked.
+    const dialogEl = await screen.findByRole("dialog", undefined, { timeout: 3000 });
     expect(dialogEl).toBeInTheDocument();
 
-    // Focus trap: attempt a Tab; focus should remain inside
-    if (dialogEl) {
-      fireEvent.keyDown(dialogEl, { key: "Tab" });
+    // Wait for focus management effect to run.
+    await waitFor(() => {
       expect(dialogEl.contains(document.activeElement)).toBe(true);
-    } else {
-      throw new Error("Dialog element not found for focus trap test");
-    }
+    });
+
+    // Focus trap: attempt a Tab; focus should remain inside
+    fireEvent.keyDown(dialogEl, { key: "Tab" });
+    expect(dialogEl.contains(document.activeElement)).toBe(true);
 
     const results = await runAxe(container);
     const critical = results.violations.filter((v) => v.impact === "critical");

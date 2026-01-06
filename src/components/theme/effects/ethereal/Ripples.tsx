@@ -18,7 +18,9 @@ const RippleMaterial = shaderMaterial(
    void main() {
      vec2 center = vec2(0.5);
      float dist = distance(vUv, center);
-     float strength = smoothstep(uRadius - 0.1, uRadius, dist) - smoothstep(uRadius, uRadius + 0.05, dist);
+     float ring = smoothstep(uRadius - 0.03, uRadius, dist) - smoothstep(uRadius, uRadius + 0.03, dist);
+     float halo = smoothstep(uRadius - 0.12, uRadius - 0.05, dist) - smoothstep(uRadius - 0.05, uRadius + 0.02, dist);
+     float strength = ring + halo * 0.35;
      gl_FragColor = vec4(uColor, strength * uOpacity);
    }`
 );
@@ -68,7 +70,7 @@ const Ripple = ({ id, position, creationTime, onComplete, color }: RippleProps) 
     }
     const progress = elapsedTime / lifespan;
     ref.current.uniforms.uRadius.value = progress * 2.0;
-    ref.current.uniforms.uOpacity.value = 0.5 * (1.0 - progress);
+    ref.current.uniforms.uOpacity.value = 0.32 * (1.0 - progress);
   });
 
   return (

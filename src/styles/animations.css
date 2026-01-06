@@ -14,20 +14,88 @@
 */
 
 /* === GLOBAL PERFORMANCE HINTS === */
-/* Declaring will-change for all animated properties to hint to the browser */
-.animate-gradient-pan,
+/* Avoid broad `will-change` on many elements; keep hints narrowly scoped. */
+
+/* transform-driven */
 .animate-slot-in,
 .animate-star-scroll,
 .animate-deep-star-scroll,
-.animate-defocus-fade,
-.animate-data-rain,
-.animate-neon-flicker,
-.animate-dreamscape-flow,
 .animate-float-subtle,
-.animate-sky-pan,
 .animate-lens-flare-pulse,
-.animate-heat-shimmer-subtle {
-  will-change: transform, opacity, filter, background-position;
+.animate-heat-shimmer-subtle,
+.animate-float,
+.animate-horizon-moonbeam-sway,
+.animate-horizon-car-idle,
+.animate-horizon-cafe-breeze {
+  will-change: transform;
+}
+
+/* background-position driven */
+.animate-gradient-pan,
+.animate-dreamscape-flow,
+.animate-data-rain,
+.animate-sky-pan,
+.animate-pan-diagonal,
+.animate-aurora-sway,
+.animate-horizon-sunrise-shimmer,
+.animate-horizon-sunset-drift,
+.animate-horizon-night-twinkle,
+.animate-horizon-day-caustics,
+.animate-horizon-shore-glimmer,
+.animate-horizon-mountain-haze,
+.animate-horizon-dust-drift,
+.animate-horizon-fog-drift,
+.animate-horizon-water-glint,
+.animate-horizon-birds-drift,
+.animate-horizon-awning-drift {
+  will-change: background-position;
+}
+
+/* filter/opacity driven */
+.animate-defocus-fade {
+  will-change: opacity, filter;
+}
+
+/* text-shadow/opacity driven */
+.animate-neon-flicker,
+.animate-horizon-city-flicker {
+  will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-pan,
+  .animate-slot-in,
+  .animate-star-scroll,
+  .animate-deep-star-scroll,
+  .animate-defocus-fade,
+  .animate-data-rain,
+  .animate-neon-flicker,
+  .animate-dreamscape-flow,
+  .animate-float-subtle,
+  .animate-sky-pan,
+  .animate-pan-diagonal,
+  .animate-aurora-sway,
+  .animate-horizon-sunrise-shimmer,
+  .animate-horizon-sunset-drift,
+  .animate-horizon-night-twinkle,
+  .animate-horizon-day-caustics,
+  .animate-horizon-moonbeam-sway,
+  .animate-horizon-shore-glimmer,
+  .animate-horizon-mountain-haze,
+  .animate-horizon-dust-drift,
+  .animate-horizon-fog-drift,
+  .animate-horizon-water-glint,
+  .animate-horizon-birds-drift,
+  .animate-horizon-awning-drift,
+  .animate-horizon-city-flicker,
+  .animate-horizon-car-idle,
+  .animate-horizon-cafe-breeze,
+  .animate-lens-flare-pulse,
+  .animate-heat-shimmer-subtle,
+  .animate-fade-in,
+  .animate-float {
+    animation: none;
+  }
 }
 
 /* === SHARED & UTILITY ANIMATIONS === */
@@ -191,6 +259,348 @@
   animation: sky-pan 120s linear infinite;
 }
 
+/* Drift for starfield overlay (used via inline `animation: pan-diagonal ...`). */
+@keyframes pan-diagonal {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -300px 300px;
+  }
+}
+
+.animate-pan-diagonal {
+  animation: pan-diagonal 60s linear infinite;
+}
+
+/* Aurora veil motion (slow background drift) */
+@keyframes aurora-sway {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 40%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.animate-aurora-sway {
+  animation: aurora-sway 90s ease-in-out infinite;
+}
+
+/* Horizon narrative setting loops (tiny, story-driven accents) */
+@keyframes horizon-moonbeam-sway {
+  0% {
+    transform: translateX(-0.6%) skewX(-1.5deg);
+    opacity: 0.52;
+  }
+  50% {
+    transform: translateX(0.6%) skewX(0deg);
+    opacity: 0.62;
+  }
+  100% {
+    transform: translateX(-0.6%) skewX(-1.5deg);
+    opacity: 0.52;
+  }
+}
+.animate-horizon-moonbeam-sway {
+  animation: horizon-moonbeam-sway 18s ease-in-out infinite;
+}
+
+@keyframes horizon-shore-glimmer {
+  from {
+    background-position:
+      0 0,
+      0 0;
+  }
+  to {
+    background-position:
+      0 0,
+      -320px 0;
+  }
+}
+.animate-horizon-shore-glimmer {
+  animation: horizon-shore-glimmer 32s linear infinite;
+}
+
+@keyframes horizon-mountain-haze {
+  0% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
+  50% {
+    background-position:
+      100% 10%,
+      60% 10%,
+      0% 0%;
+  }
+  100% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
+}
+.animate-horizon-mountain-haze {
+  animation: horizon-mountain-haze 48s ease-in-out infinite;
+}
+
+@keyframes horizon-car-idle {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.animate-horizon-car-idle {
+  animation: horizon-car-idle 9s ease-in-out infinite;
+}
+
+@keyframes horizon-cafe-breeze {
+  0% {
+    transform: rotate(-0.2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(0.25deg) translateY(-1px);
+  }
+  100% {
+    transform: rotate(-0.2deg) translateY(0);
+  }
+}
+.animate-horizon-cafe-breeze {
+  animation: horizon-cafe-breeze 12s ease-in-out infinite;
+}
+
+@keyframes horizon-dust-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -240px 120px;
+  }
+}
+.animate-horizon-dust-drift {
+  animation: horizon-dust-drift 70s linear infinite;
+}
+
+@keyframes horizon-fog-drift {
+  0% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
+  50% {
+    background-position:
+      100% 0%,
+      70% 0%,
+      0% 0%;
+  }
+  100% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
+}
+.animate-horizon-fog-drift {
+  animation: horizon-fog-drift 90s ease-in-out infinite;
+}
+
+@keyframes horizon-water-glint {
+  from {
+    background-position:
+      0 0,
+      0% 0%;
+  }
+  to {
+    background-position:
+      -520px 0,
+      0% 0%;
+  }
+}
+.animate-horizon-water-glint {
+  animation: horizon-water-glint 44s linear infinite;
+}
+
+@keyframes horizon-birds-drift {
+  0% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0,
+      0 0,
+      0 0;
+  }
+  50% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      -520px 240px,
+      -680px 320px,
+      -740px 280px;
+  }
+  100% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0,
+      0 0,
+      0 0;
+  }
+}
+.animate-horizon-birds-drift {
+  animation: horizon-birds-drift 80s ease-in-out infinite;
+}
+
+@keyframes horizon-awning-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -380px 0;
+  }
+}
+.animate-horizon-awning-drift {
+  animation: horizon-awning-drift 60s linear infinite;
+}
+
+@keyframes horizon-city-flicker {
+  0%,
+  100% {
+    opacity: 0.38;
+  }
+  18% {
+    opacity: 0.46;
+  }
+  22% {
+    opacity: 0.34;
+  }
+  36% {
+    opacity: 0.48;
+  }
+  58% {
+    opacity: 0.42;
+  }
+  62% {
+    opacity: 0.5;
+  }
+}
+.animate-horizon-city-flicker {
+  animation: horizon-city-flicker 9s ease-in-out infinite;
+}
+
+/* Horizon phase FX loops (all gentle, cinematic) */
+@keyframes horizon-sunrise-shimmer {
+  0% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0;
+  }
+  50% {
+    background-position:
+      100% 30%,
+      50% 10%,
+      -260px 0;
+  }
+  100% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0;
+  }
+}
+.animate-horizon-sunrise-shimmer {
+  animation: horizon-sunrise-shimmer 80s ease-in-out infinite;
+}
+
+@keyframes horizon-sunset-drift {
+  0% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0;
+  }
+  50% {
+    background-position:
+      100% 40%,
+      50% 20%,
+      -320px 0;
+  }
+  100% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0;
+  }
+}
+.animate-horizon-sunset-drift {
+  animation: horizon-sunset-drift 85s ease-in-out infinite;
+}
+
+@keyframes horizon-night-twinkle {
+  0% {
+    opacity: 0.55;
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0,
+      0 0,
+      0 0;
+  }
+  50% {
+    opacity: 0.78;
+    background-position:
+      100% 30%,
+      70% 20%,
+      -300px 300px,
+      -450px 240px,
+      -380px 320px;
+  }
+  100% {
+    opacity: 0.55;
+    background-position:
+      0% 0%,
+      0% 0%,
+      0 0,
+      0 0,
+      0 0;
+  }
+}
+.animate-horizon-night-twinkle {
+  animation: horizon-night-twinkle 70s ease-in-out infinite;
+}
+
+@keyframes horizon-day-caustics {
+  0% {
+    background-position:
+      0% 0%,
+      0 0;
+  }
+  50% {
+    background-position:
+      100% 25%,
+      -520px 220px;
+  }
+  100% {
+    background-position:
+      0% 0%,
+      0 0;
+  }
+}
+.animate-horizon-day-caustics {
+  animation: horizon-day-caustics 95s ease-in-out infinite;
+}
+
 /* Subtle pulsing effect for the "sun" or a lens flare element */
 @keyframes lens-flare-pulse {
   0%,
@@ -224,6 +634,30 @@
 
 /* === Theme 7: Simple === */
 /* Intentionally blank to ensure zero motion for maximum accessibility. */
+
+/* Simple is a *theme-level calm mode* (in addition to prefers-reduced-motion). */
+html[data-theme="simple"] {
+  scroll-behavior: auto;
+}
+
+/* Disable tailwindcss-animate / Radix open-close animations in Simple. */
+html[data-theme="simple"] .animate-in,
+html[data-theme="simple"] .animate-out,
+html[data-theme="simple"] .animate-accordion-down,
+html[data-theme="simple"] .animate-accordion-up {
+  animation: none;
+}
+
+/* Disable common Tailwind transition utilities in Simple. */
+html[data-theme="simple"] .transition,
+html[data-theme="simple"] .transition-all,
+html[data-theme="simple"] .transition-colors,
+html[data-theme="simple"] .transition-opacity,
+html[data-theme="simple"] .transition-shadow,
+html[data-theme="simple"] .transition-transform {
+  transition-duration: 0ms;
+  transition-delay: 0ms;
+}
 
 /* === UTILITY ANIMATIONS === */
 /* Fade in animation for content sections */

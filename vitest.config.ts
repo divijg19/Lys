@@ -7,6 +7,10 @@ const dirname =
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
+  esbuild: {
+    jsx: "automatic",
+    jsxImportSource: "react",
+  },
   test: {
     coverage: {
       provider: "v8",
@@ -16,6 +20,10 @@ export default defineConfig({
     },
     projects: [
       {
+        esbuild: {
+          jsx: "automatic",
+          jsxImportSource: "react",
+        },
         test: {
           name: "unit",
           environment: "jsdom",

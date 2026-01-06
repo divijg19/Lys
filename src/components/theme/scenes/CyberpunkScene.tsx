@@ -8,7 +8,6 @@
 
 import { useEffect, useState } from "react";
 import { CitySilhouette } from "@/components/theme/effects/cyberpunk/CitySilhouette";
-import { DataRain } from "@/components/theme/effects/cyberpunk/DataRain";
 import { NeonGlow } from "@/components/theme/effects/cyberpunk/NeonGlow";
 
 /**
@@ -28,7 +27,6 @@ const CyberpunkScene = () => {
     <div className="relative h-full w-full">
       <NeonGlow />
       <CitySilhouette />
-      <DataRain />
     </div>
   );
 };

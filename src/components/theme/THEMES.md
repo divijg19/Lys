@@ -30,7 +30,7 @@ Design Principles:
 - Soft translucency, pastel gradients, low-frequency motion, gentle easing.
 
 ---
-### Horizon / Light (Anomaly Arc)
+### Light (Anomaly Arc)
 Expansive, forward journey culminating in anomaly encounter sequence.
 
 Key Effects:

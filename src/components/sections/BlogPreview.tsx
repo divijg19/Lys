@@ -1,18 +1,31 @@
 "use client";
-import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
 import { blogs } from "#velite";
+import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Button } from "@/components/ui/Button";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
+const BlogPreviewAnimated = dynamic(
+  () => import("./BlogPreviewAnimated").then((m) => m.BlogPreviewAnimated),
+  { ssr: false }
+);
+
 export function BlogPreview() {
+  const reduceMotion = usePrefersReducedMotion();
+  const motionReady = useMotionReady();
+
+  if (motionReady && !reduceMotion) {
+    return <BlogPreviewAnimated />;
+  }
+
   const latestPosts = blogs
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
-  const ref = useRef<HTMLElement | null>(null);
 
   if (latestPosts.length === 0) {
     return null; // Don't render if there are no posts
@@ -21,13 +34,9 @@ export function BlogPreview() {
   const [firstPost, ...otherPosts] = latestPosts;
 
   return (
-    <motion.section
-      ref={ref}
-      className="mx-auto w-full max-w-screen-xl px-4 py-16"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+    <section
+      className="mx-auto w-full max-w-7xl px-4 py-16"
+      data-section="blog-preview"
     >
       <div className="mb-12 text-center">
         <h2 className="font-bold text-4xl tracking-tight">From the Blog</h2>
@@ -36,13 +45,7 @@ export function BlogPreview() {
         </p>
       </div>
 
-      <motion.div
-        className="grid grid-cols-1 grid-rows-2 gap-8 lg:grid-cols-2"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.15 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-      >
+      <div className="grid grid-cols-1 grid-rows-2 gap-8 lg:grid-cols-2">
         <div className="lg:row-span-2">
           <BlogPostCard
             post={firstPost}
@@ -54,23 +57,17 @@ export function BlogPreview() {
             <BlogPostCard post={post} />
           </div>
         ))}
-      </motion.div>
+      </div>
 
-      <motion.div
-        className="mt-16 text-center"
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
-      >
+      <div className="mt-16 text-center">
         <Button
           asChild
           size="lg"
         >
-          <Link href="/blog">View All Posts</Link>
+          <Link href={ROUTES.blog}>View All Posts</Link>
         </Button>
-      </motion.div>
-    </motion.section>
+      </div>
+    </section>
   );
 }
 
@@ -109,7 +106,6 @@ function BlogPostCard({
                 ? "(max-width: 1024px) 100vw, 50vw"
                 : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             }
-            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               const target = e.currentTarget as HTMLImageElement;
@@ -141,7 +137,7 @@ function BlogPostCard({
           </time>
           <p
             className={cn(
-              "mt-3 flex-grow text-base text-muted-foreground",
+              "mt-3 grow text-base text-muted-foreground",
               isFeatured ? "line-clamp-3" : "line-clamp-2"
             )}
           >
