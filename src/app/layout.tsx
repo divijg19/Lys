@@ -20,23 +20,24 @@ import { RootPersonJsonLd } from "@/components/seo/RootPersonJsonLd";
 import { ClientThemeBackground } from "@/components/theme/ClientThemeBackground";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { geistMono, geistSans } from "@/lib/fonts";
+import { METADATA_BASE, SITE_URL } from "@/lib/site";
 import { THEME_NAMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 
 // Styles
-import "@/styles/globals.css";
 import "@/styles/a11y.css";
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: { default: "Divij Ganjoo", template: "%s | Divij Ganjoo" },
   description:
     "Portfolio of Divij Ganjoo – a software developer crafting performant and accessible digital experiences.",
-  authors: [{ name: "Divij Ganjoo", url: "https://divijganjoo.me/" }],
-  metadataBase: new URL("https://divijganjoo.me/"),
+  authors: [{ name: "Divij Ganjoo", url: `${SITE_URL}/` }],
+  metadataBase: METADATA_BASE,
   openGraph: {
     title: "Divij Ganjoo | Software Developer",
     description: "Performant and accessible digital experiences.",
-    url: "https://divijganjoo.me/",
+    url: `${SITE_URL}/`,
     siteName: "Divij Ganjoo's Portfolio",
     locale: "en_US",
     type: "website",
@@ -73,33 +74,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta
           name="theme-color"
           content="#000000"
-        />
-        <link
-          rel="preconnect"
-          href="https://images.unsplash.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="dns-prefetch"
-          href="//images.unsplash.com"
-        />
-        <link
-          rel="preconnect"
-          href="https://res.cloudinary.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="dns-prefetch"
-          href="//res.cloudinary.com"
-        />
-        <link
-          rel="preconnect"
-          href="https://cdn.sanity.io"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="dns-prefetch"
-          href="//cdn.sanity.io"
         />
         {/* Performance and optimization hints */}
         <link

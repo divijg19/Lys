@@ -2,6 +2,7 @@
 // For Vitest, importing this side-effect module wires up extended matchers (toBeInTheDocument, etc.)
 import "@testing-library/jest-dom/vitest";
 import React from "react";
+import { vi } from "vitest";
 
 // Mock IntersectionObserver for Framer Motion
 class IntersectionObserver {
@@ -9,27 +10,29 @@ class IntersectionObserver {
   unobserve() {}
   disconnect() {}
 }
-Object.defineProperty(global, "IntersectionObserver", {
+Object.defineProperty(globalThis, "IntersectionObserver", {
   writable: true,
   configurable: true,
   value: IntersectionObserver,
 });
 
 // Mock window.matchMedia for usePrefersReducedMotion
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  configurable: true,
-  value: (query: string) => ({
-    matches: true, // force reduced motion true for deterministic animations
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  }),
-});
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: (query: string) => ({
+      matches: true, // force reduced motion true for deterministic animations
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  });
+}
 
 // Lightweight framer-motion mock to eliminate animation delays during tests
 // Only patch if not already provided (avoid interfering with other test utilities)
@@ -67,15 +70,34 @@ try {
   // ignore if framer-motion not resolvable in a subset of tests
 }
 
-// Mock next/image to a plain img to bypass Next.js loader logic during tests
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const nextImage = require("next/image");
-  Object.defineProperty(nextImage, "default", {
-    configurable: true,
-    value: (props: React.ImgHTMLAttributes<HTMLImageElement>) =>
-      React.createElement("img", { ...props }),
-  });
-} catch {
-  // ignore if next/image cannot be required in specific contexts
-}
+// Mock next/image to a plain img to bypass Next.js loader logic during tests (ESM-safe)
+vi.mock("next/image", () => {
+  return {
+    __esModule: true,
+    default: (
+      props: React.ImgHTMLAttributes<HTMLImageElement> & {
+        fill?: boolean;
+        priority?: boolean;
+        quality?: number;
+        placeholder?: string;
+        blurDataURL?: string;
+        loader?: unknown;
+        unoptimized?: boolean;
+        fetchPriority?: string;
+      }
+    ) => {
+      const {
+        fill: _fill,
+        priority: _priority,
+        quality: _quality,
+        placeholder: _placeholder,
+        blurDataURL: _blurDataURL,
+        loader: _loader,
+        unoptimized: _unoptimized,
+        fetchPriority: _fetchPriority,
+        ...imgProps
+      } = props;
+      return React.createElement("img", { ...imgProps });
+    },
+  };
+});

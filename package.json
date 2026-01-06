@@ -9,17 +9,13 @@
     "velite:watch": "velite dev",
     "velite:build": "velite build",
     "dev": "bun run velite:build && concurrently -k -n velite,next -c cyan,magenta \"bun run velite:watch\" \"next dev\"",
-    "dev:seq": "bun run velite:build && next dev",
-    "dev:turbo": "bun run velite:build && concurrently -k -n velite,next -c cyan,magenta \"bun run velite:watch\" \"cross-env NEXT_DISABLE_REACT_COMPILER=1 next dev --turbo\"",
-    "dev:poll": "bun run velite:build && concurrently -k -n velite,next -c cyan,magenta \"bun run velite:watch\" \"cross-env NEXT_FORCE_POLL=1 next dev\"",
-    "prebuild": "bun run type-check && bun run lint",
+    "dev:poll": "bun run velite:build && concurrently -k -n velite,next -c cyan,magenta \"bun run velite:watch\" \"NEXT_FORCE_POLL=1 next dev\"",
     "build": "bun run clean && bun run velite:build && next build",
-    "build:turbo": "bun run velite:build && next build --turbopack",
-    "build:analyze": "cross-env ANALYZE=true bun run build",
+    "analyze": "ANALYZE=true bun run build",
     "start": "next start",
     "start:prod": "bun run build && bun run start",
-    "lint": "biome lint . --write",
-    "lint:unsafe": "biome lint . --write --unsafe",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint . --write",
     "format": "biome format . --write",
     "check": "biome check .",
     "type-check": "bun run velite:build && tsc --noEmit --incremental",
@@ -34,8 +30,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",
-    "@next/bundle-analyzer": "16.1.1",
-    "@next/mdx": "16.1.1",
     "@radix-ui/react-accordion": "1.2.12",
     "@radix-ui/react-alert-dialog": "1.1.15",
     "@radix-ui/react-aspect-ratio": "1.1.8",
@@ -70,7 +64,7 @@
     "cmdk": "1.1.1",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.6.0",
-    "framer-motion": "12.23.26",
+    "framer-motion": "12.24.7",
     "input-otp": "1.4.2",
     "lucide-react": "0.562.0",
     "next": "16.1.1",
@@ -79,7 +73,7 @@
     "react": "19.2.3",
     "react-day-picker": "9.13.0",
     "react-dom": "19.2.3",
-    "react-hook-form": "7.69.0",
+    "react-hook-form": "7.70.0",
     "react-intersection-observer": "10.0.0",
     "resend": "6.6.0",
     "sonner": "2.0.7",
@@ -89,14 +83,14 @@
     "use-debounce": "10.0.6",
     "vaul": "1.1.2",
     "velite": "0.3.1",
-    "zod": "4.3.2",
+    "zod": "4.3.5",
     "zustand": "5.0.9"
   },
   "devDependencies": {
-    "cross-env": "10.1.0",
     "husky": "9.1.7",
-    "@biomejs/biome": "2.3.10",
+    "@biomejs/biome": "2.3.11",
     "@chromatic-com/storybook": "4.1.3",
+    "@next/bundle-analyzer": "16.1.1",
     "@storybook/addon-a11y": "10.1.11",
     "@storybook/addon-docs": "10.1.11",
     "@storybook/addon-links": "10.1.11",
@@ -109,14 +103,10 @@
     "@types/node": "25.0.3",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
-    "@types/webpack": "5.28.5",
     "@vitest/browser": "4.0.16",
     "@vitest/coverage-v8": "4.0.16",
     "@vitest/ui": "4.0.16",
-    "autoprefixer": "10.4.23",
-    "babel-plugin-react-compiler": "1.0.0",
     "concurrently": "9.2.1",
-    "cssnano": "7.1.2",
     "jsdom": "27.4.0",
     "playwright": "1.57.0",
     "postcss": "8.5.6",
@@ -130,8 +120,7 @@
     "typescript": "5.9.3",
     "vite-tsconfig-paths": "6.0.3",
     "vitest": "4.0.16",
-    "axe-core": "4.11.0",
-    "webpack-bundle-analyzer": "5.1.0"
+    "axe-core": "4.11.0"
   },
   "engines": {
     "bun": ">=1.0.0",
@@ -143,7 +132,6 @@
     "sharp"
   ],
   "volta": {
-    "node": "22.19.0",
-    "npm": "11.6.0"
+    "node": "22.20.0"
   }
 }

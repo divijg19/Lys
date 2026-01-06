@@ -75,9 +75,7 @@ function BlogPostCard(post: (typeof blogs)[number]) {
               day: "numeric",
             })}
           </time>
-          <p className="line-clamp-2 flex-grow text-base text-muted-foreground">
-            {post.description}
-          </p>
+          <p className="line-clamp-2 grow text-base text-muted-foreground">{post.description}</p>
           <span className="mt-4 flex items-center font-semibold text-primary text-sm">
             Read More <ArrowUpRight className="ml-1 h-4 w-4" />
           </span>

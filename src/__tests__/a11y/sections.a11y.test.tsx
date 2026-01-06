@@ -33,6 +33,11 @@ describe("Sections accessibility", () => {
       // Run axe sequentially by awaiting each run
       await new Promise((resolve) => setTimeout(resolve, 100));
       const results = await runAxe(container);
+      if (results.violations.length > 0) {
+        // Helpful debug output when a single section regresses.
+        // eslint-disable-next-line no-console
+        console.log(`[axe][${label}]`, JSON.stringify(results.violations, null, 2));
+      }
       expect(results.violations.length).toBe(0);
     }, 15000);
   });

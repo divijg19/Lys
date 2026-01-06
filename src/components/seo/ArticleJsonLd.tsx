@@ -1,3 +1,5 @@
+import { SITE_URL } from "@/lib/site";
+
 // JSON-LD script tag output (safe: purely static JSON serialization)
 export function ArticleJsonLd(props: {
   title: string;
@@ -22,7 +24,7 @@ export function ArticleJsonLd(props: {
     author: {
       "@type": "Person",
       name: "Divij Ganjoo",
-      url: "https://divijganjoo.me",
+      url: SITE_URL,
     },
     keywords: tags.join(", "),
     wordCount: readingTime,

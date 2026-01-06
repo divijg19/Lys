@@ -2,6 +2,23 @@ categories:
   - name: "Core Programming Languages"
     icon: "Code"
     skills:
+      - name: "Golang"
+        iconPath: "/assets/icons/golang.svg"
+        level: "Familiar"
+        keyCompetencies:
+          - "Goroutines & Channels"
+          - "Standard Library Usage"
+          - "CLI Tool Development"
+        details: "Currently learning goroutines and channels for concurrent programming. I build small CLI tools and services to better understand Go's ergonomics, standard library, and performance characteristics."
+        rationale: "I'm learning Go for its simple concurrency model and strong performance profile, especially for CLI tooling and networked services."
+        highlights:
+          - "Built small CLI utilities to automate local dev workflows."
+          - "Experimented with goroutines/channels to model concurrent pipelines."
+        ecosystem:
+          - "Web: Gin, Chi"
+          - "CLI: Cobra"
+        projectSlugs: []
+
       - name: "Python"
         iconPath: "/assets/icons/python.svg"
         level: "Experienced"
@@ -37,58 +54,26 @@ categories:
           - "Interop: Python, NumPy"
           - "Use-cases: Data, ML"
         projectSlugs: []
-      - name: "JavaScript"
-        iconPath: "/assets/icons/javascript.svg"
-        level: "Proficient"
-        keyCompetencies:
-          - "Modern ES6+ Syntax"
-          - "Asynchronous Patterns"
-          - "DOM Manipulation"
-        details: "Deep understanding of modern ES6+ features, asynchronous patterns (async/await, promises), and DOM manipulation for creating interactive and responsive user experiences."
-        rationale: "JavaScript is the backbone of the modern web. My proficiency in it is essential for creating the interactive, client-side experiences users expect from high-quality applications."
-        highlights:
-          - "Manipulated the DOM to create dynamic and responsive user interfaces."
-          - "Managed complex application state on the client-side."
-          - "Handled asynchronous operations efficiently using Promises and async/await."
-        ecosystem:
-          - "Runtimes: Node.js, Bun"
-          - "Libraries: React, Next.js"
-          - "Tooling: Biome"
-        projectSlugs: ["lys"]
       - name: "TypeScript"
         iconPath: "/assets/icons/typescript.svg"
         level: "Proficient"
         keyCompetencies:
           - "Type-Safe Applications"
           - "Advanced Generics & Interfaces"
-          - "React/Next.js Integration"
-        details: "Leveraged advanced features like generics, interfaces, and utility types to improve code quality and developer experience in large codebases, especially within the React/Next.js ecosystem."
-        rationale: "I adopt TypeScript in all significant projects to enforce type safety, which drastically reduces runtime errors, improves maintainability, and enables a superior developer experience through autocompletion."
+          - "Modern JS (ES202x)"
+        details: "TypeScript-first development for web apps and tooling, paired with a deep grasp of modern JavaScript (ES202x), async/await, and browser APIs. I use generics, interfaces, and utility types to keep larger React/Next.js codebases maintainable and safe."
+        rationale: "TypeScript gives me the JavaScript ecosystem with guardrails: fewer runtime errors, better refactors, and stronger contracts across the stack."
         highlights:
           - "Refactored a large JavaScript codebase to be fully type-safe with TypeScript."
           - "Created reusable, type-safe components using advanced generics and interfaces."
           - "Integrated with Zod for end-to-end type safety from the API to the frontend."
+          - "Built interactive UI behavior with async flows and browser APIs where needed."
         ecosystem:
+          - "Runtimes: Node.js, Bun"
           - "Frameworks: Next.js, React"
           - "Validation: Zod"
-          - "Tooling: TS-Node, Vitest"
+          - "Tooling: Biome, Vitest"
         projectSlugs: ["lys"]
-      - name: "GoLang"
-        iconPath: "/assets/icons/golang.svg"
-        level: "Familiar"
-        keyCompetencies:
-          - "Goroutines & Channels"
-          - "Standard Library Usage"
-          - "CLI Tool Development"
-        details: "Currently learning Goroutines and Channels for concurrent programming. I have built small-scale CLI tools to better understand its powerful standard library and performance characteristics."
-        rationale: "I'm learning Go for its exceptional performance in concurrent operations and its straightforward approach to building compiled, cross-platform applications, particularly for CLI tools and microservices."
-        highlights:
-          - "Built a small CLI tool to manage local development environments."
-          - "Experimented with goroutines and channels to understand concurrent data processing patterns."
-        ecosystem:
-          - "Web: Gin, Chi"
-          - "CLI: Cobra"
-        projectSlugs: []
       - name: "Rust"
         iconPath: "/assets/icons/rust.svg"
         level: "Familiar"

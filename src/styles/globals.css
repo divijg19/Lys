@@ -129,50 +129,51 @@
   /* --- Theme 4: Ethereal (Preserved) --- */
   [data-theme="ethereal"] {
     color-scheme: light;
-    --background: 255 100% 99%;
-    --foreground: 255 25% 40%;
-    --card: 255 100% 100%;
-    --card-foreground: 255 25% 40%;
-    --popover: 255 100% 100%;
-    --popover-foreground: 255 25% 40%;
-    --primary: 250 80% 75%;
-    --primary-foreground: 250 80% 15%;
-    --secondary: 160 80% 80%;
-    --secondary-foreground: 160 80% 20%;
-    --muted: 255 100% 97%;
-    --muted-foreground: 255 25% 65%;
-    --accent: 340 100% 90%;
-    --accent-foreground: 340 100% 40%;
-    --destructive: 350 100% 80%;
-    --destructive-foreground: 350 100% 20%;
-    --border: 255 100% 95%;
-    --input: 255 100% 95%;
-    --ring: 250 80% 75%;
+    --background: 255 55% 98%;
+    --foreground: 250 30% 26%;
+    --card: 255 55% 99%;
+    --card-foreground: 250 30% 26%;
+    --popover: 255 55% 99%;
+    --popover-foreground: 250 30% 26%;
+    --primary: 250 82% 72%;
+    --primary-foreground: 250 70% 12%;
+    --secondary: 190 70% 78%;
+    --secondary-foreground: 190 55% 18%;
+    --muted: 255 30% 96%;
+    --muted-foreground: 250 18% 52%;
+    --accent: 325 95% 86%;
+    --accent-foreground: 325 70% 22%;
+    --destructive: 350 85% 70%;
+    --destructive-foreground: 350 60% 15%;
+    --border: 250 30% 92%;
+    --input: 250 30% 92%;
+    --ring: 250 82% 72%;
     --radius: 2rem;
   }
 
   /* --- Theme 5: Horizon (Preserved) --- */
   [data-theme="horizon"] {
     color-scheme: dark;
-    --background: 220 40% 8%;
-    --foreground: 30 50% 94%;
-    --card: 220 40% 11%;
-    --card-foreground: 30 50% 94%;
-    --popover: 220 40% 7%;
-    --popover-foreground: 30 50% 94%;
-    --primary: 25 95% 60%;
-    --primary-foreground: 25 95% 10%;
-    --secondary: 140 30% 40%;
-    --secondary-foreground: 140 30% 95%;
-    --muted: 220 40% 14%;
-    --muted-foreground: 30 50% 70%;
-    --accent: 35 30% 50%;
-    --accent-foreground: 35 30% 95%;
-    --destructive: 0 60% 55%;
-    --destructive-foreground: 0 60% 95%;
-    --border: 220 40% 18%;
-    --input: 220 40% 18%;
-    --ring: 25 95% 60%;
+    /* Simplified “dusk observatory”: fewer hues, higher contrast */
+    --background: 225 35% 7%;
+    --foreground: 38 35% 96%;
+    --card: 225 30% 10%;
+    --card-foreground: 38 35% 96%;
+    --popover: 225 35% 6%;
+    --popover-foreground: 38 35% 96%;
+    --primary: 28 95% 60%;
+    --primary-foreground: 225 35% 7%;
+    --secondary: 205 45% 42%;
+    --secondary-foreground: 38 35% 96%;
+    --muted: 225 25% 14%;
+    --muted-foreground: 38 18% 78%;
+    --accent: 28 55% 48%;
+    --accent-foreground: 38 35% 96%;
+    --destructive: 0 78% 58%;
+    --destructive-foreground: 38 35% 96%;
+    --border: 225 25% 18%;
+    --input: 225 25% 16%;
+    --ring: 28 95% 60%;
     --radius: 0.5rem;
   }
 
@@ -204,25 +205,26 @@
   /* --- Theme 7: Naturalist --- */
   [data-theme="simple"] {
     color-scheme: light;
-    --background: 35 40% 96%;
-    --foreground: 35 25% 20%;
-    --card: 35 40% 98%;
-    --card-foreground: 35 25% 20%;
-    --popover: 35 40% 98%;
-    --popover-foreground: 35 25% 20%;
-    --primary: 130 50% 35%;
-    --primary-foreground: 130 50% 98%;
-    --secondary: 35 40% 90%;
-    --secondary-foreground: 35 25% 20%;
-    --muted: 35 40% 92%;
-    --muted-foreground: 35 25% 55%;
-    --accent: 130 50% 40%;
-    --accent-foreground: 130 50% 98%;
-    --destructive: 15 80% 50%;
-    --destructive-foreground: 15 80% 98%;
-    --border: 35 40% 88%;
-    --input: 35 40% 91%;
-    --ring: 130 50% 40%;
+    /* Earthy off-white + deep green, tuned for WCAG AA readability */
+    --background: 46 35% 97%;
+    --foreground: 152 18% 12%;
+    --card: 46 30% 98%;
+    --card-foreground: 152 18% 12%;
+    --popover: 46 30% 98%;
+    --popover-foreground: 152 18% 12%;
+    --primary: 152 45% 24%;
+    --primary-foreground: 46 35% 97%;
+    --secondary: 46 22% 90%;
+    --secondary-foreground: 152 18% 12%;
+    --muted: 46 18% 92%;
+    --muted-foreground: 152 10% 30%;
+    --accent: 140 35% 28%;
+    --accent-foreground: 46 35% 97%;
+    --destructive: 10 70% 42%;
+    --destructive-foreground: 46 35% 97%;
+    --border: 46 16% 86%;
+    --input: 46 18% 90%;
+    --ring: 152 45% 24%;
     --radius: 0.5rem;
   }
 
@@ -245,6 +247,34 @@
     transition:
       background-color 0.4s ease,
       color 0.4s ease;
+  }
+
+  /* --- Simple Theme: Typography-first, calm background (no JS scenes) --- */
+  html[data-theme="simple"] body {
+    /* Calmer reading rhythm */
+    line-height: 1.65;
+
+    /* Avoid motion-y theme transitions */
+    transition: none;
+
+    /* Subtle, token-based paper wash (no new colors, no assets, no animation) */
+    background-image:
+      radial-gradient(1100px circle at 18% 12%, hsl(var(--primary) / 0.08), transparent 55%),
+      radial-gradient(900px circle at 82% 88%, hsl(var(--accent) / 0.06), transparent 60%),
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  html[data-theme="simple"] .prose {
+    font-size: 1.05rem;
+    line-height: 1.8;
+  }
+  html[data-theme="simple"] .prose :where(h1) {
+    letter-spacing: -0.02em;
+  }
+  html[data-theme="simple"] .prose :where(h2, h3) {
+    letter-spacing: -0.01em;
   }
 
   *:focus-visible {
@@ -300,13 +330,21 @@
   .text-gradient-ethereal-readable {
     background-image: linear-gradient(
       45deg,
-      hsl(250, 85%, 65%),
-      hsl(300, 85%, 68%),
-      hsl(340, 90%, 70%)
+      hsl(var(--primary)),
+      hsl(var(--secondary)),
+      hsl(var(--accent))
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* Low-data / reduced-motion fallback that still respects theme tokens. */
+  .bg-fallback-ethereal {
+    background-image:
+      radial-gradient(1200px 900px at 20% 15%, hsl(var(--primary) / 0.22), transparent 60%),
+      radial-gradient(1000px 800px at 85% 75%, hsl(var(--accent) / 0.18), transparent 55%),
+      linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)));
   }
 
   /* --- CYBERPUNK-SPECIFIC UTILITIES --- */
@@ -391,8 +429,22 @@
 
   /* Terminal cursor effect */
   .terminal-cursor {
-    border-right: 2px solid hsl(var(--primary));
+    border-right: 4px solid hsl(var(--primary));
     animation: cursor-blink 1s step-end infinite;
+    position: relative;
+    top: 0.2em;
+    height: 1.15em;
+  }
+
+  /* Floating footer: smoothly animate between measured content widths */
+  .floating-footer {
+    width: var(--footer-collapsed-w, fit-content);
+    transition: width 650ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: width;
+  }
+  .floating-footer:hover,
+  .floating-footer:focus-within {
+    width: var(--footer-expanded-w, fit-content);
   }
 
   /* Cyber grid background */

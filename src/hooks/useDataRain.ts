@@ -88,45 +88,82 @@ export const useDataRain = (canvasRef: RefObject<HTMLCanvasElement | null>) => {
     const accentColor = `hsl(${style.getPropertyValue("--accent").trim()})`;
     const backgroundColor = `hsla(${style.getPropertyValue("--background").trim()} / 0.1)`;
 
+    const getDpr = () => Math.min(window.devicePixelRatio || 1, 1.5);
+
+    let cssWidth = 0;
+    let cssHeight = 0;
+
     const setup = () => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
+      const dpr = getDpr();
+      cssWidth = window.innerWidth;
+      cssHeight = window.innerHeight;
+      canvas.width = Math.floor(cssWidth * dpr);
+      canvas.height = Math.floor(cssHeight * dpr);
+
+      // Prevent cumulative scaling on re-setup.
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
+
       streamsRef.current = [];
-      const streamCount = Math.floor(window.innerWidth / STREAM_DENSITY);
+      const streamCount = Math.floor(cssWidth / STREAM_DENSITY);
       for (let i = 0; i < streamCount; i++) {
-        streamsRef.current.push(new Stream(i * STREAM_DENSITY, window.innerHeight));
+        streamsRef.current.push(new Stream(i * STREAM_DENSITY, cssHeight));
       }
       ctx.font = `bold ${FONT_SIZE}px monospace`;
     };
 
+    let stopped = false;
+
     const animate = () => {
+      if (stopped) return;
+
       ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, cssWidth, cssHeight);
       streamsRef.current.forEach((stream) => {
-        stream.render(ctx, window.innerHeight, primaryColor, accentColor);
+        stream.render(ctx, cssHeight, primaryColor, accentColor);
       });
       animationFrameId.current = requestAnimationFrame(animate);
     };
 
-    let timeoutId: NodeJS.Timeout;
-    const debouncedSetup = () => {
-      clearTimeout(timeoutId);
+    const start = () => {
+      stopped = false;
       cancelAnimationFrame(animationFrameId.current);
+      animationFrameId.current = requestAnimationFrame(animate);
+    };
+
+    const stop = () => {
+      stopped = true;
+      cancelAnimationFrame(animationFrameId.current);
+    };
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const debouncedSetup = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      stop();
       timeoutId = setTimeout(() => {
         setup();
-        animate();
+        start();
       }, 250);
     };
 
     debouncedSetup();
     window.addEventListener("resize", debouncedSetup);
 
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        stop();
+      } else {
+        // Ensure dimensions are current after tab switches.
+        debouncedSetup();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     return () => {
-      clearTimeout(timeoutId);
-      cancelAnimationFrame(animationFrameId.current);
+      if (timeoutId) clearTimeout(timeoutId);
+      stop();
       window.removeEventListener("resize", debouncedSetup);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [canvasRef]);
 };

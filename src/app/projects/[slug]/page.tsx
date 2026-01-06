@@ -8,6 +8,8 @@ import { MdxContent } from "@/components/layout/MdxContent";
 import { ProjectJsonLd } from "@/components/seo/ProjectJsonLd";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ROUTES } from "@/lib/routes";
+import { absoluteUrl } from "@/lib/site";
 
 interface ProjectPageProps {
   params: { slug: string };
@@ -17,8 +19,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   const project = projects.find((p) => p.slug === params.slug);
   if (!project) return {};
 
-  const siteUrl = "https://divijganjoo.me"; // IMPORTANT: Replace with your actual domain
-  const ogImage = project.cover ? `${siteUrl}${project.cover}` : `${siteUrl}/og-image.png`;
+  const ogImage = project.cover ? absoluteUrl(project.cover) : absoluteUrl("/og-image.png");
 
   return {
     title: project.title,
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
       title: project.title,
       description: project.description || "",
       type: "article",
-      url: `${siteUrl}${project.url}`,
+      url: absoluteUrl(project.url),
       images: [{ url: ogImage }],
     },
     twitter: {
@@ -54,20 +55,19 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const project = projects.find((p) => p.slug === params.slug);
   if (!project) notFound();
 
-  const siteUrl = "https://divijganjoo.me";
   return (
     <main className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
         <ProjectJsonLd
           title={project.title}
           description={project.description}
-          url={`${siteUrl}${project.url}`}
+          url={absoluteUrl(project.url)}
           repository={project.repository}
           tags={project.tags}
-          image={project.cover ? `${siteUrl}${project.cover}` : undefined}
+          image={project.cover ? absoluteUrl(project.cover) : undefined}
         />
         <Link
-          href="/projects"
+          href={ROUTES.projects}
           className="mb-8 flex items-center gap-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />

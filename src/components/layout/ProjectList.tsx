@@ -58,9 +58,7 @@ function ProjectCard(project: (typeof projects)[number]) {
           <h3 className="mb-2 font-semibold text-xl transition-colors group-hover:text-primary">
             {project.title}
           </h3>
-          <p className="line-clamp-3 flex-grow text-base text-muted-foreground">
-            {project.description}
-          </p>
+          <p className="line-clamp-3 grow text-base text-muted-foreground">{project.description}</p>
           <div className="my-4 flex flex-wrap gap-2">
             {project.tags.map((tag) => (
               <Badge

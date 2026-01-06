@@ -73,7 +73,7 @@ const blogs = defineCollection({
   schema: basePostSchema.transform((data) => ({
     ...data,
     slug: data.path.replace(/^(projects|blogs)\//, "").replace(/\.mdx$/, ""),
-    url: `/${data.path.replace(/\.mdx$/, "")}`,
+    url: `/blog/${data.path.replace(/^(projects|blogs)\//, "").replace(/\.mdx$/, "")}`,
     readingTime: readingTime(data.content).text,
   })),
 });

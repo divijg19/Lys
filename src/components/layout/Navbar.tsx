@@ -1,6 +1,4 @@
 "use client";
-
-import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,16 +7,8 @@ import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useScroll } from "@/hooks/useScroll";
 import { useTheme } from "@/hooks/useTheme";
+import { NAV_LINKS, ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-
-// --- Data: Navigation Links ---
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/projects", label: "Projects" },
-  { href: "/blog", label: "Blog" },
-  { href: "/contact", label: "Contact" },
-];
 
 // --- Main Navbar Component ---
 export function Navbar() {
@@ -27,10 +17,7 @@ export function Navbar() {
 
   return (
     <header>
-      <motion.nav
-        initial={{ y: 0 }}
-        animate={{ y: scrolledDown ? -100 : 0 }}
-        transition={{ type: "spring", bounce: 0.25, duration: 0.8 }}
+      <nav
         className={cn(
           // --- Core Layout Strategy for a Balanced, Compact Feel ---
           // 1. `w-auto`: The navbar shrinks to the width of its content.
@@ -38,7 +25,9 @@ export function Navbar() {
           // 3. `gap-x-4` & `md:gap-x-6`: Creates a healthy, responsive space BETWEEN the main groups.
           // 4. `px-4`: Provides the essential padding at the far ends, giving the corner elements breathing room.
           "-translate-x-1/2 fixed top-4 left-1/2 z-50 flex w-auto items-center justify-center gap-x-4 px-4",
-          "rounded-full border border-border/20 bg-background/80 py-2 shadow-lg backdrop-blur-lg md:gap-x-6"
+          "rounded-full border border-border/20 bg-background/80 py-2 shadow-lg backdrop-blur-lg md:gap-x-6",
+          "transform-gpu transition-transform duration-700 ease-out",
+          scrolledDown ? "-translate-y-28" : "translate-y-0"
         )}
         aria-label="Main navigation"
       >
@@ -46,8 +35,8 @@ export function Navbar() {
         <div className="flex items-center gap-x-2">
           <ThemeCycleIcon />
           <Link
-            href="/"
-            className="bg-gradient-to-r from-primary to-accent bg-clip-text font-extrabold text-transparent text-xl transition-opacity hover:opacity-80"
+            href={ROUTES.home}
+            className="bg-linear-to-r from-primary to-accent bg-clip-text font-extrabold text-transparent text-xl transition-opacity hover:opacity-80"
             aria-label="Go to homepage"
           >
             Divij
@@ -69,7 +58,7 @@ export function Navbar() {
             setIsMenuOpen={setIsMenuOpen}
           />
         </div>
-      </motion.nav>
+      </nav>
       <MobileMenu
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
@@ -83,39 +72,32 @@ function ThemeCycleIcon() {
   const { cycleTheme, theme, isMounted } = useTheme();
 
   return (
-    <motion.button
+    <button
       key={isMounted ? theme.name : "placeholder"}
       type="button"
       onClick={cycleTheme}
       aria-label="Cycle to next theme"
-      className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-muted-foreground transition-colors duration-500 hover:bg-primary/30"
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: "spring", duration: 0.2 }}
+      className={cn(
+        "relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-muted-foreground",
+        "transition-colors duration-500 hover:bg-primary/30",
+        "transition-transform duration-150 ease-out hover:scale-110 active:scale-95",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      )}
     >
-      <AnimatePresence
-        mode="wait"
-        initial={false}
+      <span
+        key={isMounted ? theme.name : "icon-placeholder"}
+        className="absolute text-foreground animate-slot-in"
       >
-        <motion.div
-          key={isMounted ? theme.name : "icon-placeholder"}
-          initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
-          animate={{ opacity: 1, rotate: 0, scale: 1 }}
-          exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
-          transition={{ type: "spring", duration: 0.35, bounce: 0 }}
-          className="absolute text-foreground"
-        >
-          {isMounted ? (
-            <theme.icon
-              className="h-5 w-5 text-foreground"
-              aria-hidden="true"
-            />
-          ) : (
-            <div className="h-5 w-5" />
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </motion.button>
+        {isMounted ? (
+          <theme.icon
+            className="h-5 w-5 text-foreground"
+            aria-hidden="true"
+          />
+        ) : (
+          <div className="h-5 w-5" />
+        )}
+      </span>
+    </button>
   );
 }
 
@@ -125,7 +107,7 @@ function DesktopNav() {
   return (
     <nav>
       <ul className="flex items-center gap-x-2">
-        {navLinks.map((link) => (
+        {NAV_LINKS.map((link) => (
           <li key={link.href}>
             <Link
               href={link.href}
@@ -137,11 +119,7 @@ function DesktopNav() {
             >
               {link.label}
               {pathname === link.href && (
-                <motion.div
-                  className="absolute inset-x-0 bottom-[-2px] h-[2px] w-full bg-primary"
-                  layoutId="underline"
-                  transition={{ type: "spring", duration: 0.5 }}
-                />
+                <span className="absolute inset-x-0 -bottom-0.5 h-0.5 w-full bg-primary" />
               )}
             </Link>
           </li>
@@ -191,42 +169,27 @@ function MobileMenu({
     };
   }, [isMenuOpen]);
 
+  if (!isMenuOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 top-0 z-40 h-dvh bg-background/80 backdrop-blur-xl md:hidden"
-        >
-          <motion.ul
-            initial="hidden"
-            animate="show"
-            variants={{
-              hidden: { transition: { staggerChildren: 0.05, staggerDirection: -1 } },
-              show: { transition: { staggerChildren: 0.1 } },
-            }}
-            className="flex h-full flex-col items-center justify-center gap-10"
+    <div className="fixed inset-0 top-0 z-40 h-dvh bg-background/80 backdrop-blur-xl md:hidden animate-fade-in">
+      <ul className="flex h-full flex-col items-center justify-center gap-10">
+        {NAV_LINKS.map((link, index) => (
+          <li
+            key={link.href}
+            className="animate-slot-in"
+            style={{ animationDelay: `${index * 60}ms` }}
           >
-            {navLinks.map((link) => (
-              <motion.li
-                key={link.href}
-                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-              >
-                <Link
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block text-center font-bold text-3xl text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {link.label}
-                </Link>
-              </motion.li>
-            ))}
-          </motion.ul>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            <Link
+              href={link.href}
+              onClick={() => setIsMenuOpen(false)}
+              className="block text-center font-bold text-3xl text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

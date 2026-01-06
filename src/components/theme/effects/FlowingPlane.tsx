@@ -14,7 +14,9 @@ import * as THREE from "three";
 const FlowingPlaneMaterial = shaderMaterial(
   {
     uTime: 0,
-    uColor: new THREE.Color(0.8, 0.7, 0.9),
+    uPrimary: new THREE.Color(0.8, 0.7, 0.9),
+    uSecondary: new THREE.Color(0.7, 0.85, 0.9),
+    uAccent: new THREE.Color(0.95, 0.75, 0.9),
     uClickPosition: new THREE.Vector3(0, 0, 0),
     uClickStrength: 0.0,
   },
@@ -46,59 +48,81 @@ const FlowingPlaneMaterial = shaderMaterial(
     void main() {
       vUv = uv;
       vec3 pos = position;
-      float baseNoise = snoise(vec2(pos.x * 0.1, pos.y * 0.1) + uTime * 0.03) * 0.1;
-      float detailNoise = snoise(vec2(pos.x * 0.5, pos.y * 0.5) + uTime * 0.1) * 0.05;
+      float baseNoise = snoise(vec2(pos.x, pos.y) * 0.08 + uTime * 0.02) * 0.22;
+      float detailNoise = snoise(vec2(pos.x, pos.y) * 0.22 + uTime * 0.06) * 0.08;
       float totalNoise = baseNoise + detailNoise;
-      float dist = distance(pos.xz, uClickPosition.xz);
-      float ripple = sin(dist * 2.0 - uTime * 2.0) * uClickStrength;
-      ripple *= (1.0 - smoothstep(0.0, 2.0, dist));
-      pos.z += totalNoise + ripple;
+      float dist = distance(pos.xy, uClickPosition.xy);
+      float ripple = sin(dist * 2.2 - uTime * 2.2) * uClickStrength;
+      ripple *= (1.0 - smoothstep(0.0, 2.2, dist));
+      pos.z += totalNoise + ripple * 0.35;
       vDisplacement = pos.z;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }`,
   `
     uniform float uTime;
-    uniform vec3 uColor;
+    uniform vec3 uPrimary;
+    uniform vec3 uSecondary;
+    uniform vec3 uAccent;
     varying float vDisplacement;
     varying vec2 vUv;
     void main() {
-      float glow = smoothstep(-0.2, 0.5, vDisplacement) * 0.5 + 0.5;
-      vec2 grid = abs(fract(vUv * 15.0 - 0.5));
-      float line = 1.0 - smoothstep(0.01, 0.05, min(grid.x, grid.y));
-      float edgeFade = smoothstep(0.0, 0.2, vUv.x) * (1.0 - smoothstep(0.8, 1.0, vUv.x)) *
-                       smoothstep(0.0, 0.2, vUv.y) * (1.0 - smoothstep(0.8, 1.0, vUv.y));
-      vec3 finalColor = uColor * glow;
-      gl_FragColor = vec4(finalColor, line * 0.2 * edgeFade);
+      float distToCenter = distance(vUv, vec2(0.5));
+      float centerFade = smoothstep(0.85, 0.15, distToCenter);
+      float edgeFade = smoothstep(0.0, 0.18, vUv.x) * (1.0 - smoothstep(0.82, 1.0, vUv.x)) *
+                       smoothstep(0.0, 0.18, vUv.y) * (1.0 - smoothstep(0.82, 1.0, vUv.y));
+
+      float flow = 0.5 + 0.5 * sin(uTime * 0.08 + vUv.x * 1.8 - vUv.y * 1.2 + vDisplacement * 5.0);
+      vec3 base = mix(uPrimary, uSecondary, flow);
+      float glow = smoothstep(-0.22, 0.28, vDisplacement) * 0.55 + 0.45;
+      float glint = smoothstep(0.8, 1.0, flow) * 0.18;
+
+      vec3 finalColor = base * glow + uAccent * glint;
+      float alpha = (0.12 + 0.22 * centerFade) * edgeFade;
+      gl_FragColor = vec4(finalColor, alpha);
     }`
 );
 
 interface IFlowingPlaneMaterial extends THREE.ShaderMaterial {
   uniforms: {
     uTime: { value: number };
-    uColor: { value: THREE.Color };
+    uPrimary: { value: THREE.Color };
+    uSecondary: { value: THREE.Color };
+    uAccent: { value: THREE.Color };
     uClickPosition: { value: THREE.Vector3 };
     uClickStrength: { value: number };
   };
 }
 
 type FlowingPlaneProps = {
-  color: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
   latestClickPosition: THREE.Vector3 | null;
 };
 
-export const FlowingPlane = ({ color, latestClickPosition }: FlowingPlaneProps) => {
+export const FlowingPlane = ({
+  primaryColor,
+  secondaryColor,
+  accentColor,
+  latestClickPosition,
+}: FlowingPlaneProps) => {
   const ref = useRef<IFlowingPlaneMaterial>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
   const clickStrengthRef = useRef(0.0);
 
   const material = useMemo(() => {
     const mat = new FlowingPlaneMaterial();
-    mat.uniforms.uColor.value = new THREE.Color(color);
+    mat.uniforms.uPrimary.value = new THREE.Color(primaryColor);
+    mat.uniforms.uSecondary.value = new THREE.Color(secondaryColor);
+    mat.uniforms.uAccent.value = new THREE.Color(accentColor);
     return mat;
-  }, [color]);
+  }, [primaryColor, secondaryColor, accentColor]);
 
   useEffect(() => {
-    if (latestClickPosition && ref.current) {
-      ref.current.uniforms.uClickPosition.value.copy(latestClickPosition);
+    if (latestClickPosition && ref.current && meshRef.current) {
+      const local = latestClickPosition.clone();
+      meshRef.current.worldToLocal(local);
+      ref.current.uniforms.uClickPosition.value.copy(local);
       clickStrengthRef.current = 1.0;
       ref.current.uniforms.uClickStrength.value = 1.0;
     }
@@ -120,10 +144,11 @@ export const FlowingPlane = ({ color, latestClickPosition }: FlowingPlaneProps) 
 
   return (
     <mesh
+      ref={meshRef}
       rotation={[-Math.PI / 2.1, 0, 0]}
       position={[0, -3, 0]}
     >
-      <planeGeometry args={[40, 40, 128, 128]} />
+      <planeGeometry args={[40, 40, 96, 96]} />
       <primitive
         ref={ref}
         object={material}

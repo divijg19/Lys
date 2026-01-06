@@ -1,3 +1,5 @@
+import { SITE_URL } from "@/lib/site";
+
 // JSON-LD script tag output (safe: purely static JSON serialization)
 export function ProjectJsonLd(props: {
   title: string;
@@ -20,7 +22,7 @@ export function ProjectJsonLd(props: {
     author: {
       "@type": "Person",
       name: "Divij Ganjoo",
-      url: "https://divijganjoo.me",
+      url: SITE_URL,
     },
   };
   return <script type="application/ld+json">{JSON.stringify(json)}</script>;

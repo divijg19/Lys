@@ -1,8 +1,10 @@
 import { blogs, projects } from "#velite";
-import { env } from "@/lib/env";
+import { SITE_URL } from "@/lib/site";
+
+export const revalidate = 3600;
 
 export async function GET() {
-  const site = env.SITE_URL;
+  const site = SITE_URL;
   const items = [
     ...blogs.map((b) => ({
       title: b.title,
@@ -25,5 +27,10 @@ export async function GET() {
         }]]></description></item>`
     )
     .join("\n")}\n</channel>\n</rss>`;
-  return new Response(rss, { headers: { "Content-Type": "application/rss+xml; charset=utf-8" } });
+  return new Response(rss, {
+    headers: {
+      "Content-Type": "application/rss+xml; charset=utf-8",
+      "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
+    },
+  });
 }

@@ -1,60 +1,21 @@
 "use client";
-import { motion } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
-import {
-  CheckCircle,
-  Github,
-  Instagram,
-  Linkedin,
-  Loader2,
-  Mail,
-  MessageCircle,
-  XCircle,
-} from "lucide-react"; // Added XCircle for errors
-import { useId, useState } from "react";
-import { bio } from "#velite";
+import { CheckCircle, Loader2, MessageCircle, XCircle } from "lucide-react"; // Added XCircle for errors
+import dynamic from "next/dynamic";
+import type React from "react";
+import { useId, useRef, useState } from "react";
 import { SocialLink } from "@/components/layout/SocialLink";
+import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { HERO_SOCIALS } from "./Hero.data";
 import { HiddenHoneypot } from "./HiddenHoneypot";
 
-// --- THE SOCIALS DATA FOR THIS SECTION ---
-const socials: {
-  href: string;
-  name: string;
-  icon: LucideIcon;
-  colorClass: string;
-}[] = [
-  {
-    href: bio.social.github,
-    name: "GitHub",
-    icon: Github,
-    colorClass: "hover:bg-[#181717] hover:text-white",
-  },
-  {
-    href: `mailto:${bio.email}`,
-    name: "Gmail",
-    icon: Mail,
-    colorClass: "hover:bg-[#EA4335] hover:text-white",
-  },
-  {
-    href: bio.social.linkedin,
-    name: "LinkedIn",
-    icon: Linkedin,
-    colorClass: "hover:bg-[#0A66C2] hover:text-white",
-  },
-  {
-    href: bio.social.instagram,
-    name: "Instagram",
-    icon: Instagram,
-    colorClass: "hover:bg-[#E4405F] hover:text-white",
-  },
-];
-
-import type React from "react";
-import { useRef } from "react";
+const ContactAnimated = dynamic(() => import("./ContactAnimated").then((m) => m.ContactAnimated), {
+  ssr: false,
+});
 
 // --- ENHANCED FORM STATE to handle error messages ---
 type FormStatus =
@@ -68,6 +29,8 @@ export function Contact() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [announced, setAnnounced] = useState("");
   const sectionId = useId();
+  const reduceMotion = usePrefersReducedMotion();
+  const motionReady = useMotionReady();
   const sectionRef = useRef<HTMLElement | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -120,60 +83,65 @@ export function Contact() {
     }
   };
 
-  return (
-    <motion.section
-      ref={sectionRef}
-      id={sectionId}
-      className="mx-auto w-full max-w-screen-xl px-4 py-16"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
-      <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
-        <div className="flex flex-col items-start gap-y-6">
-          <div className="flex items-center gap-4">
-            <MessageCircle className="h-8 w-8 text-primary" />
-            <h2 className="font-bold text-4xl tracking-tight">Let's Connect</h2>
-          </div>
-          <p className="text-lg text-muted-foreground">
-            Have a project in mind, a question, or just want to say hello? My inbox is always open.
-            I'll do my best to get back to you!
-          </p>
-          <div className="flex items-center gap-4">
-            {socials.map((social) => (
-              <SocialLink
-                key={social.name}
-                {...social}
-              />
-            ))}
-          </div>
+  const Inner = (
+    <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
+      <div className="flex flex-col items-start gap-y-6">
+        <div className="flex items-center gap-4">
+          <MessageCircle className="h-8 w-8 text-primary" />
+          <h2 className="font-bold text-4xl tracking-tight">Let's Connect</h2>
         </div>
-
-        <div className="rounded-lg border bg-card p-8 shadow-sm transition-opacity delay-100 duration-700">
-          <div
-            aria-live="polite"
-            className="sr-only"
-          >
-            {announced}
-          </div>
-          {status.status === "success" ? (
-            <SuccessMessage />
-          ) : status.status === "error" ? (
-            <ErrorMessage
-              message={status.message}
-              onRetry={() => setStatus({ status: "idle" })}
+        <p className="text-lg text-muted-foreground">
+          Have a project in mind, a question, or just want to say hello? My inbox is always open.
+          I'll do my best to get back to you!
+        </p>
+        <div className="flex items-center gap-4">
+          {HERO_SOCIALS.filter((s) => s.name !== "Resume").map((social) => (
+            <SocialLink
+              key={social.name}
+              {...social}
             />
-          ) : (
-            <ContactForm
-              onSubmit={handleSubmit}
-              status={status.status}
-              fieldErrors={fieldErrors}
-            />
-          )}
+          ))}
         </div>
       </div>
-    </motion.section>
+
+      <div className="rounded-lg border bg-card p-8 shadow-sm transition-opacity delay-100 duration-700">
+        <div
+          aria-live="polite"
+          className="sr-only"
+        >
+          {announced}
+        </div>
+        {status.status === "success" ? (
+          <SuccessMessage />
+        ) : status.status === "error" ? (
+          <ErrorMessage
+            message={status.message}
+            onRetry={() => setStatus({ status: "idle" })}
+          />
+        ) : (
+          <ContactForm
+            onSubmit={handleSubmit}
+            status={status.status}
+            fieldErrors={fieldErrors}
+          />
+        )}
+      </div>
+    </div>
+  );
+
+  if (motionReady && !reduceMotion) {
+    return <ContactAnimated sectionId={sectionId}>{Inner}</ContactAnimated>;
+  }
+
+  return (
+    <section
+      ref={sectionRef}
+      id={sectionId}
+      className="mx-auto w-full max-w-7xl px-4 py-16"
+      data-section="contact"
+    >
+      {Inner}
+    </section>
   );
 }
 

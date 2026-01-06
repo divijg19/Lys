@@ -18,16 +18,28 @@ const getCssColor = (name: string): string => {
   return `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
 };
 
-const SceneContent = () => {
+const readIsCalm = (): boolean => {
+  if (typeof document === "undefined") return false;
+  const root = document.documentElement;
+  return root.hasAttribute("data-low-data") || root.hasAttribute("data-reduce-motion");
+};
+
+const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
   const [ripples, setRipples] = useState<RippleData[]>([]);
   const [wisps, setWisps] = useState<WispData[]>([]);
   const [lastPlaneClick, setLastPlaneClick] = useState<THREE.Vector3 | null>(null);
   const [isMounted, setMounted] = useState(false);
-  const [themeColors, setThemeColors] = useState({ primary: "", accent: "" });
+  const [themeColors, setThemeColors] = useState({ primary: "", secondary: "", accent: "" });
 
   useEffect(() => {
-    const updateThemeColors = () =>
-      setThemeColors({ primary: getCssColor("--primary"), accent: getCssColor("--accent") });
+    const updateThemeColors = () => {
+      setThemeColors({
+        primary: getCssColor("--primary"),
+        secondary: getCssColor("--secondary"),
+        accent: getCssColor("--accent"),
+      });
+    };
+
     updateThemeColors();
     setMounted(true);
     const observer = new MutationObserver(updateThemeColors);
@@ -37,6 +49,13 @@ const SceneContent = () => {
     });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!isCalm) return;
+    setRipples([]);
+    setWisps([]);
+    setLastPlaneClick(null);
+  }, [isCalm]);
 
   const handleRemoveRipple = useCallback(
     (id: number) => setRipples((prev) => prev.filter((r) => r.id !== id)),
@@ -49,6 +68,7 @@ const SceneContent = () => {
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
+    if (isCalm) return;
     setLastPlaneClick(event.point);
     setRipples((prev) => [
       ...prev,
@@ -63,6 +83,7 @@ const SceneContent = () => {
   const handleContextMenu = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
     event.nativeEvent.preventDefault();
+    if (isCalm) return;
     setWisps((prev) => [
       ...prev,
       {
@@ -79,7 +100,9 @@ const SceneContent = () => {
       {isMounted && (
         <>
           <FlowingPlane
-            color={themeColors.primary}
+            primaryColor={themeColors.primary}
+            secondaryColor={themeColors.secondary}
+            accentColor={themeColors.accent}
             latestClickPosition={lastPlaneClick}
           />
           <Ripples
@@ -113,46 +136,76 @@ const SceneContent = () => {
   );
 };
 
-const EtherealScene = () => (
-  <div className="pointer-events-auto absolute inset-0">
-    <div
-      className={cn("-z-10 absolute inset-0 animate-dreamscape-flow")}
-      style={{
-        backgroundSize: "200% 200%",
-        backgroundImage:
-          "linear-gradient(45deg, hsl(var(--primary) / 0.2), hsl(var(--secondary) / 0.2), hsl(var(--accent) / 0.2))",
-      }}
-    />
-    <div
-      className={cn(
-        "-translate-x-1/2 -translate-y-1/2 -z-10 absolute top-0 left-0 h-2/3 w-2/3 animate-float-subtle rounded-full"
-      )}
-      style={{
-        backgroundImage:
-          "radial-gradient(ellipse at center, hsl(var(--primary) / 0.2) 0%, transparent 70%)",
-        animationDuration: "15s",
-      }}
-    />
-    <div
-      className={cn(
-        "-z-10 absolute right-0 bottom-0 h-2/3 w-2/3 translate-x-1/2 translate-y-1/2 animate-float-subtle rounded-full"
-      )}
-      style={{
-        backgroundImage:
-          "radial-gradient(ellipse at center, hsl(var(--accent) / 0.2) 0%, transparent 70%)",
-        animationDuration: "18s",
-        animationDelay: "3s",
-      }}
-    />
-    <Canvas
-      gl={{ alpha: true, antialias: true }}
-      camera={{ position: [0, 2, 5], fov: 75 }}
-      className="absolute inset-0"
-      style={{ background: "transparent" }}
-    >
-      <SceneContent />
-    </Canvas>
-  </div>
-);
+const EtherealScene = () => {
+  const [isCalm, setIsCalm] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsCalm(readIsCalm());
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-low-data", "data-reduce-motion"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="pointer-events-auto absolute inset-0">
+      <div
+        className={cn("-z-10 absolute inset-0 animate-dreamscape-flow")}
+        style={{
+          backgroundSize: "200% 200%",
+          backgroundImage: "linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)))",
+        }}
+      />
+      <div
+        className={cn("-z-10 absolute inset-0")}
+        style={{
+          backgroundImage:
+            "radial-gradient(1200px 900px at 22% 18%, hsl(var(--primary) / 0.22), transparent 60%), radial-gradient(1100px 800px at 82% 78%, hsl(var(--accent) / 0.18), transparent 55%)",
+        }}
+      />
+      <div
+        className={cn(
+          "-translate-x-1/2 -translate-y-1/2 -z-10 absolute top-0 left-0 h-2/3 w-2/3 animate-float-subtle rounded-full"
+        )}
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse at center, hsl(var(--secondary) / 0.14) 0%, transparent 68%)",
+          animationDuration: "22s",
+        }}
+      />
+      <div
+        className={cn(
+          "-z-10 absolute right-0 bottom-0 h-2/3 w-2/3 translate-x-1/2 translate-y-1/2 animate-float-subtle rounded-full"
+        )}
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.12) 0%, transparent 68%)",
+          animationDuration: "26s",
+          animationDelay: "2s",
+        }}
+      />
+      <div
+        className={cn("-z-10 absolute inset-0")}
+        style={{
+          backgroundImage:
+            "radial-gradient(1200px 800px at 50% 0%, transparent 40%, hsl(var(--background) / 0.6) 100%)",
+        }}
+      />
+      <Canvas
+        dpr={[1, 1.5]}
+        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+        camera={{ position: [0, 2, 5], fov: 75 }}
+        frameloop={isCalm ? "demand" : "always"}
+        className="absolute inset-0"
+        style={{ background: "transparent" }}
+      >
+        <SceneContent isCalm={isCalm} />
+      </Canvas>
+    </div>
+  );
+};
 
 export default EtherealScene;
