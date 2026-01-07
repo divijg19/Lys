@@ -1,6 +1,6 @@
 <h1 align="center">Lys – Multi‑Theme Immersive Portfolio</h1>
 
-Lys is a performance‑focused, multi‑aesthetic developer portfolio built with:
+Lys is a laptop-first web-based performance‑focused, multi‑aesthetic developer portfolio built with:
 
 - Next.js (App Router) + React 19
 - TypeScript + strict Biome linting / formatting
@@ -107,10 +107,10 @@ Project intentionally avoids leaking secrets; contact API uses Resend. Add `.env
 - Global EffectsClock to unify timing sources.
 
 ## 🤝 Contributing
-Internal personal project—PRs not accepted presently. Ideas welcome via issues.
+Internal personal project. Ideas welcome via issues and discussion.
 
 ## 📄 License
-All rights reserved (personal portfolio). Do not reuse proprietary 3D scene compositions or theme assets without permission.
+All rights reserved (personal portfolio).
 
 ---
 Built with intention: immersive aesthetics balanced by performance, accessibility, and maintainability.
