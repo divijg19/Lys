@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
-import { serverEnv } from "@/lib/env.server";
+import { getServerEnv } from "@/lib/env.server";
 
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -22,9 +22,6 @@ function rateLimit(ip: string): boolean {
   b.count++;
   return true;
 }
-
-// --- ENVIRONMENT VARIABLE ---
-const resend = new Resend(serverEnv.RESEND_API_KEY);
 
 // --- DATA VALIDATION SCHEMA ---
 const contactFormSchema = z.object({
@@ -54,6 +51,16 @@ export async function POST(request: Request) {
       const { issues } = parsed.error;
       return NextResponse.json({ message: "Invalid form data", errors: issues }, { status: 400 });
     }
+
+    const env = getServerEnv();
+    if (!env.success) {
+      return NextResponse.json(
+        { message: "Contact service is not configured on this environment" },
+        { status: 503 }
+      );
+    }
+
+    const resend = new Resend(env.data.RESEND_API_KEY);
 
     const { name, email, message } = parsed.data;
 
