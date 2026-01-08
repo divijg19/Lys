@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import {
   Cloud,
   CreditCard,
-  Github,
   Keyboard,
   LifeBuoy,
   LogOut,
@@ -16,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import * as React from "react";
+import { SiGithub as Github } from "react-icons/si";
 import { Button } from "@/components/ui/Button"; // Confirmed: File is Button with capital B
 import {
   DropdownMenu,

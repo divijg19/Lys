@@ -1,5 +1,7 @@
-import type { LucideIcon } from "lucide-react";
-import { FileText, Github, Instagram, Linkedin, Mail } from "lucide-react";
+import { FileText, Mail } from "lucide-react";
+import type { IconType } from "react-icons";
+import { FaLinkedin as Linkedin } from "react-icons/fa";
+import { SiGithub as Github, SiInstagram as Instagram } from "react-icons/si";
 import { bio } from "#velite";
 
 export const HERO_TAGLINES = [
@@ -20,7 +22,7 @@ export const HERO_STACK_RIBBONS = [
 export type HeroSocialLink = {
   href: string;
   name: string;
-  icon: LucideIcon;
+  icon: IconType;
   colorClass: string;
 };
 

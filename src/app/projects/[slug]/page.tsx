@@ -1,8 +1,9 @@
-import { ArrowLeft, ArrowUpRight, Github } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SiGithub as Github } from "react-icons/si";
 import { projects } from "#velite";
 import { MdxContent } from "@/components/layout/MdxContent";
 import { ProjectJsonLd } from "@/components/seo/ProjectJsonLd";
