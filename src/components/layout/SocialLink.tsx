@@ -34,7 +34,7 @@ export function SocialLink({ href, name, icon: Icon, colorClass }: SocialLinkPro
         focusColorClass
       )}
     >
-      <Icon className="h-6 w-6 shrink-0" />
+      <Icon aria-hidden="true" focusable="false" className="h-6 w-6 shrink-0" />
       <span
         className={cn(
           "ml-0 max-w-0 overflow-hidden whitespace-nowrap font-semibold text-sm",
