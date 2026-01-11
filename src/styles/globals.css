@@ -12,6 +12,7 @@
 
 /* 1. --- IMPORTS --- */
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "./animations.css";
 
 /* 2. --- THEME BRIDGE FOR SHADCN --- */
@@ -37,10 +38,14 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
   /* Border Radius */
-  --border-radius-lg: var(--radius);
-  --border-radius-md: calc(var(--radius) - 2px);
-  --border-radius-sm: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
 /* 3. --- MULTI-THEME DEFINITIONS --- */
