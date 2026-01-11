@@ -129,7 +129,12 @@ function ProjectCard({
 
           <div className="mt-auto flex w-full items-center justify-between">
             <span className="flex items-center font-medium text-primary text-sm">
-              Read Case Study <ArrowUpRight aria-hidden="true" focusable="false" className="ml-1 h-4 w-4" />
+              Read Case Study{" "}
+              <ArrowUpRight
+                aria-hidden="true"
+                focusable="false"
+                className="ml-1 h-4 w-4"
+              />
             </span>
             <div className="flex items-center gap-2">
               {repository && (
@@ -143,7 +148,11 @@ function ProjectCard({
                     window.open(repository, "_blank", "noopener,noreferrer");
                   }}
                 >
-                  <Github aria-hidden="true" focusable="false" className="h-5 w-5" />
+                  <Github
+                    aria-hidden="true"
+                    focusable="false"
+                    className="h-5 w-5"
+                  />
                 </Button>
               )}
               {liveUrl && (
@@ -157,7 +166,11 @@ function ProjectCard({
                     window.open(liveUrl, "_blank", "noopener,noreferrer");
                   }}
                 >
-                  <ArrowUpRight aria-hidden="true" focusable="false" className="h-5 w-5" />
+                  <ArrowUpRight
+                    aria-hidden="true"
+                    focusable="false"
+                    className="h-5 w-5"
+                  />
                 </Button>
               )}
             </div>

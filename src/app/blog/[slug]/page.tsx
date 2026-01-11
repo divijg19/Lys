@@ -18,7 +18,12 @@ interface BlogPageProps {
 
 // --- WORLD-CLASS METADATA for SEO & Social Sharing ---
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
-  const blog = blogs.find((blog) => blog.slug === params.slug);
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const blog = blogs.find((b) =>
+    typeof b?.slug === "string" ? b.slug.toLowerCase() === slugParam : false
+  );
   if (!blog) {
     return {};
   }
@@ -46,9 +51,8 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 
 export async function generateStaticParams() {
   try {
-    return blogs.map((blog) => ({
-      slug: blog.slug,
-    }));
+    // Emit lowercase params so blog route URLs are normalized to lower-case.
+    return blogs.map((blog) => ({ slug: blog.slug.toLowerCase() }));
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.error("Error generating static params for blog:", error);
@@ -57,8 +61,14 @@ export async function generateStaticParams() {
   }
 }
 
-export default function BlogPage({ params }: BlogPageProps) {
-  const blog = blogs.find((b) => b.slug === params.slug);
+export default async function BlogPage({ params }: BlogPageProps) {
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const blog = blogs.find((b) => {
+    const s = typeof b?.slug === "string" ? b.slug.toLowerCase() : "";
+    return s === slugParam;
+  });
 
   if (!blog) {
     return notFound();

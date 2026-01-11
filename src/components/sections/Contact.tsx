@@ -87,7 +87,11 @@ export function Contact() {
     <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
       <div className="flex flex-col items-start gap-y-6">
         <div className="flex items-center gap-4">
-          <MessageCircle aria-hidden="true" focusable="false" className="h-8 w-8 text-primary" />
+          <MessageCircle
+            aria-hidden="true"
+            focusable="false"
+            className="h-8 w-8 text-primary"
+          />
           <h2 className="font-bold text-4xl tracking-tight">Let's Connect</h2>
         </div>
         <p className="text-lg text-muted-foreground">
@@ -237,7 +241,11 @@ function ContactForm({
         aria-label={status === "loading" ? "Sending message" : undefined}
       >
         {status === "loading" ? (
-          <Loader2 aria-hidden="true" focusable="false" className="mr-2 h-5 w-5 animate-spin" />
+          <Loader2
+            aria-hidden="true"
+            focusable="false"
+            className="mr-2 h-5 w-5 animate-spin"
+          />
         ) : (
           "Send Message"
         )}
@@ -249,7 +257,11 @@ function ContactForm({
 function SuccessMessage() {
   return (
     <div className="flex animate-fade-in flex-col items-center justify-center text-center">
-      <CheckCircle aria-hidden="true" focusable="false" className="h-16 w-16 text-green-500" />
+      <CheckCircle
+        aria-hidden="true"
+        focusable="false"
+        className="h-16 w-16 text-green-500"
+      />
       <h3 className="mt-4 font-bold text-2xl">Thank You!</h3>
       <p className="mt-2 text-muted-foreground">Your message has been sent successfully.</p>
     </div>
@@ -260,7 +272,11 @@ function SuccessMessage() {
 function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="flex animate-fade-in flex-col items-center justify-center text-center">
-      <XCircle aria-hidden="true" focusable="false" className="h-16 w-16 text-destructive" />
+      <XCircle
+        aria-hidden="true"
+        focusable="false"
+        className="h-16 w-16 text-destructive"
+      />
       <h3 className="mt-4 font-bold text-2xl">Oops!</h3>
       <p className="mt-2 text-muted-foreground">{message}</p>
       <Button
