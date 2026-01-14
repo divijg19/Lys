@@ -1,4 +1,4 @@
-<h1 align="center">Lys- Multi‑Theme Immersive Portfolio</h1>
+<h1 align="center">Lys: Multi‑Theme Immersive Portfolio</h1>
 
 `Lys` is a performance‑focused, multi‑aesthetic developer portfolio built with:
 
@@ -114,5 +114,6 @@ All rights reserved (personal portfolio). Do not reuse proprietary 3D scene comp
 
 ---
 Built with intention: immersive aesthetics balanced by performance, accessibility, and maintainability.
+
 
 
