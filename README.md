@@ -1,4 +1,4 @@
-<h1 align="center">`Lys` – Multi‑Theme Immersive Portfolio</h1>
+<h1 align="center">Lys- Multi‑Theme Immersive Portfolio</h1>
 
 `Lys` is a performance‑focused, multi‑aesthetic developer portfolio built with:
 
@@ -13,7 +13,7 @@
 | Domain | Highlights |
 |--------|-----------|
 | Theming | 7 switchable worlds (light, dark, cyberpunk, ethereal, horizon, mirage, simple) with shared semantic tokens |
-| 3D / FX | Procedural city alley (infinite scroll + divergence), lightning bolts, data rain, starfield, flowing plane, particles, ripples, anomaly scene |
+| 3D / FX | Procedural city alley (alley scroll + divergence), lightning bolts, data rain, starfield, flowing plane, particles, ripples, anomaly scene |
 | Performance | Centralized effect loops, memoized scene data, ref‑based decay logic, conditional rendering (low‑data / reduced‑motion) |
 | Accessibility | Skip link, semantic MDX rendering, reduced motion & data fallbacks, keyboard focus integrity |
 | Content System | MDX blog & project pages (Velite pipeline), YAML structured bio / expertise / resume data |
@@ -114,4 +114,5 @@ All rights reserved (personal portfolio). Do not reuse proprietary 3D scene comp
 
 ---
 Built with intention: immersive aesthetics balanced by performance, accessibility, and maintainability.
+
 
