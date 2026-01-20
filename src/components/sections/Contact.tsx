@@ -1,8 +1,16 @@
 "use client";
-import { CheckCircle, Loader2, MessageCircle, XCircle } from "lucide-react"; // Added XCircle for errors
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Loader2, MessageCircle, XCircle } from "lucide-react";
 import dynamic from "next/dynamic";
-import type React from "react";
-import { useId, useRef, useState } from "react";
+import type { ComponentProps } from "react";
+import { useId, useState } from "react";
+import {
+  type FieldErrors,
+  type SubmitHandler,
+  type UseFormRegister,
+  useForm,
+} from "react-hook-form";
+import { z } from "zod";
 import { SocialLink } from "@/components/layout/SocialLink";
 import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Button } from "@/components/ui/Button";
@@ -17,39 +25,57 @@ const ContactAnimated = dynamic(() => import("./ContactAnimated").then((m) => m.
   ssr: false,
 });
 
-// --- ENHANCED FORM STATE to handle error messages ---
 type FormStatus =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "success" }
   | { status: "error"; message: string };
 
+type FormOnSubmit = NonNullable<ComponentProps<"form">["onSubmit"]>;
+
+const contactFormSchema = z.object({
+  name: z.string().trim().min(2, { error: "Name must be at least 2 characters." }),
+  email: z
+    .string()
+    .trim()
+    .pipe(z.email({ error: "Invalid email address." })),
+  message: z.string().trim().min(1, { error: "Message is required." }),
+  _hp: z.string().optional(),
+});
+
+type ContactFormValues = z.infer<typeof contactFormSchema>;
+
+const contactDefaultValues: ContactFormValues = {
+  name: "",
+  email: "",
+  message: "",
+  _hp: "",
+};
+
 export function Contact() {
   const [status, setStatus] = useState<FormStatus>({ status: "idle" });
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [announced, setAnnounced] = useState("");
   const sectionId = useId();
   const reduceMotion = usePrefersReducedMotion();
   const motionReady = useMotionReady();
-  const sectionRef = useRef<HTMLElement | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+    reset,
+  } = useForm<ContactFormValues>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: contactDefaultValues,
+    mode: "onTouched",
+  });
+
+  const onSubmitForm: SubmitHandler<ContactFormValues> = async (data) => {
     setStatus({ status: "loading" });
-    setFieldErrors({});
     setAnnounced("");
 
-    // 1. --- EXTRACT FORM DATA ---
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      message: formData.get("message") as string,
-      _hp: formData.get("_hp") as string | null,
-    };
-
     try {
-      // 2. --- SEND DATA TO THE API ROUTE ---
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,29 +85,32 @@ export function Contact() {
       if (!response.ok) {
         if (response.status === 400 || response.status === 422) {
           const json = await response.json().catch(() => null);
-          if (json?.errors) {
-            const errs: Record<string, string> = {};
+          if (Array.isArray(json?.errors)) {
             json.errors.forEach((zErr: { path?: unknown[]; message?: string }) => {
               const key =
-                typeof zErr.path?.[0] === "string" ? (zErr.path?.[0] as string) : undefined;
-              if (key && zErr.message) errs[key] = zErr.message;
+                typeof zErr.path?.[0] === "string"
+                  ? (zErr.path[0] as keyof ContactFormValues)
+                  : undefined;
+              if (key && zErr.message) {
+                setError(key, { type: "server", message: zErr.message });
+              }
             });
-            setFieldErrors(errs);
           }
         }
         throw new Error("Something went wrong. Please try again later.");
       }
 
-      // 3. --- UPDATE STATE TO SUCCESS ---
       setStatus({ status: "success" });
       setAnnounced("Message sent successfully.");
+      reset();
     } catch (error) {
-      // Handle network errors or other exceptions
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       setStatus({ status: "error", message: errorMessage });
       setAnnounced("Error sending message. Please try again.");
     }
   };
+
+  const onSubmit = handleSubmit(onSubmitForm);
 
   const Inner = (
     <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
@@ -124,9 +153,10 @@ export function Contact() {
           />
         ) : (
           <ContactForm
-            onSubmit={handleSubmit}
+            onSubmit={onSubmit}
             status={status.status}
-            fieldErrors={fieldErrors}
+            register={register}
+            errors={errors}
           />
         )}
       </div>
@@ -139,7 +169,6 @@ export function Contact() {
 
   return (
     <section
-      ref={sectionRef}
       id={sectionId}
       className="mx-auto w-full max-w-7xl px-4 py-16"
       data-section="contact"
@@ -152,11 +181,13 @@ export function Contact() {
 function ContactForm({
   onSubmit,
   status,
-  fieldErrors,
+  register,
+  errors,
 }: {
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: FormOnSubmit;
   status: "idle" | "loading";
-  fieldErrors: Record<string, string>;
+  register: UseFormRegister<ContactFormValues>;
+  errors: FieldErrors<ContactFormValues>;
 }) {
   const nameId = useId();
   const emailId = useId();
@@ -168,25 +199,25 @@ function ContactForm({
       onSubmit={onSubmit}
       className="space-y-6"
       autoComplete="off"
+      noValidate
     >
       <div className="space-y-2">
         <Label htmlFor={nameId}>Name</Label>
         <Input
           id={nameId}
-          name="name"
           type="text"
           placeholder="Your Name"
-          required
           disabled={status === "loading"}
-          aria-invalid={!!fieldErrors.name || undefined}
-          aria-describedby={fieldErrors.name ? errorId("name") : undefined}
+          aria-invalid={!!errors.name || undefined}
+          aria-describedby={errors.name ? errorId("name") : undefined}
+          {...register("name")}
         />
-        {fieldErrors.name && (
+        {errors.name?.message && (
           <p
             id={errorId("name")}
             className="text-destructive text-sm"
           >
-            {fieldErrors.name}
+            {String(errors.name.message)}
           </p>
         )}
       </div>
@@ -194,20 +225,19 @@ function ContactForm({
         <Label htmlFor={emailId}>Email</Label>
         <Input
           id={emailId}
-          name="email"
           type="email"
           placeholder="your@email.com"
-          required
           disabled={status === "loading"}
-          aria-invalid={!!fieldErrors.email || undefined}
-          aria-describedby={fieldErrors.email ? errorId("email") : undefined}
+          aria-invalid={!!errors.email || undefined}
+          aria-describedby={errors.email ? errorId("email") : undefined}
+          {...register("email")}
         />
-        {fieldErrors.email && (
+        {errors.email?.message && (
           <p
             id={errorId("email")}
             className="text-destructive text-sm"
           >
-            {fieldErrors.email}
+            {String(errors.email.message)}
           </p>
         )}
       </div>
@@ -215,24 +245,23 @@ function ContactForm({
         <Label htmlFor={messageId}>Message</Label>
         <Textarea
           id={messageId}
-          name="message"
           placeholder="Your message..."
-          required
           rows={5}
           disabled={status === "loading"}
-          aria-invalid={!!fieldErrors.message || undefined}
-          aria-describedby={fieldErrors.message ? errorId("message") : undefined}
+          aria-invalid={!!errors.message || undefined}
+          aria-describedby={errors.message ? errorId("message") : undefined}
+          {...register("message")}
         />
-        {fieldErrors.message && (
+        {errors.message?.message && (
           <p
             id={errorId("message")}
             className="text-destructive text-sm"
           >
-            {fieldErrors.message}
+            {String(errors.message.message)}
           </p>
         )}
       </div>
-      <HiddenHoneypot />
+      <HiddenHoneypot inputProps={register("_hp")} />
       <Button
         type="submit"
         className="w-full"
@@ -268,7 +297,6 @@ function SuccessMessage() {
   );
 }
 
-// --- WORLD-CLASS SUB-COMPONENT: Error Message ---
 function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="flex animate-fade-in flex-col items-center justify-center text-center">
