@@ -202,7 +202,17 @@ function ContactForm({
       noValidate
     >
       <div className="space-y-2">
-        <Label htmlFor={nameId}>Name</Label>
+        <div className="flex items-baseline gap-3">
+          <Label htmlFor={nameId}>Name</Label>
+          {errors.name?.message && (
+            <p
+              id={errorId("name")}
+              className="text-destructive text-sm"
+            >
+              {String(errors.name.message)}
+            </p>
+          )}
+        </div>
         <Input
           id={nameId}
           type="text"
@@ -212,17 +222,19 @@ function ContactForm({
           aria-describedby={errors.name ? errorId("name") : undefined}
           {...register("name")}
         />
-        {errors.name?.message && (
-          <p
-            id={errorId("name")}
-            className="text-destructive text-sm"
-          >
-            {String(errors.name.message)}
-          </p>
-        )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor={emailId}>Email</Label>
+        <div className="flex items-baseline gap-3">
+          <Label htmlFor={emailId}>Email</Label>
+          {errors.email?.message && (
+            <p
+              id={errorId("email")}
+              className="text-destructive text-sm"
+            >
+              {String(errors.email.message)}
+            </p>
+          )}
+        </div>
         <Input
           id={emailId}
           type="email"
@@ -232,17 +244,19 @@ function ContactForm({
           aria-describedby={errors.email ? errorId("email") : undefined}
           {...register("email")}
         />
-        {errors.email?.message && (
-          <p
-            id={errorId("email")}
-            className="text-destructive text-sm"
-          >
-            {String(errors.email.message)}
-          </p>
-        )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor={messageId}>Message</Label>
+        <div className="flex items-baseline gap-3">
+          <Label htmlFor={messageId}>Message</Label>
+          {errors.message?.message && (
+            <p
+              id={errorId("message")}
+              className="text-destructive text-sm"
+            >
+              {String(errors.message.message)}
+            </p>
+          )}
+        </div>
         <Textarea
           id={messageId}
           placeholder="Your message..."
@@ -252,14 +266,6 @@ function ContactForm({
           aria-describedby={errors.message ? errorId("message") : undefined}
           {...register("message")}
         />
-        {errors.message?.message && (
-          <p
-            id={errorId("message")}
-            className="text-destructive text-sm"
-          >
-            {String(errors.message.message)}
-          </p>
-        )}
       </div>
       <HiddenHoneypot inputProps={register("_hp")} />
       <Button
