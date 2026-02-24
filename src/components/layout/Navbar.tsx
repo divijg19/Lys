@@ -39,7 +39,7 @@ export function Navbar() {
             className="bg-linear-to-r from-primary to-accent bg-clip-text font-extrabold text-transparent text-xl transition-opacity hover:opacity-80"
             aria-label="Go to homepage"
           >
-            Divij
+            Lys
           </Link>
         </div>
 
