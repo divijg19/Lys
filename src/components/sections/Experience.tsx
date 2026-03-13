@@ -97,7 +97,7 @@ export function Experience() {
         <div className="flex w-full flex-col gap-y-16">
           {resume.history.map((item, index) => (
             <StaticTimelineItem
-              key={`${item.type}-static-${index}`}
+              key={`${item.type}-static-${item.title}-${item.period}`}
               item={item}
               index={index}
             />

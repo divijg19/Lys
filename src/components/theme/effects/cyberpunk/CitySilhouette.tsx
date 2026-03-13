@@ -27,7 +27,7 @@ interface BuildingData {
   hasPipe: boolean;
   width: number;
   depth: number;
-  windowLights: boolean[];
+  windowLights: { id: string; isLit: boolean }[];
 }
 
 function CyberpunkBuilding({
@@ -122,16 +122,16 @@ function CyberpunkBuilding({
         </>
       )}
       {buildingData.hasWindow &&
-        buildingData.windowLights.map((isLit, i) => (
+        buildingData.windowLights.map((w, i) => (
           <mesh
-            key={`window-${i}-${position[0]}-${position[2]}`}
+            key={`${w.id}-${position[0]}-${position[2]}`}
             position={[0, -height / 2 + i * 2 + 1, buildingDepth / 2 + 0.01]}
           >
             <planeGeometry args={[buildingWidth * 0.3, 0.8]} />
             <meshStandardMaterial
-              color={isLit ? "#ffcc66" : "#334455"}
-              emissive={isLit ? "#ffcc66" : "#000000"}
-              emissiveIntensity={isLit ? 0.5 : 0}
+              color={w.isLit ? "#ffcc66" : "#334455"}
+              emissive={w.isLit ? "#ffcc66" : "#000000"}
+              emissiveIntensity={w.isLit ? 0.5 : 0}
             />
           </mesh>
         ))}
@@ -228,7 +228,10 @@ function AlleyScene() {
       const width = 1.0 + rng() * 0.6; // slimmer
       const depth = 0.8 + rng() * 0.4; // shallower
       const windowCount = Math.floor(height / 2);
-      const windowLights = Array.from({ length: windowCount }, () => rng() > 0.5);
+      const windowLights = Array.from({ length: windowCount }, (_, w) => ({
+        id: `win-${w}`,
+        isLit: rng() > 0.5,
+      }));
 
       const zPos = zStart + i * zSpacing; // extends negatively
       const divergenceFactor = i / (BUILDING_PAIRS - 1); // 0 near, 1 far
@@ -266,7 +269,10 @@ function AlleyScene() {
       const width = 1.0 + rng() * 0.6;
       const depth = 0.8 + rng() * 0.4;
       const windowCount = Math.floor(height / 2);
-      const windowLights = Array.from({ length: windowCount }, () => rng() > 0.5);
+      const windowLights = Array.from({ length: windowCount }, (_, w) => ({
+        id: `win-${w}`,
+        isLit: rng() > 0.5,
+      }));
 
       const zPos = zStart + i * zSpacing; // extends negatively
       const divergenceFactor = i / (BUILDING_PAIRS - 1); // 0 near, 1 far

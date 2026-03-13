@@ -41,12 +41,13 @@ export function BaseIcon({
     }
   }
   return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: handled dynamically with aria-hidden
     <svg
       className={["icon", className].filter(Boolean).join(" ")}
       viewBox={viewBox}
       role={role}
       aria-labelledby={labelled && title ? titleId : undefined}
-      aria-hidden={labelled ? undefined : true}
+      aria-hidden={labelled && title ? undefined : "true"}
       data-adaptive={adaptive ? "true" : undefined}
       focusable={focusable ? "true" : "false"}
       xmlns="http://www.w3.org/2000/svg"

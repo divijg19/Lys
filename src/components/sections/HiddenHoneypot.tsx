@@ -4,7 +4,7 @@ import { useId } from "react";
 export function HiddenHoneypot() {
   const hpId = useId();
   return (
-    <div className="-left-[9999px] absolute top-auto h-0 w-0 overflow-hidden">
+    <div className="-left-2499.75 absolute top-auto h-0 w-0 overflow-hidden">
       <label htmlFor={hpId}>Do not fill this field</label>
       <input
         id={hpId}
