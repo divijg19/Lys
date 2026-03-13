@@ -81,7 +81,7 @@ export function Hero() {
     return () => {
       if (timeout) window.clearTimeout(timeout);
     };
-  }, [taglines, taglineIndex, typedTagline, isDeleting]);
+  }, [taglineIndex, typedTagline, isDeleting]);
 
   const nameGradientClass = isMounted
     ? NAME_GRADIENTS[theme.name] || "text-foreground"

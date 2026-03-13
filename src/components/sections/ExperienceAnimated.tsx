@@ -51,7 +51,7 @@ export function ExperienceAnimated() {
         <div className="flex w-full flex-col gap-y-16">
           {resume.history.map((item, index) => (
             <TimelineItem
-              key={`${item.type}-anim-${index}`}
+              key={`${item.type}-anim-${item.title}-${item.period}`}
               item={item}
               index={index}
             />
