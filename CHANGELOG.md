@@ -4,6 +4,18 @@ Some notable changes to this project will be documented in this file.
 
 The format loosely follows Keep a Changelog; versions are date-stamped until semantic versioning is formalized.
 
+## [2026-01-07]
+### Changed
+- Updated dependencies and package upgrades across the repository.
+- Lint fixes and code cleanups.
+- Performance improvements to the Cyberpunk theme (reduced per-frame work, optimized lightning and skyline updates) and `BaseIcon` rendering.
+
+### Security
+- Updated Next.js and React Flight to mitigate known RCE vulnerabilities (Dec 2025).
+
+### Maintenance
+- Miscellaneous packaging and maintenance updates (notable housekeeping commits on 2026-03-01 and 2026-01-08).
+
 ## [2025-10-09]
 ### Added
 - Procedural lightning bolt system (canvas) for Cyberpunk theme (cyan & yellow branching bolts, idle frame skip).
