@@ -76,36 +76,32 @@ function ProjectCard(project: (typeof projects)[number]) {
             </span>
             <div className="flex items-center gap-2">
               {project.repository && (
-                <Link
-                  href={project.repository}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
                   aria-label={`View source code for ${project.title}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(project.repository, "_blank", "noopener,noreferrer");
+                  }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                  >
-                    <Github className="h-5 w-5" />
-                  </Button>
-                </Link>
+                  <Github className="h-5 w-5" />
+                </Button>
               )}
               {project.liveUrl && (
-                <Link
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
                   aria-label={`View live site for ${project.title}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(project.liveUrl, "_blank", "noopener,noreferrer");
+                  }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                  >
-                    <ArrowUpRight className="h-5 w-5" />
-                  </Button>
-                </Link>
+                  <ArrowUpRight className="h-5 w-5" />
+                </Button>
               )}
             </div>
           </div>

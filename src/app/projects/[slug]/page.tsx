@@ -17,7 +17,12 @@ interface ProjectPageProps {
 }
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
-  const project = projects.find((p) => p.slug === params.slug);
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const project = projects.find((p) =>
+    typeof p?.slug === "string" ? p.slug.toLowerCase() === slugParam : false
+  );
   if (!project) return {};
 
   const ogImage = project.cover ? absoluteUrl(project.cover) : absoluteUrl("/og-image.png");
@@ -43,7 +48,8 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
 export async function generateStaticParams() {
   try {
-    return projects.map((project) => ({ slug: project.slug }));
+    // Emit lowercase params so route URLs are normalized to lower-case.
+    return projects.map((project) => ({ slug: project.slug.toLowerCase() }));
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.error("Error generating static params for projects:", error);
@@ -52,8 +58,14 @@ export async function generateStaticParams() {
   }
 }
 
-export default function ProjectPage({ params }: ProjectPageProps) {
-  const project = projects.find((p) => p.slug === params.slug);
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const project = projects.find((p) => {
+    const s = typeof p?.slug === "string" ? p.slug.toLowerCase() : "";
+    return s === slugParam;
+  });
   if (!project) notFound();
 
   return (
