@@ -1,13 +1,13 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import type { IconType } from "react-icons";
 import { cn } from "@/lib/utils";
 
 // Define the props for our reusable component
 interface SocialLinkProps {
   href: string;
   name: string;
-  icon: LucideIcon;
+  icon: IconType;
   colorClass: string;
 }
 

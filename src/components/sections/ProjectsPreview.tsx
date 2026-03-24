@@ -1,8 +1,9 @@
 "use client";
-import { ArrowUpRight, Github } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
+import { SiGithub as Github } from "react-icons/si";
 import { projects } from "#velite";
 import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Badge } from "@/components/ui/Badge";

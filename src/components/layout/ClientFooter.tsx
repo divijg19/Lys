@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowUp, Github, Heart, Mail } from "lucide-react";
+import { ArrowUp, Heart, Mail } from "lucide-react";
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
+import { SiGithub as Github } from "react-icons/si";
 import { bio } from "#velite";
 import { Button } from "@/components/ui/Button";
 import { useScroll } from "@/hooks/useScroll";
@@ -117,7 +118,7 @@ export function ClientFooter() {
           >
             <div className="flex items-center gap-x-3">
               <Link
-                href="https://github.com/divijg19/portfolio"
+                href="https://github.com/divijg19"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View source code for Project Lys"
@@ -143,7 +144,7 @@ export function ClientFooter() {
                 <ArrowUp className="h-4 w-4" />
               </Button>
               <Link
-                href="https://github.com/divijg19/portfolio"
+                href="https://github.com/divijg19"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View source code on GitHub"
