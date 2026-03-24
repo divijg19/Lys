@@ -148,7 +148,7 @@ function ProjectCard({
                     window.open(repository, "_blank", "noopener,noreferrer");
                   }}
                 >
-                  <Github className="h-5 w-5" />
+                  <Github aria-hidden="true" focusable="false" className="h-5 w-5" />
                 </Button>
               )}
               {liveUrl && (
@@ -162,7 +162,7 @@ function ProjectCard({
                     window.open(liveUrl, "_blank", "noopener,noreferrer");
                   }}
                 >
-                  <ArrowUpRight className="h-5 w-5" />
+                  <ArrowUpRight aria-hidden="true" focusable="false" className="h-5 w-5" />
                 </Button>
               )}
             </div>
