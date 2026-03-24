@@ -4,6 +4,26 @@ Some notable changes to this project will be documented in this file.
 
 The format loosely follows Keep a Changelog; versions are date-stamped until semantic versioning is formalized.
 
+## [2026-03-24]
+### Fixed
+- Prevented nested anchor hydration error in project cards (external links no longer render inner `<a>` inside the outer project `<a>`).
+- Resolved runtime errors and 404s for article pages by safely unwrapping Next.js `params` (awaited in server components) and making slug matching case-insensitive.
+
+### Accessibility
+- Marked decorative/icon-only SVGs as `aria-hidden` where appropriate, added ARIA labels to icon-only buttons, and fixed several a11y test regressions.
+
+### Compatibility
+- Added a small client-side compatibility alias to map deprecated `THREE.Clock` to `THREE.Timer` on the client to silence deprecation warnings (temporary shim; recommend upgrading `three`/`@react-three/fiber` in future).
+
+### Tests
+- Added/updated accessibility fixes and integration checks; full test suite passing (33/33) after changes.
+
+## Cleanup & Maintenance
+- Removed unused scripts, dependencies and modernized some package.json fields.
+- Updated README to be cleaner, removed ROADMAP and shifted to CHANGELOG.md.
+- Cleaned up some unused code and refs in the scene components.
+- Cleaned up next.config.js and tsconfig.json for better defaults and removed some unused config.
+
 ## [2026-01-07]
 ### Changed
 - Updated dependencies and package upgrades across the repository.
@@ -57,3 +77,4 @@ The format loosely follows Keep a Changelog; versions are date-stamped until sem
 
 ---
 Historical earlier changes prior to this tracking were exploratory and not formalized.
+

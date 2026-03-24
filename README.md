@@ -100,12 +100,6 @@ Project intentionally avoids leaking secrets; contact API uses Resend. Add `.env
 - Vercel (configured via `vercel.json` & Next edge defaults).
 - Analyze bundle with `bun run build:analyze`.
 
-## 🛠 Future Enhancements (Roadmap)
-- OffscreenCanvas for lightning & data rain (worker offload).
-- Deterministic seeding for stable visual randomness across sessions.
-- Dynamic import boundaries for rarely viewed theme scenes.
-- Global EffectsClock to unify timing sources.
-
 ## 🤝 Contributing
 Internal personal project. Ideas welcome via issues and discussion.
 

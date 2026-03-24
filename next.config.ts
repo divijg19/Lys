@@ -55,9 +55,7 @@ const nextConfig: NextConfig = {
 const withBundleAnalyzer = (() => {
   if (process.env.ANALYZE !== "true") return (config: NextConfig) => config;
   const require = createRequire(import.meta.url);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const mod = require("@next/bundle-analyzer");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   return mod.default({ enabled: true }) as (config: NextConfig) => NextConfig;
 })();
 
