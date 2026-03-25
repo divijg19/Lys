@@ -5,22 +5,17 @@ import { FlatCompat } from "@eslint/eslintrc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Compat adapter to use old-style config extensions
 const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
 export default [
-  // Base and plugin configs
   ...compat.extends(
-    "next/core-web-vitals",              // Next.js performance rules
-    "plugin:react/recommended",          // React best practices
-    "plugin:react-hooks/recommended",    // React hooks linting
-    "plugin:jsx-a11y/recommended",       // Accessibility rules
-    "plugin:prettier/recommended"        // Prettier formatting as ESLint rules
+    "next/core-web-vitals",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended"
   ),
-
-  // TypeScript-specific settings
   {
     files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
@@ -30,8 +25,6 @@ export default [
       },
     },
   },
-
-  // Global language & React config
   {
     languageOptions: {
       ecmaVersion: "latest",
@@ -42,13 +35,13 @@ export default [
         },
       },
       globals: {
-        React: "readonly", // Needed for JSX without imports
-        JSX: "readonly",   // For new JSX transform
+        React: "readonly",
+        JSX: "readonly",
       },
     },
     settings: {
       react: {
-        version: "detect", // Automatically detect React version
+        version: "detect",
       },
     },
   },

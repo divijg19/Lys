@@ -1,81 +1,48 @@
+@import "tailwindcss";
+
 :root {
-  /* Base fallback values */
   --color-background: #ffffff;
   --color-foreground: #000000;
   --color-accent: #3b82f6;
 }
 
-/* ========== STANDARD THEMES ========== */
-
 [data-theme="light"] {
   --color-background: #ffffff;
   --color-foreground: #111111;
-  --color-accent: #3b82f6; /* Blue */
+  --color-accent: #3b82f6;
 }
-
 [data-theme="dark"] {
   --color-background: #0d1117;
   --color-foreground: #e6edf3;
-  --color-accent: #8b5cf6; /* Violet */
+  --color-accent: #8b5cf6;
 }
-
-/* ========== SIGNATURE THEMES ========== */
-
 [data-theme="cyberpunk"] {
   --color-background: #0f0f1b;
   --color-foreground: #00ffea;
   --color-accent: #ff00c8;
 }
-
 [data-theme="ethereal"] {
   --color-background: #f5f7ff;
   --color-foreground: #706f8a;
   --color-accent: #b5d0ff;
 }
-
-/* ========== VISUAL THEMES ========== */
-
 [data-theme="horizon-blaze"] {
   --color-background: #ffedd5;
   --color-foreground: #1c1c1c;
   --color-accent: #ff5722;
 }
-
 [data-theme="neo-mirage"] {
   --color-background: #e0f7fa;
   --color-foreground: #212121;
   --color-accent: #26c6da;
 }
-
-/* ========== ACCESSIBILITY THEMES ========== */
-
 [data-theme="high-contrast"] {
   --color-background: #000000;
   --color-foreground: #ffffff;
   --color-accent: #ffdd00;
 }
-
 [data-theme="reduced-motion"] {
   --color-background: #fefefe;
   --color-foreground: #333333;
   --color-accent: #888888;
-}
-
-/* ========== GLOBAL ELEMENTS ========== */
-
-html,
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  transition:
-    background-color 0.4s ease-in-out,
-    color 0.4s ease-in-out;
-}
-
-/* Optional: Smoother theme transitions for more UI elements */
-* {
-  transition:
-    background-color 0.4s ease,
-    color 0.4s ease,
-    border-color 0.4s ease;
 }

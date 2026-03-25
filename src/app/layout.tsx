@@ -3,9 +3,11 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
 
-import NavbarWrapper from "@/components/layout/NavbarWrapper";
-import ClientFooter from "@/components/layout/ClientFooter";
+import { geistSans, geistMono } from "@/lib/fonts";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import Navbar from "@/components/layout/Navbar";
+import ClientFooter from "@/components/layout/ClientFooter";
+import BackgroundEffects from "@/components/theme/BackgroundEffects";
 
 // --- Global metadata config ---
 export const metadata: Metadata = {
@@ -17,7 +19,6 @@ export const metadata: Metadata = {
     "Portfolio of Divij Ganjoo – developer, writer, and systems thinker crafting integrated digital ecosystems.",
   authors: [{ name: "Divij Ganjoo", url: "https://your-domain.com" }],
   generator: "Next.js",
-  themeColor: "#ffffff",
   metadataBase: new URL("https://your-domain.com"),
   openGraph: {
     title: "Divij Ganjoo",
@@ -35,12 +36,6 @@ export const metadata: Metadata = {
     ],
     type: "website",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
@@ -48,18 +43,32 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 // --- Root layout with SSR-safe hydration and theming ---
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <body className="min-h-screen bg-white text-black dark:bg-black dark:text-white transition-colors duration-300 ease-in-out">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <head>
+        <meta charSet="utf-8" />
+        <link rel="icon" href="/favicon.ico" />
+        {/* Next.js will inject title and viewport from metadata/viewport exports */}
+      </head>
+      <body className="bg-background text-foreground antialiased min-h-screen flex flex-col">
         <ThemeProvider>
-          <NavbarWrapper />
-          <main className="min-h-[calc(100vh-5rem)] px-4 py-10 sm:px-8 md:px-12 lg:px-20">
+          <BackgroundEffects />
+          <Navbar />
+          <main
+            id="main-content"
+            className="flex-1 flex flex-col w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 focus:outline-none"
+            aria-label="Main content"
+          >
             {children}
           </main>
           <ClientFooter />

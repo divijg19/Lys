@@ -3,21 +3,17 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
 
   experimental: {
     typedRoutes: true,
-    serverActions: {
-      bodySizeLimit: "1mb", // Adjust the size limit as needed
-      allowedOrigins: ["*"], // Replace with specific origins if required
-    }, // Enable if you're using Server Actions
+    // Removed unsupported serverActions block for Next.js 15
   },
 
   images: {
     domains: ["your-domain.com"], // ✅ Replace with your actual domain(s) if using external images
   },
 
-  webpack(config) {
+  webpack(config: any) {
     // Setup alias for cleaner imports
     config.resolve.alias ||= {};
     config.resolve.alias["@"] = path.resolve(__dirname, "src");
