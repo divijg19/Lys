@@ -1,0 +1,36 @@
+# src/content/services/index.yml
+
+- name: Web Development
+  description: Building responsive and modern websites tailored to your needs.
+  icon: web
+  featured: true
+
+- name: Python Back-end Development
+  description: Building scalable APIs and server-side applications using Python frameworks like Django and FastAPI.
+  icon: python
+  featured: true
+
+- name: Go Back-end Development
+  description: Developing high-performance back-end services and microservices with Go, leveraging its concurrency and speed.
+  icon: go
+  featured: true
+
+- name: UI/UX Design
+  description: Designing intuitive and engaging user interfaces and experiences.
+  icon: design
+  featured: true
+
+- name: SEO Optimization
+  description: Improving your website's visibility on search engines.
+  icon: seo
+  featured: false
+
+- name: E-commerce Solutions
+  description: Creating robust online stores with secure payment integration.
+  icon: ecommerce
+  featured: false
+
+- name: Maintenance & Support
+  description: Ongoing support and updates to keep your site running smoothly.
+  icon: support
+  featured: false

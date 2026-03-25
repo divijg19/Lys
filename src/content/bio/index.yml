@@ -1,0 +1,19 @@
+# src/content/bio/index.yml
+
+# Personal Information
+name: Divij Ganjoo
+title: Software Developer
+location: Gurgaon, India
+email: divijganjoo2003@gmail.com
+
+# The "Hero Section" Content
+tagline: Passionate software developer crafting performant, accessible web experiences.
+summary: >
+  Experienced in building full-stack web applications, APIs, and automation tools.
+  I thrive on turning complex problems into elegant solutions and am always eager to
+  learn and contribute to impactful projects.
+
+# Social & Professional Links
+social:
+  github: https://github.com/divijg19
+  linkedin: https://linkedin.com/in/divij-ganjoo
