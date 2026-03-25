@@ -1,16 +1,30 @@
+/**
+ * @file: src/app/layout.tsx
+ * @description: The root layout for the entire application.
+ *
+ * This file sets up the HTML shell, including metadata, fonts, and the
+ * core structure. It integrates the multi-theme system, including the
+ * ThemeProvider and the dynamic ThemeBackground effects component.
+ */
+
+// --- CORE IMPORTS ---
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
+
+// --- LAYOUT COMPONENTS ---
 import { ClientFooter } from "@/components/layout/ClientFooter";
 import { Navbar } from "@/components/layout/Navbar";
+import ThemeBackground from "@/components/theme/ThemeBackground";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+
+// --- UTILS & STYLES ---
 import { geistMono, geistSans } from "@/lib/fonts";
-import { cn } from "@/lib/utils"; // Best practice for combining class names
+import { THEME_NAMES } from "@/lib/themes";
+import { cn } from "@/lib/utils";
 import "@/styles/globals.css";
 
 // --- METADATA & VIEWPORT ---
-// This is world-class. No changes are needed.
-// It's static, specific, and provides a great experience on all devices and platforms.
 export const metadata: Metadata = {
   title: {
     default: "Divij Ganjoo",
@@ -18,8 +32,8 @@ export const metadata: Metadata = {
   },
   description:
     "Portfolio of Divij Ganjoo – a software developer crafting performant and accessible digital experiences.",
-  authors: [{ name: "Divij Ganjoo", url: "https://divijganjoo.me/" }], // Use your actual domain
-  metadataBase: new URL("https://divijganjoo.me/"), // Use your actual domain
+  authors: [{ name: "Divij Ganjoo", url: "https://divijganjoo.me/" }],
+  metadataBase: new URL("https://divijganjoo.me/"),
   openGraph: {
     title: "Divij Ganjoo | Software Developer",
     description: "Performant and accessible digital experiences.",
@@ -51,37 +65,48 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={cn(
-        "scroll-smooth", // Provides a smoother scrolling experience for anchor links
-        geistSans.variable,
-        geistMono.variable
-      )}
+      className={cn("scroll-smooth", geistSans.variable, geistMono.variable)}
       suppressHydrationWarning // Essential for next-themes to prevent hydration errors
     >
-      <body className={cn("min-h-screen bg-background font-sans text-foreground antialiased")}>
+      <body
+        // THE DEFINITIVE FIX:
+        // The `text-foreground` class has been REMOVED.
+        // The `color: hsl(var(--foreground))` in globals.css now correctly controls the base text color.
+        className={cn("min-h-screen bg-background font-sans antialiased")}
+      >
+        {/* --- THEME PROVIDER SETUP --- */}
         <ThemeProvider
-          attribute="class" // Connects to Tailwind's `darkMode: 'class'`
-          defaultTheme="system" // Defaults to user's OS setting
-          enableSystem // Allows toggling between light, dark, and system
-          disableTransitionOnChange // Prevents flash of unstyled content on theme change
+          attribute="data-theme"
+          defaultTheme="light"
+          enableSystem={false}
+          themes={[...THEME_NAMES]}
         >
-          {/* A "Skip to Main Content" link is a non-negotiable for accessibility (A11y) */}
+          {/* --- DYNAMIC BACKGROUND EFFECTS --- */}
+          <ThemeBackground />
+
+          {/* Accessibility best practice: "Skip to Main Content" link */}
           <a
             href="#main-content"
-            className="-translate-x-full absolute top-0 left-0 block rounded-md bg-primary p-3 font-medium text-primary-foreground text-sm transition-transform focus:translate-x-0"
+            className="-translate-x-full absolute top-0 left-0 z-50 block rounded-md bg-primary p-3 font-medium text-primary-foreground text-sm transition-transform focus:translate-x-0"
           >
             Skip to Main Content
           </a>
 
-          <div className="relative flex min-h-dvh flex-col">
+          {/* --- MAIN CONTENT WRAPPER --- */}
+          <div className="relative z-10 flex min-h-dvh flex-col">
             <Navbar />
-            <main id="main-content" className="container flex-1 py-8 md:py-12">
+            <main
+              id="main-content"
+              className="container flex-1 py-8 md:py-12"
+            >
               {children}
             </main>
             <Suspense>
               <ClientFooter />
             </Suspense>
           </div>
+
+          {/* --- GLOBAL TOASTER --- */}
           <Toaster />
         </ThemeProvider>
       </body>

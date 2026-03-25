@@ -70,7 +70,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           )}
           <div className="flex flex-wrap items-center gap-2">
             {project.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
+              <Badge
+                key={tag}
+                variant="secondary"
+              >
                 {tag}
               </Badge>
             ))}
@@ -82,14 +85,25 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           <div className="mt-6 flex flex-wrap items-center gap-4">
             {project.liveUrl && (
               <Button asChild>
-                <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                <Link
+                  href={project.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   View Live Site <ArrowUpRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             )}
             {project.repository && (
-              <Button asChild variant="outline">
-                <Link href={project.repository} target="_blank" rel="noopener noreferrer">
+              <Button
+                asChild
+                variant="outline"
+              >
+                <Link
+                  href={project.repository}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Github className="mr-2 h-4 w-4" /> View Source
                 </Link>
               </Button>

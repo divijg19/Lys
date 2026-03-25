@@ -44,7 +44,10 @@ export function ProjectsPreview() {
         className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
       >
         {featuredProjects.map((project) => (
-          <motion.div key={project.title} variants={FADE_UP_VARIANTS}>
+          <motion.div
+            key={project.title}
+            variants={FADE_UP_VARIANTS}
+          >
             <ProjectCard
               url={project.url}
               title={project.title}
@@ -66,7 +69,10 @@ export function ProjectsPreview() {
         variants={FADE_UP_VARIANTS}
         className="mt-16 text-center"
       >
-        <Button asChild size="lg">
+        <Button
+          asChild
+          size="lg"
+        >
           <Link href="/projects">View All Projects</Link>
         </Button>
       </motion.div>
@@ -118,7 +124,10 @@ function ProjectCard({
           {/* --- TAGS --- */}
           <div className="my-4 flex flex-wrap gap-2">
             {tags?.map((tag: string) => (
-              <Badge key={tag} variant="secondary">
+              <Badge
+                key={tag}
+                variant="secondary"
+              >
                 {tag}
               </Badge>
             ))}
@@ -138,7 +147,10 @@ function ProjectCard({
                   onClick={(e) => e.stopPropagation()} // Prevents navigating the main card link
                   aria-label={`View source code for ${title}`}
                 >
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                  >
                     <Github className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -151,7 +163,10 @@ function ProjectCard({
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`View live site for ${title}`}
                 >
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                  >
                     <ArrowUpRight className="h-5 w-5" />
                   </Button>
                 </Link>

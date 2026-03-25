@@ -8,18 +8,8 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-
-    // THE OPTIMAL FIX, PART 1: Changed from "NodeNext" to "ESNext".
-    // This tells TypeScript to generate the most modern ES module syntax,
-    // which is perfect for a bundler like Next.js to consume.
     "module": "ESNext",
-
-    // THE OPTIMAL FIX, PART 2: Changed from "NodeNext" to "bundler".
-    // This setting is the key. It enables extensionless imports in your code
-    // while still using modern module resolution for your node_modules,
-    // perfectly matching how a modern bundler-based project works.
     "moduleResolution": "bundler",
-
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -45,6 +35,12 @@
       }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "src/types/**/*.d.ts", // <-- Add this line to include your custom type declarations
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
   "exclude": ["node_modules", ".next", "dist"]
 }

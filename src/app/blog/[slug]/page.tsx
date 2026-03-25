@@ -82,7 +82,10 @@ export default function BlogPage({ params }: BlogPageProps) {
           )}
           <div className="flex flex-wrap items-center gap-2">
             {blog.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
+              <Badge
+                key={tag}
+                variant="secondary"
+              >
                 {tag}
               </Badge>
             ))}

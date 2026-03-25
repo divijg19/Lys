@@ -1,7 +1,20 @@
+/**
+@file: src/components/theme/ThemeToggle.tsx
+@description: The user's primary interface for navigating the portfolio's seven aesthetic universes.
+This component provides a highly animated, accessible, and robust dropdown menu
+for switching between themes. It is engineered to deliver a world-class user
+experience, featuring:
+Seamless Integration: Leverages our custom useTheme hook, abstracting away raw theme logic and hydration state.
+Fluid Animations: A custom "scrolling" text animation using Framer Motion provides slick visual feedback when the theme changes.
+Layout Shift Prevention: Implements the critical modal={false} prop to prevent page content from shifting when the menu is opened.
+SSR-Ready & Hydration-Safe: Ensures robust operation by using the isMounted state from our hook to gracefully handle server-side rendering.
+Centralized Data: Pulls theme objects from a single source of truth (/lib/themes) for easy maintenance and scalability.
+*/
+
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
@@ -9,63 +22,80 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
-import { useTheme } from "@/hooks/useTheme"; // Using your custom hook
-import { themes } from "@/lib/themes"; // Your theme definitions
+import { useTheme } from "@/hooks/useTheme";
+import { themes } from "@/lib/themes";
 
+// Define animation properties outside the component to prevent re-declaration on each render.
+const animationProps = {
+  initial: { y: "125%", opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: "-125%", opacity: 0 },
+  transition: { type: "spring" as const, duration: 0.4, bounce: 0.2 },
+};
+
+/**
+ * The primary UI control for selecting and cycling through the portfolio's themes.
+ */
 export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  // Using your custom hook's return values
-  const { theme: currentTheme, setTheme } = useTheme();
-
-  // Standard hydration safety check
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Use our custom, application-specific hook.
+  // This provides the full theme object, a type-safe setter, and the mounted state.
+  const { theme: currentTheme, setTheme, isMounted } = useTheme();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          aria-label={`Current theme: ${currentTheme?.displayName || "Loading..."}`}
-          // --- FIXED SIZE & LAYOUT ---
-          // `w-36` gives a generous, fixed width for your theme names.
-          // `justify-start` prevents the text from jumping when the name changes.
-          className="w-36 justify-start font-medium text-sm"
+          aria-label={`Current theme: ${isMounted ? currentTheme.displayName : "Loading..."}`}
+          className="relative h-9 w-36 justify-start overflow-hidden px-3 font-medium text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          {mounted && currentTheme ? (
-            // Use AnimatePresence for a smooth text transition
-            <AnimatePresence mode="wait">
+          {/* Show a skeleton loader until the hook is mounted on the client. */}
+          {!isMounted && <div className="h-full w-full animate-pulse rounded-md bg-muted" />}
+
+          {/* Once mounted, display the animated theme name and icon. */}
+          {isMounted && (
+            <AnimatePresence
+              mode="wait"
+              initial={false}
+            >
               <motion.span
-                key={currentTheme.displayName}
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 5 }}
-                transition={{ duration: 0.15 }}
-                className="flex items-center gap-2"
+                key={currentTheme.name}
+                initial={animationProps.initial}
+                animate={animationProps.animate}
+                exit={animationProps.exit}
+                transition={animationProps.transition}
+                className="absolute flex items-center gap-2"
               >
-                {/* Display the theme's icon (if it exists) and name */}
-                {currentTheme.icon && <currentTheme.icon className="h-4 w-4" />}
+                <currentTheme.icon
+                  className="h-4 w-4 shrink-0"
+                  aria-hidden="true"
+                />
                 {currentTheme.displayName}
               </motion.span>
             </AnimatePresence>
-          ) : (
-            // Skeleton loader for initial render and hydration
-            <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-36">
-        {/* Map over your defined themes to create the dropdown items */}
-        {themes.map((theme) => (
+
+      {/* Set width to w-36 to match the button and add sideOffset for spacing */}
+      <DropdownMenuContent
+        align="end"
+        className="w-36"
+        sideOffset={4}
+      >
+        {themes.map((themeOption) => (
           <DropdownMenuItem
-            key={theme.name}
-            // Use your custom `setTheme` function
-            onClick={() => setTheme(theme)}
+            key={themeOption.name}
+            // Pass the entire theme object to our custom hook's setter.
+            onClick={() => setTheme(themeOption)}
+            aria-selected={currentTheme.name === themeOption.name}
+            className="cursor-pointer"
           >
-            {/* Display icon in the dropdown */}
-            {theme.icon && <theme.icon className="mr-2 h-4 w-4" />}
-            {theme.displayName}
+            <themeOption.icon
+              className="mr-2 h-4 w-4"
+              aria-hidden="true"
+            />
+            <span>{themeOption.displayName}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

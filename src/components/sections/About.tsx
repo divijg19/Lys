@@ -59,7 +59,10 @@ export function About() {
         className="grid grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16"
       >
         {/* --- LEFT COLUMN: IMAGE --- */}
-        <motion.div variants={FADE_UP_VARIANTS} className="relative h-full w-full">
+        <motion.div
+          variants={FADE_UP_VARIANTS}
+          className="relative h-full w-full"
+        >
           <Image
             src="/assets/images/about-photo.jpg" // A different, more candid photo
             alt="A photo of Divij Ganjoo"
@@ -91,7 +94,10 @@ export function About() {
           {/* --- SCANNABLE KEY STRENGTHS --- */}
           <div className="mt-4 w-full space-y-6">
             {keyStrengths.map((strength) => (
-              <div key={strength.title} className="flex items-start gap-4">
+              <div
+                key={strength.title}
+                className="flex items-start gap-4"
+              >
                 <strength.icon className="mt-1 h-8 w-8 flex-shrink-0 text-primary" />
                 <div>
                   <h3 className="font-semibold text-lg">{strength.title}</h3>

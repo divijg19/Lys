@@ -88,7 +88,12 @@ export function ClientFooter() {
               </div>
               <div className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={scrollToTop} aria-label="Scroll to top">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={scrollToTop}
+                  aria-label="Scroll to top"
+                >
                   <ArrowUp className="h-4 w-4" />
                 </Button>
                 <Link
@@ -97,12 +102,21 @@ export function ClientFooter() {
                   rel="noopener noreferrer"
                   aria-label="View source code on GitHub"
                 >
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                  >
                     <Github className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href={`mailto:${bio.email}`} aria-label="Email me">
-                  <Button variant="ghost" size="sm">
+                <Link
+                  href={`mailto:${bio.email}`}
+                  aria-label="Email me"
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                  >
                     <Mail className="h-4 w-4" />
                   </Button>
                 </Link>

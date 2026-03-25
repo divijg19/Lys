@@ -32,7 +32,10 @@ export function BlogList() {
       className="flex flex-col gap-y-12"
     >
       {sortedPosts.map((post) => (
-        <motion.div key={post.slug} variants={FADE_UP_VARIANTS}>
+        <motion.div
+          key={post.slug}
+          variants={FADE_UP_VARIANTS}
+        >
           <BlogPostCard {...post} />
         </motion.div>
       ))}

@@ -19,7 +19,8 @@ build/
 
 # ────────────── Environment Configs ──────────────
 .env
-.env.*    # e.g., .env.local, .env.production
+.env.local
+.env.development.local
 
 # ────────────── Debug Logs ──────────────
 npm-debug.log*

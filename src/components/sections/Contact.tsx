@@ -105,7 +105,10 @@ export function Contact() {
   };
 
   return (
-    <section id="contact" className="mx-auto w-full max-w-screen-xl px-4 py-16">
+    <section
+      id="contact"
+      className="mx-auto w-full max-w-screen-xl px-4 py-16"
+    >
       <motion.div
         initial="hidden"
         whileInView="show"
@@ -113,7 +116,10 @@ export function Contact() {
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.2 } } }}
         className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16"
       >
-        <motion.div variants={FADE_UP_VARIANTS} className="flex flex-col items-start gap-y-6">
+        <motion.div
+          variants={FADE_UP_VARIANTS}
+          className="flex flex-col items-start gap-y-6"
+        >
           <div className="flex items-center gap-4">
             <MessageCircle className="h-8 w-8 text-primary" />
             <h2 className="font-bold text-4xl tracking-tight">Let's Connect</h2>
@@ -124,12 +130,18 @@ export function Contact() {
           </p>
           <div className="flex items-center gap-4">
             {socials.map((social) => (
-              <SocialLink key={social.name} {...social} />
+              <SocialLink
+                key={social.name}
+                {...social}
+              />
             ))}
           </div>
         </motion.div>
 
-        <motion.div variants={FADE_UP_VARIANTS} className="rounded-lg border bg-card p-8 shadow-sm">
+        <motion.div
+          variants={FADE_UP_VARIANTS}
+          className="rounded-lg border bg-card p-8 shadow-sm"
+        >
           <AnimatePresence mode="wait">
             {status.status === "success" ? (
               <SuccessMessage />
@@ -139,7 +151,11 @@ export function Contact() {
                 onRetry={() => setStatus({ status: "idle" })}
               />
             ) : (
-              <ContactForm key="form" onSubmit={handleSubmit} status={status.status} />
+              <ContactForm
+                key="form"
+                onSubmit={handleSubmit}
+                status={status.status}
+              />
             )}
           </AnimatePresence>
         </motion.div>
@@ -199,7 +215,12 @@ function ContactForm({
           disabled={status === "loading"}
         />
       </div>
-      <Button type="submit" className="w-full" size="lg" disabled={status === "loading"}>
+      <Button
+        type="submit"
+        className="w-full"
+        size="lg"
+        disabled={status === "loading"}
+      >
         {status === "loading" ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Send Message"}
       </Button>
     </motion.form>
@@ -237,7 +258,11 @@ function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => vo
       <XCircle className="h-16 w-16 text-destructive" />
       <h3 className="mt-4 font-bold text-2xl">Oops!</h3>
       <p className="mt-2 text-muted-foreground">{message}</p>
-      <Button onClick={onRetry} variant="outline" className="mt-6">
+      <Button
+        onClick={onRetry}
+        variant="outline"
+        className="mt-6"
+      >
         Try Again
       </Button>
     </motion.div>

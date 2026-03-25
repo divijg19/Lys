@@ -23,7 +23,10 @@ export function Experience() {
   const lineHeight = useTransform(scrollYProgress, [0, 0.9], ["0%", "100%"]);
 
   return (
-    <section ref={targetRef} className="mx-auto w-full max-w-screen-lg px-4 py-16">
+    <section
+      ref={targetRef}
+      className="mx-auto w-full max-w-screen-lg px-4 py-16"
+    >
       <motion.div
         initial="hidden"
         whileInView="show"
@@ -45,7 +48,11 @@ export function Experience() {
         {/* --- SPACING FIX: Increased vertical gap between timeline items --- */}
         <div className="flex w-full flex-col gap-y-16">
           {resume.history.map((item, index) => (
-            <TimelineItem key={`${item.type}-${index}`} item={item} index={index} />
+            <TimelineItem
+              key={`${item.type}-${index}`}
+              item={item}
+              index={index}
+            />
           ))}
         </div>
       </div>
@@ -95,7 +102,10 @@ function TimelineItem({ item, index }: { item: (typeof resume.history)[number]; 
         {item.type === "work" && item.tags && (
           <div className={cn("mt-4 flex flex-wrap gap-2", isLeft && "md:justify-end")}>
             {item.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
+              <Badge
+                key={tag}
+                variant="secondary"
+              >
                 {tag}
               </Badge>
             ))}

@@ -1,7 +1,8 @@
 import readingTime from "reading-time";
 import { defineCollection, defineConfig, s } from "velite";
 
-// --- Reusable Schemas for RAW Data ---
+// --- Reusable Schemas ---
+
 const basePostSchema = s.object({
   title: s.string().min(1),
   date: s.string().transform((str) => new Date(str)),
@@ -12,10 +13,7 @@ const basePostSchema = s.object({
   path: s.path(),
 });
 
-// --- UNIFIED SCHEMAS FOR THE EXPERIENCE TIMELINE ---
-
 const experienceSchema = s.object({
-  // `title` is the primary heading
   title: s.string(),
   company: s.string(),
   period: s.string(),
@@ -25,8 +23,6 @@ const experienceSchema = s.object({
 });
 
 const educationSchema = s.object({
-  // --- THE FIX: Unify the primary heading under a single `title` property. ---
-  // We can add `degree` back as an optional, secondary field if needed.
   title: s.string(),
   institution: s.string(),
   period: s.string(),
@@ -34,7 +30,27 @@ const educationSchema = s.object({
   type: s.literal("education").default("education"),
 });
 
+// --- Schema for Individual Skills ---
+const skillSchema = s.object({
+  name: s.string(),
+  iconPath: s.string(),
+  // Use an enum for consistent proficiency levels
+  level: s.enum(["Proficient", "Experienced", "Familiar"]),
+  // A list of 3 key competencies for the hover state
+  keyCompetencies: s.array(s.string()).min(3).max(3),
+  // In-depth details for the expanded (clicked) state
+  details: s.string(),
+  // Link to projects where this skill was used
+  projectSlugs: s.array(s.string()).default([]),
+
+  // --- NEW OPTIONAL FIELDS for the expanded view ---
+  rationale: s.string().optional(),
+  highlights: s.array(s.string()).optional(),
+  ecosystem: s.array(s.string()).optional(),
+});
+
 // --- Content Collections ---
+
 const projects = defineCollection({
   name: "Project",
   pattern: "projects/**/*.mdx",
@@ -62,7 +78,8 @@ const blogs = defineCollection({
   })),
 });
 
-// --- Singleton Collections for Site-Wide Data ---
+// --- Singleton Collections ---
+
 const bio = defineCollection({
   name: "Bio",
   pattern: "bio/index.yml",
@@ -102,6 +119,23 @@ const resume = defineCollection({
     }),
 });
 
+// --- Expertise Collection ---
+const expertise = defineCollection({
+  name: "Expertise",
+  pattern: "expertise/index.yml",
+  single: true,
+  schema: s.object({
+    categories: s.array(
+      s.object({
+        name: s.string(),
+        // A string to map to a Lucide icon component in the frontend
+        icon: s.string(),
+        skills: s.array(skillSchema),
+      })
+    ),
+  }),
+});
+
 // --- Final Exported Configuration ---
 export default defineConfig({
   root: "src/content",
@@ -110,5 +144,6 @@ export default defineConfig({
     blogs,
     bio,
     resume,
+    expertise,
   },
 });
