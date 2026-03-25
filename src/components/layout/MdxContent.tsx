@@ -32,7 +32,7 @@ const components = {
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p
-      className="leading-7 [&:not(:first-child)]:mt-6"
+      className="leading-7 not-first:mt-6"
       {...props}
     />
   ),
@@ -72,6 +72,7 @@ const components = {
           alt={props.alt ?? "Image"}
           width={800}
           height={450}
+          sizes="(max-width: 768px) 100vw, 800px"
           className="rounded-lg border"
         />
         {props.alt && (
@@ -104,13 +105,13 @@ const components = {
   ),
   th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
-      className="border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right"
+      className="border px-4 py-2 text-left font-bold [[align=center]]:text-center [[align=right]]:text-right"
       {...props}
     />
   ),
   td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
     <td
-      className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
+      className="border px-4 py-2 text-left [[align=center]]:text-center[&[align=right]]:text-right"
       {...props}
     />
   ),

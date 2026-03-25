@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Mail } from "lucide-react";
 // Import the component we are documenting
 import { Input } from "@/components/ui/Input";

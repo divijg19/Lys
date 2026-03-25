@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { ROUTES } from "@/lib/routes";
 
 export default function NotFound() {
   return (
@@ -13,7 +14,7 @@ export default function NotFound() {
         asChild
         className="mt-6"
       >
-        <Link href="/">Return to Home</Link>
+        <Link href={ROUTES.home}>Return to Home</Link>
       </Button>
     </div>
   );

@@ -18,7 +18,10 @@ import { Starfield } from "@/components/theme/effects/Starfield";
 const DarkScene = () => {
   return (
     <Suspense fallback={null}>
-      <Canvas camera={{ position: [0, 0, 1] }}>
+      <Canvas
+        camera={{ position: [0, 0, 1] }}
+        style={{ background: "#030304" }}
+      >
         <Starfield
           // --- Recreating the original Starfield settings ---
           count={2400} // The original number of points in the Float32Array.

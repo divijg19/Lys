@@ -1,9 +1,10 @@
 "use client"; // This is the key. This component is interactive.
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Github } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { SiGithub as Github } from "react-icons/si";
 import { projects } from "#velite";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -50,6 +51,7 @@ function ProjectCard(project: (typeof projects)[number]) {
             src={project.cover || "/assets/images/placeholder.png"}
             alt={`Cover image for ${project.title}`}
             fill
+            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
@@ -57,9 +59,7 @@ function ProjectCard(project: (typeof projects)[number]) {
           <h3 className="mb-2 font-semibold text-xl transition-colors group-hover:text-primary">
             {project.title}
           </h3>
-          <p className="line-clamp-3 flex-grow text-base text-muted-foreground">
-            {project.description}
-          </p>
+          <p className="line-clamp-3 grow text-base text-muted-foreground">{project.description}</p>
           <div className="my-4 flex flex-wrap gap-2">
             {project.tags.map((tag) => (
               <Badge
@@ -76,36 +76,32 @@ function ProjectCard(project: (typeof projects)[number]) {
             </span>
             <div className="flex items-center gap-2">
               {project.repository && (
-                <Link
-                  href={project.repository}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
                   aria-label={`View source code for ${project.title}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(project.repository, "_blank", "noopener,noreferrer");
+                  }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                  >
-                    <Github className="h-5 w-5" />
-                  </Button>
-                </Link>
+                  <Github className="h-5 w-5" />
+                </Button>
               )}
               {project.liveUrl && (
-                <Link
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
                   aria-label={`View live site for ${project.title}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(project.liveUrl, "_blank", "noopener,noreferrer");
+                  }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                  >
-                    <ArrowUpRight className="h-5 w-5" />
-                  </Button>
-                </Link>
+                  <ArrowUpRight className="h-5 w-5" />
+                </Button>
               )}
             </div>
           </div>

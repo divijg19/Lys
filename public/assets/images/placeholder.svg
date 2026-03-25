@@ -1,0 +1,14 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500' viewBox='0 0 800 500' role='img' aria-label='Placeholder background'>
+  <defs>
+    <linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+      <stop offset='0%' stop-color='#1e1e24'/>
+      <stop offset='100%' stop-color='#2c2c33'/>
+    </linearGradient>
+  </defs>
+  <rect width='800' height='500' fill='url(#g)'/>
+  <g stroke='#444' stroke-width='1' opacity='0.35'>
+    <path d='M0 50h800M0 100h800M0 150h800M0 200h800M0 250h800M0 300h800M0 350h800M0 400h800M0 450h800'/>
+    <path d='M50 0v500M100 0v500M150 0v500M200 0v500M250 0v500M300 0v500M350 0v500M400 0v500M450 0v500M500 0v500M550 0v500M600 0v500M650 0v500M700 0v500M750 0v500'/>
+  </g>
+  <text x='50%' y='50%' font-family='system-ui,Segoe UI,Arial' font-size='42' fill='#888' text-anchor='middle' dominant-baseline='central'>Placeholder</text>
+</svg>

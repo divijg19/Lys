@@ -13,8 +13,6 @@ Centralized Data: Pulls theme objects from a single source of truth (/lib/themes
 
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-
 import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
@@ -24,14 +22,6 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { useTheme } from "@/hooks/useTheme";
 import { themes } from "@/lib/themes";
-
-// Define animation properties outside the component to prevent re-declaration on each render.
-const animationProps = {
-  initial: { y: "125%", opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: "-125%", opacity: 0 },
-  transition: { type: "spring" as const, duration: 0.4, bounce: 0.2 },
-};
 
 /**
  * The primary UI control for selecting and cycling through the portfolio's themes.
@@ -54,25 +44,16 @@ export function ThemeToggle() {
 
           {/* Once mounted, display the animated theme name and icon. */}
           {isMounted && (
-            <AnimatePresence
-              mode="wait"
-              initial={false}
+            <span
+              key={currentTheme.name}
+              className="absolute flex items-center gap-2 animate-slot-in"
             >
-              <motion.span
-                key={currentTheme.name}
-                initial={animationProps.initial}
-                animate={animationProps.animate}
-                exit={animationProps.exit}
-                transition={animationProps.transition}
-                className="absolute flex items-center gap-2"
-              >
-                <currentTheme.icon
-                  className="h-4 w-4 shrink-0"
-                  aria-hidden="true"
-                />
-                {currentTheme.displayName}
-              </motion.span>
-            </AnimatePresence>
+              <currentTheme.icon
+                className="h-4 w-4 shrink-0"
+                aria-hidden="true"
+              />
+              {currentTheme.displayName}
+            </span>
           )}
         </Button>
       </DropdownMenuTrigger>

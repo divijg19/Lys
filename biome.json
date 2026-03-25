@@ -1,12 +1,13 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": false,
+    "includes": ["**", "!package.json", "!node_modules", "!.next", "!dist", "!build", "!bun.lock"]
   },
   "formatter": {
     "enabled": true,
@@ -30,7 +31,8 @@
       },
       "correctness": {
         "useExhaustiveDependencies": "error",
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": "warn",
+        "useUniqueElementIds": "warn"
       },
       "style": {
         "noNonNullAssertion": "error",
@@ -41,7 +43,8 @@
         "noExplicitAny": "warn",
         "noArrayIndexKey": "error",
         "noShadowRestrictedNames": "error",
-        "noConstEnum": "error"
+        "noConstEnum": "error",
+        "noUnknownAtRules": "off"
       },
       "performance": {
         "noDelete": "error",
@@ -52,10 +55,22 @@
         "noDangerouslySetInnerHtmlWithChildren": "error"
       },
       "nursery": {
-        "useSortedClasses": "warn"
+        "useSortedClasses": "off"
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["src/**/*.stories.tsx", "src/**/*.stories.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "useUniqueElementIds": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "jsxQuoteStyle": "double",
@@ -73,6 +88,11 @@
   "json": {
     "formatter": {
       "trailingCommas": "none"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   }
 }

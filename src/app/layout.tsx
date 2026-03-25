@@ -1,52 +1,48 @@
 /**
  * @file: src/app/layout.tsx
  * @description: The root layout for the entire application.
- *
- * This file sets up the HTML shell, including metadata, fonts, and the
- * core structure. It integrates the multi-theme system, including the
- * ThemeProvider and the dynamic ThemeBackground effects component.
  */
 
-// --- CORE IMPORTS ---
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
-
-// --- LAYOUT COMPONENTS ---
+// SEO and utilities
+import { ClientAttrWrapper } from "@/components/ClientAttrWrapper";
+// Layout components
+import { AppErrorBoundary } from "@/components/layout/AppErrorBoundary";
 import { ClientFooter } from "@/components/layout/ClientFooter";
+import { MainWrapper } from "@/components/layout/MainWrapper";
 import { Navbar } from "@/components/layout/Navbar";
-import ThemeBackground from "@/components/theme/ThemeBackground";
+import { SkipLink } from "@/components/layout/SkipLink";
+// Performance and theme components
+import { LazyMotionProvider } from "@/components/perf/LazyMotion";
+import { RootPersonJsonLd } from "@/components/seo/RootPersonJsonLd";
+import { ClientThemeBackground } from "@/components/theme/ClientThemeBackground";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-
-// --- UTILS & STYLES ---
 import { geistMono, geistSans } from "@/lib/fonts";
+import { METADATA_BASE, SITE_URL } from "@/lib/site";
 import { THEME_NAMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
+
+// Styles
+import "@/styles/a11y.css";
 import "@/styles/globals.css";
 
-// --- METADATA & VIEWPORT ---
 export const metadata: Metadata = {
-  title: {
-    default: "Divij Ganjoo",
-    template: "%s | Divij Ganjoo",
-  },
+  title: { default: "Divij Ganjoo", template: "%s | Divij Ganjoo" },
   description:
     "Portfolio of Divij Ganjoo – a software developer crafting performant and accessible digital experiences.",
-  authors: [{ name: "Divij Ganjoo", url: "https://divijganjoo.me/" }],
-  metadataBase: new URL("https://divijganjoo.me/"),
+  authors: [{ name: "Divij Ganjoo", url: `${SITE_URL}/` }],
+  metadataBase: METADATA_BASE,
   openGraph: {
     title: "Divij Ganjoo | Software Developer",
     description: "Performant and accessible digital experiences.",
-    url: "https://divijganjoo.me/",
+    url: `${SITE_URL}/`,
     siteName: "Divij Ganjoo's Portfolio",
     locale: "en_US",
     type: "website",
   },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
-  },
+  icons: { icon: "/favicon.ico", shortcut: "/favicon-16x16.png", apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
@@ -60,55 +56,74 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-// --- ROOT LAYOUT ---
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Use a stable ID for skip link target
+  const mainId = "main-content";
   return (
     <html
       lang="en"
       className={cn("scroll-smooth", geistSans.variable, geistMono.variable)}
-      suppressHydrationWarning // Essential for next-themes to prevent hydration errors
+      suppressHydrationWarning
     >
-      <body
-        // THE DEFINITIVE FIX:
-        // The `text-foreground` class has been REMOVED.
-        // The `color: hsl(var(--foreground))` in globals.css now correctly controls the base text color.
-        className={cn("min-h-screen bg-background font-sans antialiased")}
-      >
-        {/* --- THEME PROVIDER SETUP --- */}
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="light"
-          enableSystem={false}
-          themes={[...THEME_NAMES]}
-        >
-          {/* --- DYNAMIC BACKGROUND EFFECTS --- */}
-          <ThemeBackground />
-
-          {/* Accessibility best practice: "Skip to Main Content" link */}
-          <a
-            href="#main-content"
-            className="-translate-x-full absolute top-0 left-0 z-50 block rounded-md bg-primary p-3 font-medium text-primary-foreground text-sm transition-transform focus:translate-x-0"
+      <head>
+        {/* Debug utilities removed for production build */}
+        <meta
+          name="color-scheme"
+          content="light dark"
+        />
+        <meta
+          name="theme-color"
+          content="#000000"
+        />
+        {/* Performance and optimization hints */}
+        <link
+          rel="preload"
+          href="/assets/images/divij-ganjoo.jpg"
+          as="image"
+          type="image/jpeg"
+        />
+        <meta
+          name="robots"
+          content="index,follow"
+        />
+        <meta
+          name="googlebot"
+          content="index,follow"
+        />
+        <RootPersonJsonLd />
+      </head>
+      <body className={cn("min-h-screen bg-background font-sans antialiased")}>
+        <ClientAttrWrapper>
+          <ThemeProvider
+            attribute="data-theme"
+            defaultTheme="light"
+            enableSystem={false}
+            themes={[...THEME_NAMES]}
           >
-            Skip to Main Content
-          </a>
-
-          {/* --- MAIN CONTENT WRAPPER --- */}
-          <div className="relative z-10 flex min-h-dvh flex-col">
-            <Navbar />
-            <main
-              id="main-content"
-              className="container flex-1 py-8 md:py-12"
-            >
-              {children}
-            </main>
-            <Suspense>
-              <ClientFooter />
-            </Suspense>
-          </div>
-
-          {/* --- GLOBAL TOASTER --- */}
-          <Toaster />
-        </ThemeProvider>
+            {/* Debug hydration & error catcher removed */}
+            <ClientThemeBackground />
+            <LazyMotionProvider>
+              <SkipLink targetId={mainId} />
+              <div className="relative z-10 flex min-h-dvh flex-col">
+                <Navbar />
+                {/** Accessibility: stable id required for skip link target (intentional). */}
+                <AppErrorBoundary>
+                  <MainWrapper
+                    targetId={mainId}
+                    className="container flex-1 py-8 md:py-12 outline-none"
+                  >
+                    {/* Client debug snapshot removed */}
+                    {children}
+                  </MainWrapper>
+                </AppErrorBoundary>
+                <Suspense>
+                  <ClientFooter />
+                </Suspense>
+              </div>
+              <Toaster />
+            </LazyMotionProvider>
+          </ThemeProvider>
+        </ClientAttrWrapper>
       </body>
     </html>
   );

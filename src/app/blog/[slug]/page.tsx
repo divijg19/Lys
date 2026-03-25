@@ -5,7 +5,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { blogs } from "#velite";
 import { MdxContent } from "@/components/layout/MdxContent";
+import { ArticleJsonLd } from "@/components/seo/ArticleJsonLd";
 import { Badge } from "@/components/ui/Badge";
+import { ROUTES } from "@/lib/routes";
+import { absoluteUrl } from "@/lib/site";
 
 interface BlogPageProps {
   params: {
@@ -15,13 +18,17 @@ interface BlogPageProps {
 
 // --- WORLD-CLASS METADATA for SEO & Social Sharing ---
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
-  const blog = blogs.find((blog) => blog.slug === params.slug);
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const blog = blogs.find((b) =>
+    typeof b?.slug === "string" ? b.slug.toLowerCase() === slugParam : false
+  );
   if (!blog) {
     return {};
   }
 
-  const siteUrl = "https://divijganjoo.me"; // IMPORTANT: Replace with your actual domain
-  const ogImage = blog.cover ? `${siteUrl}${blog.cover}` : `${siteUrl}/og-image.png`;
+  const ogImage = blog.cover ? absoluteUrl(blog.cover) : absoluteUrl("/og-image.png");
 
   return {
     title: blog.title,
@@ -30,7 +37,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
       title: blog.title,
       description: blog.description || "",
       type: "article",
-      url: `${siteUrl}${blog.url}`,
+      url: absoluteUrl(blog.url),
       images: [{ url: ogImage }],
     },
     twitter: {
@@ -43,24 +50,46 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 }
 
 export async function generateStaticParams() {
-  return blogs.map((blog) => ({
-    slug: blog.slug,
-  }));
+  try {
+    // Emit lowercase params so blog route URLs are normalized to lower-case.
+    return blogs.map((blog) => ({ slug: blog.slug.toLowerCase() }));
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Error generating static params for blog:", error);
+    }
+    return [];
+  }
 }
 
-export default function BlogPage({ params }: BlogPageProps) {
-  const blog = blogs.find((b) => b.slug === params.slug);
+export default async function BlogPage({ params }: BlogPageProps) {
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const blog = blogs.find((b) => {
+    const s = typeof b?.slug === "string" ? b.slug.toLowerCase() : "";
+    return s === slugParam;
+  });
 
   if (!blog) {
     return notFound();
   }
 
+  const isoDate = new Date(blog.date).toISOString();
   return (
     <main className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
+        <ArticleJsonLd
+          title={blog.title}
+          description={blog.description}
+          datePublished={isoDate}
+          url={absoluteUrl(blog.url)}
+          tags={blog.tags}
+          image={blog.cover ? absoluteUrl(blog.cover) : undefined}
+          readingTime={blog.readingTime}
+        />
         {/* --- Back Link for a Clear User Journey --- */}
         <Link
-          href="/blog"
+          href={ROUTES.blog}
           className="mb-8 flex items-center gap-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -75,6 +104,7 @@ export default function BlogPage({ params }: BlogPageProps) {
                 src={blog.cover}
                 alt={`${blog.title} cover image`}
                 fill
+                sizes="(max-width: 768px) 100vw, 75vw"
                 className="object-cover"
                 priority
               />

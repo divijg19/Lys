@@ -19,7 +19,9 @@ export const DataRain: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="-z-50 pointer-events-none fixed inset-0 opacity-30"
+      // Enhanced visibility for more dramatic cyberpunk aesthetic
+      className="pointer-events-none fixed inset-0 z-0 opacity-75 mix-blend-screen transition-opacity duration-700"
+      data-debug-cyberpunk
     />
   );
 };

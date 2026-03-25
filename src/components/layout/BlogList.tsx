@@ -56,6 +56,7 @@ function BlogPostCard(post: (typeof blogs)[number]) {
               src={post.cover}
               alt={`Cover image for ${post.title}`}
               fill
+              unoptimized
               className="rounded-t-xl object-cover transition-transform duration-300 group-hover:scale-105 sm:rounded-t-none sm:rounded-l-xl"
             />
           </div>
@@ -74,9 +75,7 @@ function BlogPostCard(post: (typeof blogs)[number]) {
               day: "numeric",
             })}
           </time>
-          <p className="line-clamp-2 flex-grow text-base text-muted-foreground">
-            {post.description}
-          </p>
+          <p className="line-clamp-2 grow text-base text-muted-foreground">{post.description}</p>
           <span className="mt-4 flex items-center font-semibold text-primary text-sm">
             Read More <ArrowUpRight className="ml-1 h-4 w-4" />
           </span>

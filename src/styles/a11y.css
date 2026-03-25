@@ -1,0 +1,19 @@
+/* Accessible focus ring utility */
+.focus-ring:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 3px;
+}
+
+/* Global focus style for any element explicitly opting in via data-focus */
+[data-focus="true"]:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Motion & data saving fallbacks */
+[data-reduce-motion="true"] .motion-safe,
+[data-low-data="true"] .motion-safe {
+  animation: none;
+  transition: none;
+}

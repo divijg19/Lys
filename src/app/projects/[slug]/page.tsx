@@ -1,23 +1,31 @@
-import { ArrowLeft, ArrowUpRight, Github } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SiGithub as Github } from "react-icons/si";
 import { projects } from "#velite";
 import { MdxContent } from "@/components/layout/MdxContent";
+import { ProjectJsonLd } from "@/components/seo/ProjectJsonLd";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ROUTES } from "@/lib/routes";
+import { absoluteUrl } from "@/lib/site";
 
 interface ProjectPageProps {
   params: { slug: string };
 }
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
-  const project = projects.find((p) => p.slug === params.slug);
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const project = projects.find((p) =>
+    typeof p?.slug === "string" ? p.slug.toLowerCase() === slugParam : false
+  );
   if (!project) return {};
 
-  const siteUrl = "https://divijganjoo.me"; // IMPORTANT: Replace with your actual domain
-  const ogImage = project.cover ? `${siteUrl}${project.cover}` : `${siteUrl}/og-image.png`;
+  const ogImage = project.cover ? absoluteUrl(project.cover) : absoluteUrl("/og-image.png");
 
   return {
     title: project.title,
@@ -26,7 +34,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
       title: project.title,
       description: project.description || "",
       type: "article",
-      url: `${siteUrl}${project.url}`,
+      url: absoluteUrl(project.url),
       images: [{ url: ogImage }],
     },
     twitter: {
@@ -39,18 +47,40 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 }
 
 export async function generateStaticParams() {
-  return projects.map((project) => ({ slug: project.slug }));
+  try {
+    // Emit lowercase params so route URLs are normalized to lower-case.
+    return projects.map((project) => ({ slug: project.slug.toLowerCase() }));
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Error generating static params for projects:", error);
+    }
+    return [];
+  }
 }
 
-export default function ProjectPage({ params }: ProjectPageProps) {
-  const project = projects.find((p) => p.slug === params.slug);
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const resolvedParams = await params;
+  const slugParam =
+    typeof resolvedParams?.slug === "string" ? resolvedParams.slug.toLowerCase() : "";
+  const project = projects.find((p) => {
+    const s = typeof p?.slug === "string" ? p.slug.toLowerCase() : "";
+    return s === slugParam;
+  });
   if (!project) notFound();
 
   return (
     <main className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
+        <ProjectJsonLd
+          title={project.title}
+          description={project.description}
+          url={absoluteUrl(project.url)}
+          repository={project.repository}
+          tags={project.tags}
+          image={project.cover ? absoluteUrl(project.cover) : undefined}
+        />
         <Link
-          href="/projects"
+          href={ROUTES.projects}
           className="mb-8 flex items-center gap-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
