@@ -640,7 +640,7 @@ html[data-theme="simple"] {
   scroll-behavior: auto;
 }
 
-/* Disable tailwindcss-animate / Radix open-close animations in Simple. */
+/* Disable utility/Radix open-close animations in Simple. */
 html[data-theme="simple"] .animate-in,
 html[data-theme="simple"] .animate-out,
 html[data-theme="simple"] .animate-accordion-down,
