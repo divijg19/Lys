@@ -96,6 +96,12 @@ Generates typed artifacts consumed in pages & lists.
 ## 🔐 Environment
 Project intentionally avoids leaking secrets; contact API uses Resend. Add `.env.local` with required keys (not included here).
 
+```env
+RESEND_API_KEY=your_resend_api_key
+```
+
+If `RESEND_API_KEY` is missing, builds still succeed, but `POST /api/contact` returns `503` until configured.
+
 ## 🚀 Deployment
 - Vercel (configured via `vercel.json` & Next edge defaults).
 - Analyze bundle with `bun run build:analyze`.
