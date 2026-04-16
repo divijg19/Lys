@@ -202,12 +202,12 @@ function ContactForm({
       noValidate
     >
       <div className="space-y-2">
-        <div className="flex items-baseline gap-3">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2 sm:gap-3">
           <Label htmlFor={nameId}>Name</Label>
           {errors.name?.message && (
             <p
               id={errorId("name")}
-              className="text-destructive text-sm"
+              className="min-w-0 justify-self-end wrap-break-word text-right text-destructive text-xs leading-tight sm:text-sm"
             >
               {String(errors.name.message)}
             </p>
@@ -224,12 +224,12 @@ function ContactForm({
         />
       </div>
       <div className="space-y-2">
-        <div className="flex items-baseline gap-3">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2 sm:gap-3">
           <Label htmlFor={emailId}>Email</Label>
           {errors.email?.message && (
             <p
               id={errorId("email")}
-              className="text-destructive text-sm"
+              className="min-w-0 justify-self-end wrap-break-word text-right text-destructive text-xs leading-tight sm:text-sm"
             >
               {String(errors.email.message)}
             </p>
@@ -246,12 +246,12 @@ function ContactForm({
         />
       </div>
       <div className="space-y-2">
-        <div className="flex items-baseline gap-3">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2 sm:gap-3">
           <Label htmlFor={messageId}>Message</Label>
           {errors.message?.message && (
             <p
               id={errorId("message")}
-              className="text-destructive text-sm"
+              className="min-w-0 justify-self-end wrap-break-word text-right text-destructive text-xs leading-tight sm:text-sm"
             >
               {String(errors.message.message)}
             </p>
