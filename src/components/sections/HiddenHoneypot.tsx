@@ -1,7 +1,12 @@
 "use client";
+import type React from "react";
 import { useId } from "react";
 
-export function HiddenHoneypot() {
+export function HiddenHoneypot({
+  inputProps,
+}: {
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+}) {
   const hpId = useId();
   return (
     <div className="-left-2499.75 absolute top-auto h-0 w-0 overflow-hidden">
@@ -12,6 +17,7 @@ export function HiddenHoneypot() {
         type="text"
         tabIndex={-1}
         autoComplete="off"
+        {...inputProps}
       />
     </div>
   );

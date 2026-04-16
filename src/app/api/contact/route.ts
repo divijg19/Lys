@@ -25,9 +25,12 @@ function rateLimit(ip: string): boolean {
 
 // --- DATA VALIDATION SCHEMA ---
 const contactFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  email: z.string().email("Invalid email address."),
-  message: z.string().min(10, "Message must be at least 10 characters."),
+  name: z.string().trim().min(2, { error: "Name must be at least 2 characters." }),
+  email: z
+    .string()
+    .trim()
+    .pipe(z.email({ error: "Invalid email address." })),
+  message: z.string().trim().min(1, { error: "Message is required." }),
   _hp: z.string().optional(),
 });
 

@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeSlug from "rehype-slug";
 
 // You can define custom components to be used inside your MDX files.
 // This allows you to style standard HTML elements or create custom interactive components.
@@ -141,6 +143,11 @@ export function MdxContent({ code }: MdxProps) {
       <MDXRemote
         source={code}
         components={components}
+        options={{
+          mdxOptions: {
+            rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
+          },
+        }}
       />
     </div>
   );
