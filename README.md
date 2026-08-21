@@ -113,7 +113,4 @@ Internal personal project. Ideas welcome via issues and discussion.
 All rights reserved (personal portfolio).
 
 ---
-Built with intention: immersive aesthetics balanced by performance, accessibility, and maintainability.
-
-
-
+Built deliberately and with intention: immersive aesthetics balanced by performance, accessibility, and maintainability.
