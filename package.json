@@ -69,7 +69,7 @@
     "axe-core": "4.13.0",
     "concurrently": "10.0.5",
     "jsdom": "30.0.1",
-    "playwright": "1.62.1",
+    "playwright": "1.63.0",
     "reading-time": "1.5.0",
     "rehype-autolink-headings": "7.1.0",
     "rehype-slug": "6.0.0",
