@@ -31,7 +31,7 @@
     "@react-three/fiber": "9.7.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "framer-motion": "13.3.0",
+    "framer-motion": "13.4.0",
     "lucide-react": "1.46.0",
     "next": "16.3.5",
     "next-mdx-remote": "6.0.0",
@@ -40,7 +40,7 @@
     "react-dom": "19.3.0",
     "react-hook-form": "7.88.0",
     "react-icons": "5.7.0",
-    "resend": "6.28.0",
+    "resend": "6.28.1",
     "sonner": "2.0.8",
     "tailwind-merge": "3.7.0",
     "three": "0.186.0",
@@ -49,7 +49,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.13",
+    "@biomejs/biome": "2.5.14",
     "@chromatic-com/storybook": "5.3.1",
     "@next/bundle-analyzer": "16.3.5",
     "@storybook/addon-a11y": "10.6.0",
@@ -60,12 +60,12 @@
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
-    "@types/node": "26.5.1",
+    "@types/node": "22.20.3",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vitest/browser": "5.0.0",
-    "@vitest/coverage-v8": "5.0.0",
-    "@vitest/ui": "5.0.0",
+    "@vitest/browser": "5.0.1",
+    "@vitest/coverage-v8": "5.0.1",
+    "@vitest/ui": "5.0.1",
     "axe-core": "4.13.0",
     "concurrently": "10.0.5",
     "jsdom": "30.0.1",
@@ -77,7 +77,7 @@
     "tailwindcss": "4.3.3",
     "tw-animate-css": "1.4.0",
     "typescript": "7.0.2",
-    "vitest": "5.0.0"
+    "vitest": "5.0.1"
   },
   "engines": {
     "bun": ">=1.0.0",
