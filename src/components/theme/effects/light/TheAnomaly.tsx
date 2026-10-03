@@ -11,6 +11,13 @@ import { shaderMaterial } from "@react-three/drei";
 import { extend, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
+
+/** `--foreground` for the Light theme (`220 18% 18%`), used until the token resolves. */
+const FOREGROUND_FALLBACK = "#262b36";
+
+/** Opacity of the pre-collapse anomaly solid. See the material for the rationale. */
+const ANOMALY_SOLID_OPACITY = 0.55;
 
 // --- 1. The Supernova Material (Shader) ---
 // This shader creates the beautiful, reverse-colored nebula explosion.
@@ -88,6 +95,7 @@ export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }
   const solidRef = useRef<THREE.Mesh>(null);
   const explosionRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const { foreground } = useThemeTokens(["foreground"]);
 
   useFrame((_, delta) => {
     // Animate the solid dodecahedron before the collapse
@@ -112,10 +120,15 @@ export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }
         visible={!hasReachedAnomaly}
       >
         <dodecahedronGeometry args={[1, 0]} />
+        {/* Translucent for the same reason as the shard field: the anomaly sits behind
+            page copy, so it has to read as a distant object rather than an obstacle. */}
         <meshStandardMaterial
-          color="hsl(var(--foreground))"
+          color={foreground || FOREGROUND_FALLBACK}
           roughness={0.2}
           metalness={0.5}
+          transparent
+          opacity={ANOMALY_SOLID_OPACITY}
+          depthWrite={false}
         />
       </mesh>
 

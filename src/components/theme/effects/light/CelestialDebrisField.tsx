@@ -10,7 +10,20 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { createPRNG, seedHash } from "@/lib/utils";
+
+/** `--foreground` for the Light theme (`220 18% 18%`), used until the token resolves. */
+const FOREGROUND_FALLBACK = "#262b36";
+
+/**
+ * Reused each frame to collapse the hovered shard. Hoisted because it was previously
+ * allocated inside the per-instance loop.
+ */
+const HIDDEN_SCALE = new THREE.Vector3(0, 0, 0);
+
+/** Opacity for the shard field. See the material below for why it is not 1. */
+const DEBRIS_OPACITY = 0.42;
 
 // --- 1. A strict TypeScript type for instance data. ---
 type InstanceData = {
@@ -37,6 +50,7 @@ export function CelestialDebrisField({
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const scannerRef = useRef<THREE.Mesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
+  const { foreground } = useThemeTokens(["foreground"]);
 
   // `useMemo` generates the stable "birth certificate" for each shard once.
   const instances = useMemo<InstanceData[]>(() => {
@@ -93,7 +107,7 @@ export function CelestialDebrisField({
       instances.forEach((data, i) => {
         dummy.position.copy(data.position);
         dummy.rotation.copy(data.rotation);
-        dummy.scale.copy(i === newHoveredId ? new THREE.Vector3(0, 0, 0) : data.scale);
+        dummy.scale.copy(i === newHoveredId ? HIDDEN_SCALE : data.scale);
         dummy.position.applyAxisAngle(data.orbitAxis, data.orbitSpeed);
         data.position.copy(dummy.position);
         data.rotation.y += 0.001;
@@ -113,10 +127,19 @@ export function CelestialDebrisField({
         args={[undefined, undefined, count]}
       >
         <icosahedronGeometry args={[1, 0]} />
+        {/*
+          Translucent on purpose. Now that the material actually resolves --foreground, the
+          shards are correctly dark on a white scene, and at full opacity 750 of them
+          compete with body copy instead of reading as depth behind it. The scene sits
+          behind the page content, so it has to stay subordinate to it.
+        */}
         <meshStandardMaterial
-          color="hsl(var(--foreground))"
+          color={foreground || FOREGROUND_FALLBACK}
           roughness={0.5}
           metalness={0.2}
+          transparent
+          opacity={DEBRIS_OPACITY}
+          depthWrite={false}
         />
       </instancedMesh>
 
