@@ -98,6 +98,7 @@
   .animate-cyber-scan,
   .animate-data-sweep,
   .animate-grid-drift,
+  .animate-ripple-hint,
   .animate-fade-in,
   .animate-float {
     animation: none;
@@ -691,6 +692,26 @@ html[data-theme="simple"] .transition-transform {
 }
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+/* One-shot Ethereal interaction hint: settles in, holds, then fades itself out. */
+@keyframes ripple-hint {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  14%,
+  72% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -4px);
+  }
+}
+.animate-ripple-hint {
+  animation: ripple-hint 7s ease-in-out forwards;
 }
 
 /* === CYBERPUNK THEME ANIMATIONS === */

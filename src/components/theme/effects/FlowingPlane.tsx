@@ -1,15 +1,27 @@
 /**
  * @file: src/components/theme/effects/FlowingPlane.tsx
- * @description: Renders the primary, non-interactive "Dream-Fabric" visual.
- * @update: This component is now purely visual. All interaction logic has been removed.
+ * @description: The liquid surface at the centre of the Ethereal theme.
+ *
+ * Displacement is driven by an array of ripple *sources* rather than a single click
+ * position. The previous version tracked only `latestClickPosition`, so a second
+ * interaction overwrote the first and there was no interference between waves at all.
+ * Summing every live source produces genuine superposition, which is what makes
+ * multi-touch feel physical rather than like several independent animations.
  */
 
 "use client";
 
 import { shaderMaterial } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { forwardRef, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { type RippleSource, MAX_RIPPLE_SOURCES } from "@/hooks/useRippleField";
+
+/** Maximum number of sources the shader can sum. Must match MAX_RIPPLE_SOURCES. */
+const MAX_SOURCES = MAX_RIPPLE_SOURCES;
+
+/** Seconds a source keeps displacing the surface after it is released. */
+const SOURCE_FADE_SECONDS = 0.45;
 
 const FlowingPlaneMaterial = shaderMaterial(
   {
@@ -17,15 +29,17 @@ const FlowingPlaneMaterial = shaderMaterial(
     uPrimary: new THREE.Color(0.8, 0.7, 0.9),
     uSecondary: new THREE.Color(0.7, 0.85, 0.9),
     uAccent: new THREE.Color(0.95, 0.75, 0.9),
-    uClickPosition: new THREE.Vector3(0, 0, 0),
-    uClickStrength: 0.0,
+    // Fixed-size arrays so the uniform block layout is stable for the whole session.
+    uSources: Array.from({ length: MAX_SOURCES }, () => new THREE.Vector2()),
+    uStrengths: new Array<number>(MAX_SOURCES).fill(0),
   },
   `
     uniform float uTime;
-    uniform vec3 uClickPosition;
-    uniform float uClickStrength;
+    uniform vec2 uSources[${MAX_SOURCES}];
+    uniform float uStrengths[${MAX_SOURCES}];
     varying float vDisplacement;
     varying vec2 vUv;
+
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -45,16 +59,33 @@ const FlowingPlaneMaterial = shaderMaterial(
         vec3 g; g.x  = a0.x  * x0.x  + h.x  * x0.y; g.yz = a0.yz * x12.xz + h.yz * x12.yw;
         return 130.0 * dot(m, g);
     }
+
     void main() {
       vUv = uv;
       vec3 pos = position;
+
+      // Two octaves of slow ambient flow, so the surface is never perfectly still.
       float baseNoise = snoise(vec2(pos.x, pos.y) * 0.08 + uTime * 0.02) * 0.22;
       float detailNoise = snoise(vec2(pos.x, pos.y) * 0.22 + uTime * 0.06) * 0.08;
-      float totalNoise = baseNoise + detailNoise;
-      float dist = distance(pos.xy, uClickPosition.xy);
-      float ripple = sin(dist * 2.2 - uTime * 2.2) * uClickStrength;
-      ripple *= (1.0 - smoothstep(0.0, 2.2, dist));
-      pos.z += totalNoise + ripple * 0.35;
+
+      // Sum every live source. Waves superpose, so two fingers produce an interference
+      // pattern rather than one animation replacing the other.
+      //
+      // The loop runs the full fixed bound and gates on amplitude rather than on a
+      // source count with a conditional break. Conditional breaks are outside the loop
+      // forms GLSL ES 1.00 guarantees, and drivers reject the whole program with a
+      // misleading syntax error pointing at unrelated code further down.
+      float ripple = 0.0;
+      for (int i = 0; i < ${MAX_SOURCES}; i++) {
+        float amplitude = uStrengths[i];
+        if (amplitude > 0.0) {
+          float dist = distance(pos.xy, uSources[i]);
+          // Travelling wave, attenuated with distance from its origin.
+          ripple += sin(dist * 2.2 - uTime * 3.4) * amplitude * (1.0 - smoothstep(0.0, 2.6, dist));
+        }
+      }
+
+      pos.z += baseNoise + detailNoise + ripple * 0.28;
       vDisplacement = pos.z;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }`,
@@ -73,6 +104,7 @@ const FlowingPlaneMaterial = shaderMaterial(
 
       float flow = 0.5 + 0.5 * sin(uTime * 0.08 + vUv.x * 1.8 - vUv.y * 1.2 + vDisplacement * 5.0);
       vec3 base = mix(uPrimary, uSecondary, flow);
+      // Displaced crests catch more light, which is what sells the surface as liquid.
       float glow = smoothstep(-0.22, 0.28, vDisplacement) * 0.55 + 0.45;
       float glint = smoothstep(0.8, 1.0, flow) * 0.18;
 
@@ -88,8 +120,8 @@ interface IFlowingPlaneMaterial extends THREE.ShaderMaterial {
     uPrimary: { value: THREE.Color };
     uSecondary: { value: THREE.Color };
     uAccent: { value: THREE.Color };
-    uClickPosition: { value: THREE.Vector3 };
-    uClickStrength: { value: number };
+    uSources: { value: THREE.Vector2[] };
+    uStrengths: { value: number[] };
   };
 }
 
@@ -97,64 +129,95 @@ type FlowingPlaneProps = {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
-  latestClickPosition: THREE.Vector3 | null;
+  /** Live ripple sources, read every frame. */
+  sourcesRef: React.RefObject<RippleSource[]>;
+  /** When false the surface holds a still frame: no ambient flow, no displacement. */
+  enabled?: boolean;
 };
 
-export const FlowingPlane = ({
-  primaryColor,
-  secondaryColor,
-  accentColor,
-  latestClickPosition,
-}: FlowingPlaneProps) => {
-  const ref = useRef<IFlowingPlaneMaterial>(null);
-  const meshRef = useRef<THREE.Mesh>(null);
-  const clickStrengthRef = useRef(0.0);
+export const FlowingPlane = forwardRef<THREE.Mesh, FlowingPlaneProps>(function FlowingPlane(
+  { primaryColor, secondaryColor, accentColor, sourcesRef, enabled = true },
+  ref
+) {
+  const materialRef = useRef<IFlowingPlaneMaterial>(null);
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
 
   const material = useMemo(() => {
     const mat = new FlowingPlaneMaterial();
-    mat.uniforms.uPrimary.value = new THREE.Color(primaryColor);
-    mat.uniforms.uSecondary.value = new THREE.Color(secondaryColor);
-    mat.uniforms.uAccent.value = new THREE.Color(accentColor);
+    if (primaryColor) mat.uniforms.uPrimary.value = new THREE.Color(primaryColor);
+    if (secondaryColor) mat.uniforms.uSecondary.value = new THREE.Color(secondaryColor);
+    if (accentColor) mat.uniforms.uAccent.value = new THREE.Color(accentColor);
     return mat;
   }, [primaryColor, secondaryColor, accentColor]);
 
   useEffect(() => {
-    if (latestClickPosition && ref.current && meshRef.current) {
-      const local = latestClickPosition.clone();
-      meshRef.current.worldToLocal(local);
-      ref.current.uniforms.uClickPosition.value.copy(local);
-      clickStrengthRef.current = 1.0;
-      ref.current.uniforms.uClickStrength.value = 1.0;
-    }
-  }, [latestClickPosition]);
+    return () => {
+      material.dispose();
+    };
+  }, [material]);
 
   useFrame(({ clock }) => {
-    if (!ref.current) return;
-    ref.current.uniforms.uTime.value = clock.getElapsedTime();
-    const cs = clickStrengthRef.current;
-    if (cs > 0.0005) {
-      const newStrength = cs * 0.95;
-      clickStrengthRef.current = newStrength;
-      ref.current.uniforms.uClickStrength.value = newStrength;
-    } else if (cs !== 0) {
-      clickStrengthRef.current = 0;
-      ref.current.uniforms.uClickStrength.value = 0;
+    const uniforms = materialRef.current?.uniforms;
+    if (!uniforms) return;
+
+    const time = clock.getElapsedTime();
+    uniforms.uTime.value = time;
+
+    if (!enabledRef.current) {
+      uniforms.uStrengths.value.fill(0);
+      return;
+    }
+
+    /*
+     * Copy the live sources into the fixed-size uniform arrays.
+     *
+     * Each source decays over SOURCE_FADE_SECONDS after release, which is what makes a
+     * released pointer fade out of the surface instead of snapping off. Held pointers
+     * are re-stamped by the hook on every event, so they hold at full strength.
+     */
+    const sources = sourcesRef.current;
+    const now = time;
+    let count = 0;
+    for (let i = 0; i < sources.length && count < MAX_SOURCES; i++) {
+      const source = sources[i];
+      if (!source) continue;
+      const age = now - source.bornAt;
+      if (source.pointerId === null && age > SOURCE_FADE_SECONDS) continue;
+
+      const decay = source.pointerId === null ? Math.max(0, 1 - age / SOURCE_FADE_SECONDS) : 1;
+
+      uniforms.uSources.value[count].copy(source.local);
+      uniforms.uStrengths.value[count] = decay;
+      count++;
+    }
+
+    /*
+     * Zero every slot past the live count.
+     *
+     * The uniform array is fixed size and persists between frames, so a slot left holding
+     * the strength of a source that has since expired would keep displacing the surface
+     * forever. The shader gates on amplitude rather than on a count precisely so this
+     * single fill is enough to clear them all.
+     */
+    for (let i = count; i < MAX_SOURCES; i++) {
+      uniforms.uStrengths.value[i] = 0;
     }
   });
 
   return (
     <mesh
-      ref={meshRef}
+      ref={ref}
       rotation={[-Math.PI / 2.1, 0, 0]}
       position={[0, -3, 0]}
     >
       <planeGeometry args={[40, 40, 96, 96]} />
       <primitive
-        ref={ref}
+        ref={materialRef}
         object={material}
         attach="material"
         transparent
       />
     </mesh>
   );
-};
+});
