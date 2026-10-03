@@ -46,10 +46,29 @@ export function saturateColor(
   lightness = RIPPLE_RING_LIGHTNESS
 ): string {
   if (!css) return css;
+
+  const s = Math.round(saturation * 100);
+  const l = Math.round(lightness * 100);
+
+  /*
+   * Parse the triplet directly rather than round-tripping through THREE.Color.
+   *
+   * `Color.getHSL` converts out of the renderer's working colour space, and passing an
+   * explicit space on top of that double-converts: hues came back as 0 for every input,
+   * so every ring rendered red regardless of the theme. The tokens are always bare
+   * `H S% L%` triplets, so reading them directly is both exact and independent of the
+   * renderer's colour-management configuration.
+   */
+  const triplet = /hsl\(\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/.exec(css);
+  if (triplet) {
+    return `hsl(${Math.round(Number(triplet[1]) % 360)} ${s}% ${l}%)`;
+  }
+
+  // Not an hsl() triplet (a hex or rgb value, say): fall back to THREE for the hue.
   const color = new THREE.Color(css);
   const hsl = { h: 0, s: 0, l: 0 };
-  color.getHSL(hsl, THREE.SRGBColorSpace);
-  return `hsl(${Math.round(hsl.h * 360)} ${Math.round(saturation * 100)}% ${Math.round(lightness * 100)}%)`;
+  color.getHSL(hsl);
+  return `hsl(${Math.round(hsl.h * 360)} ${s}% ${l}%)`;
 }
 
 /**

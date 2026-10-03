@@ -70,7 +70,11 @@
     --secondary: 220 20% 94%;
     --secondary-foreground: 220 18% 25%;
     --muted: 220 20% 96%;
-    --muted-foreground: 220 18% 55%;
+    /* Was 220 18% 55%, which measured 3.70:1 on --background and so failed WCAG AA
+       for normal text. text-muted-foreground is one of the most used utilities in
+       the app, so this was a real readability shortfall rather than a token nobody
+       reads. Now 5.13:1 on the background and 4.91:1 on --card. */
+    --muted-foreground: 220 18% 46%;
     --accent: 220 90% 55%;
     --accent-foreground: 220 90% 98%;
     --destructive: 0 80% 55%;
@@ -90,7 +94,9 @@
     --card-foreground: 240 12% 95%;
     --popover: 240 12% 5%;
     --popover-foreground: 240 12% 95%;
-    --primary: 260 85% 65%;
+    /* Was 260 85% 65%, which measured 4.48:1 against --primary-foreground: just
+       under the 4.5:1 floor for normal text, on the theme's most-used control. */
+    --primary: 260 85% 67%;
     --primary-foreground: 260 85% 10%;
     --secondary: 240 12% 20%;
     --secondary-foreground: 240 12% 90%;
@@ -182,7 +188,9 @@
     --secondary: 190 70% 78%;
     --secondary-foreground: 190 55% 18%;
     --muted: 255 30% 96%;
-    --muted-foreground: 250 18% 52%;
+    /* Was 250 18% 52%, measuring 4.36:1 on --background and failing WCAG AA.
+       Now 4.75:1 on the background and 4.91:1 on --card. */
+    --muted-foreground: 250 18% 50%;
     --accent: 325 95% 86%;
     --accent-foreground: 325 70% 22%;
     --destructive: 350 85% 70%;
