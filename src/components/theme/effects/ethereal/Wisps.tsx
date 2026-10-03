@@ -21,7 +21,8 @@ const PARTICLE_BASE_SIZE = 0.07;
 type WispProps = {
   id: number;
   position: THREE.Vector3;
-  creationTime: number;
+  /** Seconds on the shared scene clock. See useRippleField for why. */
+  createdAt: number;
   onComplete: (id: number) => void;
   color: string;
 };
@@ -34,11 +35,11 @@ type Particle = {
   size: number;
 };
 
-export type WispData = { id: number; position: THREE.Vector3; creationTime: number };
+export type WispData = { id: number; position: THREE.Vector3; createdAt: number };
 export type WispsProps = { wisps: WispData[]; onComplete: (id: number) => void; color: string };
 
 // --- COMPONENTS ---
-const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
+const Wisp = ({ id, position, createdAt, onComplete, color }: WispProps) => {
   const ref = useRef<THREE.Points>(null);
   const hasCompleted = useRef(false);
 
@@ -71,8 +72,10 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
   useFrame(({ clock }) => {
     if (!ref.current?.geometry || !ref.current?.material) return;
 
-    const elapsedTime = clock.getElapsedTime() - creationTime;
-    const progress = elapsedTime / WISP_LIFESPAN_SECONDS;
+    const elapsed = clock.getElapsedTime() - createdAt;
+    // Guard against a source created slightly ahead of the clock we are comparing against.
+    if (elapsed < 0) return;
+    const progress = elapsed / WISP_LIFESPAN_SECONDS;
 
     if (progress >= 1) {
       if (!hasCompleted.current) {
@@ -88,8 +91,8 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
     particles.forEach((particle, i) => {
       // Apply a swirling force (curl noise)
       const swirlStrength = 0.0014;
-      particle.velocity.x += Math.sin(elapsedTime + i) * swirlStrength;
-      particle.velocity.z += Math.cos(elapsedTime + i) * swirlStrength;
+      particle.velocity.x += Math.sin(elapsed + i) * swirlStrength;
+      particle.velocity.z += Math.cos(elapsed + i) * swirlStrength;
 
       // Update position
       particle.position.add(particle.velocity);
