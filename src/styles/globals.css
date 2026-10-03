@@ -125,10 +125,47 @@
     --accent-foreground: 230 20% 5%;
     --destructive: 0 100% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 180 80% 20%;
-    --input: 230 18% 10%;
+    /* Was `180 80% 20%`, which sat within a couple of points of --card and made every
+       hairline invisible. Lifted to a luminous teal so neon edges actually read. */
+    --border: 183 90% 32%;
+    --input: 230 20% 13%;
     --ring: 180 100% 55%;
     --radius: 0.15rem;
+
+    /* --- Scene palette: "Rain-Soaked Night Market Alley" ---
+     * Read by the CSS atmosphere strata *and* by the WebGL alley (via
+     * readThemeToken), so a single edit re-tints both halves of the scene.
+     * Only ever referenced inside CyberpunkScene, which mounts solely for this theme. */
+    --cp-void: 232 40% 3%;
+    --cp-sky-high: 268 45% 12%;
+    --cp-sky-low: 195 60% 8%;
+    --cp-haze-cyan: 180 100% 55%;
+    --cp-haze-magenta: 320 100% 65%;
+    --cp-neon-cyan: 180 100% 55%;
+    --cp-neon-magenta: 320 100% 65%;
+    --cp-neon-lime: 84 100% 55%;
+    --cp-neon-amber: 32 100% 55%;
+    --cp-skyline: 232 25% 11%;
+    --cp-skyline-rim: 180 90% 55%;
+    --cp-asphalt: 228 25% 7%;
+    --cp-signage-text: 190 100% 88%;
+
+    /* --- Scene tuning (scalar, not colour) --- */
+    --cp-haze-opacity: 0.35;
+    --cp-skyline-opacity: 0.9;
+    --cp-reflection-strength: 0.55;
+    --cp-grain-opacity: 0.06;
+    --cp-scanline-opacity: 0.05;
+    /* The previous hard-coded 0.12/0.18 put both rain layers below the threshold of
+       legibility against a near-black sky, so the signature effect of the theme was
+       effectively invisible. */
+    --cp-rain-opacity: 0.42;
+
+    /* --- UI chrome tuning --- */
+    /* Chamfer size for notched corners on non-interactive surfaces. */
+    --cp-corner: 0.5rem;
+    /* Strength of the neon edge glow on controls and surfaces. */
+    --cp-edge-glow: 0.55;
   }
 
   /* --- Theme 4: Ethereal (Preserved) --- */
@@ -731,4 +768,154 @@
   50% {
     opacity: 0.6;
   }
+}
+
+/* ================================================================================
+ | --- CYBERPUNK UI CHROME -------------------------------------------------------
+ |
+ | Applied purely through [data-theme="cyberpunk"] selectors, with no JSX changes, so
+ | every existing component picks the theme up automatically and cannot drift out of
+ | sync with it.
+ |
+ | Two constraints shape this block:
+ |
+ | 1. It lives in `@layer utilities`, not `@layer base`, and that is load-bearing.
+ |    `Button`'s base class carries `focus-visible:outline-none` as a Tailwind utility,
+ |    and the utilities layer outranks `@layer base` -- so declaring the focus ring in
+ |    base left it silently overridden, and the computed outline style came back `none`.
+ |
+ | 2. `clip-path` clips an element's outline. Chamfering a focusable control would
+ |    therefore cut its focus ring and fail WCAG 2.2 focus appearance. Notches are
+ |    applied only to non-interactive surfaces; controls get a glow and corner ticks
+ |    instead, both of which are safe.
+ |
+ ================================================================================ */
+@layer utilities {
+  html[data-theme="cyberpunk"] {
+    /* Notched corners for non-interactive surfaces: two opposing corners cut away. */
+    --cp-notch: polygon(
+      var(--cp-corner) 0,
+      100% 0,
+      100% calc(100% - var(--cp-corner)),
+      calc(100% - var(--cp-corner)) 100%,
+      0 100%,
+      0 var(--cp-corner)
+    );
+
+    /*
+     * Neon edge for controls: two 1px corner ticks, a hairline and an outward bloom.
+     *
+     * Built from box-shadow rather than background-image on purpose.
+     * `background-image` is already how every gradient button and card is painted here,
+     * so setting it from a theme rule would replace those gradients with the ticks.
+     */
+    --cp-ticks: -2px -2px 0 0 hsl(var(--primary) / 0.85), 2px 2px 0 0 hsl(var(--secondary) / 0.85);
+
+    --cp-edge:
+      var(--cp-ticks), 0 0 0 1px hsl(var(--primary) / calc(0.3 * var(--cp-edge-glow))),
+      0 0 18px -6px hsl(var(--primary) / calc(0.75 * var(--cp-edge-glow)));
+  }
+
+  /*
+   * Surfaces: notch + neon edge.
+   *
+   * `header *` is excluded so the navbar, which is a full-width bar rather than a panel,
+   * keeps its continuous bottom border instead of gaining a floating notch.
+   */
+  html[data-theme="cyberpunk"]
+    :where([class*="bg-card"], [class*="bg-popover"], [class*="bg-muted"], [role="dialog"])
+    :not(header *) {
+    clip-path: var(--cp-notch);
+    box-shadow: var(--cp-edge);
+  }
+
+  /*
+   * Corner ticks on real controls only.
+   *
+   * `button` and the ARIA roles, deliberately excluding `a[href]`. Decorative chips on
+   * text links turned every nav item into a notched pill that read as a broken outline;
+   * links get the hover and focus treatment below instead, which is all a link needs.
+   */
+  html[data-theme="cyberpunk"]
+  :where(button, [role="button"], [role="tab"], input, textarea, select) {
+    box-shadow: var(--cp-ticks);
+  }
+
+  /* Hover: the hairline brightens and the bloom widens. */
+  html[data-theme="cyberpunk"] :where(button, a[href], [role="button"]):not(:disabled):hover {
+    box-shadow:
+      var(--cp-ticks),
+      0 0 0 1px hsl(var(--primary) / 0.7),
+      0 0 24px -4px hsl(var(--primary) / 0.85);
+  }
+
+  /* Filled primary controls read as light sources, so they carry the glow outright. */
+  html[data-theme="cyberpunk"] :where(button, a[href]).bg-primary {
+    box-shadow:
+      var(--cp-ticks),
+      0 0 0 1px hsl(var(--primary) / 0.5),
+      0 0 22px -6px hsl(var(--primary) / 0.9);
+  }
+
+  /*
+   * Doubled focus ring: an outer neon ring over an inner dark one, so the indicator stays
+   * visible on both the near-black base and the bright primary fill. Declared after the
+   * hover rule so it wins while focused.
+   */
+  html[data-theme="cyberpunk"]
+  :where(button, a[href], input, textarea, select, [role="button"]):focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 4px hsl(var(--background)),
+      0 0 0 6px hsl(var(--primary) / 0.55),
+      0 0 22px -4px hsl(var(--primary) / 0.9);
+  }
+
+  /*
+   * Headings get a neon halo, not a gradient.
+   *
+   * A background-clip:text gradient makes the glyph fill depend entirely on the gradient
+   * painting: if anything goes wrong the text renders invisible against the page. A
+   * text-shadow halo degrades safely and leaves the real foreground colour in charge of
+   * the glyphs.
+   */
+  html[data-theme="cyberpunk"] :is(h1, h2, h3) {
+    text-shadow:
+      0 0 14px hsl(var(--primary) / 0.35),
+      0 0 34px hsl(var(--primary) / 0.18);
+  }
+
+  /*
+   * The hero name is the one place a gradient is safe: `.text-gradient-theme` already
+   * commits to background-clip:text, so this only widens its sweep and adds a halo.
+   */
+  html[data-theme="cyberpunk"] .text-gradient-theme {
+    animation-duration: 7s;
+    filter: drop-shadow(0 0 12px hsl(var(--primary) / 0.45));
+  }
+
+  /* Section headings sit in a long run of body copy; a halo on each is visual noise. */
+  html[data-theme="cyberpunk"] main :is(h2, h3) {
+    text-shadow: none;
+  }
+}
+
+/* The chrome animates, so it honours the same reduced-motion switches as the scene.
+   Keyed on the attribute as well as the media query, because the `simple` theme forces
+   calm presentation by setting data-reduce-motion without the user changing a system
+   preference. Left unlayered so it outranks the animations it cancels. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="cyberpunk"] .text-gradient-theme {
+    animation: none;
+  }
+}
+
+html[data-reduce-motion="true"] .text-gradient-theme {
+  animation: none;
+}
+
+html[data-reduce-motion="true"][data-theme="cyberpunk"] :is(h1, h2, h3) {
+  animation: none;
+  text-shadow: none;
 }

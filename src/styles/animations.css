@@ -92,6 +92,12 @@
   .animate-horizon-cafe-breeze,
   .animate-lens-flare-pulse,
   .animate-heat-shimmer-subtle,
+  .animate-beacon-blink,
+  .animate-rain-fall,
+  .animate-neon-pulse,
+  .animate-cyber-scan,
+  .animate-data-sweep,
+  .animate-grid-drift,
   .animate-fade-in,
   .animate-float {
     animation: none;
@@ -698,6 +704,9 @@ html[data-theme="simple"] .transition-transform {
     opacity: 0.3;
   }
 }
+.animate-beacon-blink {
+  animation: beacon-blink 2s ease-in-out infinite;
+}
 
 /* Rain fall effect for scan lines */
 @keyframes rain-fall {
@@ -707,4 +716,64 @@ html[data-theme="simple"] .transition-transform {
   100% {
     transform: translateY(20px);
   }
+}
+.animate-rain-fall {
+  animation: rain-fall 1.4s linear infinite;
+}
+
+/* Slow breathing swell for the neon wash layers. Three instances run at staggered
+   durations and offsets so the combined light never repeats on a visible cycle.
+   Per-instance delay is supplied inline via animationDelay. */
+@keyframes neon-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+.animate-neon-pulse {
+  animation: neon-pulse 8s ease-in-out infinite;
+}
+
+/* A bright band travelling down the frame, like a CRT vertical hold sweep. */
+@keyframes cyber-scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+.animate-cyber-scan {
+  animation: cyber-scan 5s linear infinite;
+}
+
+/* A brighter band crossing the frame horizontally. */
+@keyframes data-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.animate-data-sweep {
+  animation: data-sweep 15s linear infinite;
+}
+
+/* Drifts the perspective grid diagonally, one tile per cycle. */
+@keyframes grid-drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(40px, 40px);
+  }
+}
+.animate-grid-drift {
+  animation: grid-drift 20s linear infinite;
 }

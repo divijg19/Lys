@@ -1,191 +1,293 @@
+/**
+ * @file: src/components/theme/effects/cyberpunk/CitySilhouette.tsx
+ * @description: WebGL alley, procedural lightning and data rain for the Cyberpunk theme.
+ * Identity: "Rain-Soaked Night Market Alley".
+ *
+ * The CSS atmosphere strata live in Atmosphere.tsx. This file owns only what has to sit
+ * between that backdrop and the viewer: the 3D street, the lightning layer, and two rain
+ * layers at different depths.
+ */
+
+"use client";
+
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useDataRain } from "@/hooks/useDataRain";
-import { createPRNG, seedHash } from "@/lib/utils";
+import {
+  type AlleyBuilding,
+  ALLEY_CAMERA_Z,
+  ALLEY_EYE_Y,
+  ALLEY_HALF_WIDTH,
+  ALLEY_LOOK_DISTANCE,
+  ALLEY_STREET_Y,
+  ALLEY_TRAVEL_RANGE,
+  alleyZ,
+  buildAlley,
+  depthFromCamera,
+  NEON_COLORS,
+  neonPulseAt,
+} from "@/components/theme/effects/cyberpunk/alley";
+import { CyberpunkPostFX } from "@/components/theme/effects/cyberpunk/CyberpunkPostFX";
+import {
+  resetGridPower,
+  subscribeGridPower,
+  triggerPowerDip,
+} from "@/components/theme/effects/cyberpunk/gridPower";
+import {
+  getRadialGlowTexture,
+  getSignTexture,
+  isCjkText,
+  supportsCjkRendering,
+} from "@/components/theme/effects/cyberpunk/signage";
 
-const NEON_COLORS = {
-  cyan: { color: "#00ffff", emissive: "#00ffff", intensity: 2 },
-  fuchsia: { color: "#ff00ff", emissive: "#ff00ff", intensity: 2 },
-  red: { color: "#ff1e3c", emissive: "#ff1e3c", intensity: 2.5 },
-  hotpink: { color: "#ff1493", emissive: "#ff1493", intensity: 2.5 },
-  lime: { color: "#96ff00", emissive: "#96ff00", intensity: 2 },
-  orange: { color: "#ff9600", emissive: "#ff9600", intensity: 2 },
-  electricblue: { color: "#7df9ff", emissive: "#7df9ff", intensity: 2.5 },
+/** Neon sign panel size, in world units, before aspect correction for CJK. */
+const SIGN_HEIGHT = 1.5;
+
+/** How far down the street a sign's reflection stretches. */
+const REFLECTION_LENGTH = 7;
+
+/** Lamp posts along the alley, in addition to the signage. */
+const LAMP_SPACING = 18;
+const LAMP_COUNT = 6;
+
+/** The baked light pools laid along the street, cycling colours down the corridor. */
+/** Authored light intensities. The frame loop scales these by the grid power level. */
+const HEMI_INTENSITY = 1.1;
+const FILL_CYAN_INTENSITY = 30;
+const FILL_MAGENTA_INTENSITY = 26;
+const DEPTH_INTENSITY = 70;
+
+const LIGHT_POOLS = [
+  { id: "pool-0", tint: "#00e5ff", z: -10 },
+  { id: "pool-1", tint: "#ff3ce0", z: -25 },
+  { id: "pool-2", tint: "#8844ff", z: -40 },
+  { id: "pool-3", tint: "#00e5ff", z: -55 },
+  { id: "pool-4", tint: "#ff9600", z: -70 },
+  { id: "pool-5", tint: "#8844ff", z: -85 },
+] as const;
+
+type NeonEntry = {
+  /** The sign panel, which is unlit and driven by the shared pulse. */
+  panel: THREE.MeshBasicMaterial;
+  /** The matching wet-street reflection. */
+  reflection: THREE.MeshBasicMaterial;
+  /** Authored intensity for this sign, so the pulse does not compound. */
+  base: number;
 };
 
-interface BuildingData {
-  buildingType: string;
-  hasNeon: boolean;
-  neonColor: string;
-  signText: string;
-  hasWindow: boolean;
-  hasAC: boolean;
-  hasCables: boolean;
-  hasPipe: boolean;
-  width: number;
-  depth: number;
-  windowLights: { id: string; isLit: boolean }[];
-}
-
+/**
+ * A single building: dark facade, lit windows, clutter, an emissive neon sign and its
+ * reflection in the wet street below.
+ *
+ * Note there is no `pointLight` here. The previous version mounted two per neon building
+ * across twelve buildings -- twenty-two real lights on `MeshStandardMaterial` geometry,
+ * which multiplies the per-fragment lighting cost for every pixel. Signage is emissive
+ * geometry instead, so it reads as light without costing any, and a small fixed rig in
+ * AlleyScene does the actual illumination.
+ */
 function CyberpunkBuilding({
-  position,
-  height,
-  side,
-  buildingData,
-  width,
-  depth,
+  building,
   registerNeon,
 }: {
-  position: [number, number, number];
-  height: number;
-  side: "left" | "right";
-  buildingData: BuildingData;
-  width: number;
-  depth: number;
-  registerNeon: (mat: THREE.MeshStandardMaterial | null) => void;
+  building: AlleyBuilding;
+  registerNeon: (entry: NeonEntry | null, key: string) => void;
 }) {
-  const neonColor =
-    NEON_COLORS[buildingData.neonColor as keyof typeof NEON_COLORS] || NEON_COLORS.cyan;
-  const buildingWidth = width;
-  const buildingDepth = depth;
+  const meshRef = useRef<THREE.Group>(null);
+  const facadeX = building.side === "left" ? building.width / 2 : -building.width / 2;
+  const neon = NEON_COLORS[building.neonHue];
+  const vertical = isCjkText(building.signText);
+  const signWidth = vertical ? SIGN_HEIGHT * 0.55 : SIGN_HEIGHT * 1.9;
+  const signY = building.height * 0.42;
+  const hasSign = building.hasNeon;
+
+  const panelMaterial = useMemo(() => {
+    if (!hasSign) return null;
+    const material = new THREE.MeshBasicMaterial({
+      map: getSignTexture(building.signText, neon.hex),
+      transparent: true,
+      depthWrite: false,
+      // Signage is meant to clip: without this the tone mapper flattens it to grey.
+      toneMapped: false,
+    });
+    return material;
+  }, [hasSign, building.signText, neon.hex]);
+
+  const reflectionMaterial = useMemo(() => {
+    if (!hasSign) return null;
+    const material = new THREE.MeshBasicMaterial({
+      map: panelMaterial?.map ?? null,
+      transparent: true,
+      opacity: 0.3,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    });
+    return material;
+  }, [hasSign, panelMaterial]);
+
+  // Report the materials once so a single frame loop can pulse every sign together.
+  useEffect(() => {
+    if (!panelMaterial || !reflectionMaterial) return;
+    const key = building.id;
+    registerNeon(
+      { panel: panelMaterial, reflection: reflectionMaterial, base: building.neonIntensity },
+      key
+    );
+    return () => registerNeon(null, key);
+  }, [registerNeon, panelMaterial, reflectionMaterial, building.id, building.neonIntensity]);
+
+  // Dispose materials and their textures when the building unmounts.
+  useEffect(() => {
+    return () => {
+      panelMaterial?.map?.dispose();
+      panelMaterial?.dispose();
+      reflectionMaterial?.dispose();
+    };
+  }, [panelMaterial, reflectionMaterial]);
+
   return (
-    <group position={position}>
-      <mesh
-        castShadow
-        receiveShadow
-      >
-        <boxGeometry args={[buildingWidth, height, buildingDepth]} />
+    <group
+      ref={meshRef}
+      position={[building.x, ALLEY_STREET_Y, building.baseZ]}
+    >
+      <mesh>
+        <boxGeometry args={[building.width, building.height, building.depth]} />
         <meshStandardMaterial
-          color="#0a0a0f"
-          roughness={0.9}
-          metalness={0.1}
+          color="#0b0b12"
+          roughness={0.85}
+          metalness={0.15}
         />
       </mesh>
-      {buildingData.hasNeon && (
-        <>
-          <mesh
-            position={[
-              side === "left" ? buildingWidth / 2 + 0.02 : -buildingWidth / 2 - 0.02,
-              height * 0.3,
-              0,
-            ]}
-            ref={(m) => registerNeon(m ? (m.material as THREE.MeshStandardMaterial) : null)}
-          >
-            <planeGeometry args={[buildingWidth * 0.85, height * 0.18]} />
-            <meshStandardMaterial
-              color={neonColor.color}
-              emissive={neonColor.emissive}
-              emissiveIntensity={neonColor.intensity}
-              side={THREE.DoubleSide}
-              toneMapped={false}
-            />
-          </mesh>
-          <mesh
-            position={[side === "left" ? buildingWidth / 2 : -buildingWidth / 2, height * 0.3, 0]}
-          >
-            <boxGeometry args={[0.05, height * 0.2, buildingWidth * 0.9]} />
-            <meshStandardMaterial
-              color="#1a1a1a"
-              roughness={0.8}
-              metalness={0.3}
-            />
-          </mesh>
-        </>
-      )}
-      {buildingData.hasNeon && (
-        <>
-          <pointLight
-            position={[
-              side === "left" ? buildingWidth / 2 + 0.3 : -buildingWidth / 2 - 0.3,
-              height * 0.3,
-              0,
-            ]}
-            color={neonColor.color}
-            intensity={4}
-            distance={10}
-            decay={2}
-          />
-          <pointLight
-            position={[
-              side === "left" ? buildingWidth / 2 + 0.15 : -buildingWidth / 2 - 0.15,
-              height * 0.3,
-              0.5,
-            ]}
-            color={neonColor.color}
-            intensity={2}
-            distance={6}
-            decay={2}
-          />
-        </>
-      )}
-      {buildingData.hasWindow &&
-        buildingData.windowLights.map((w, i) => (
-          <mesh
-            key={`${w.id}-${position[0]}-${position[2]}`}
-            position={[0, -height / 2 + i * 2 + 1, buildingDepth / 2 + 0.01]}
-          >
-            <planeGeometry args={[buildingWidth * 0.3, 0.8]} />
-            <meshStandardMaterial
-              color={w.isLit ? "#ffcc66" : "#334455"}
-              emissive={w.isLit ? "#ffcc66" : "#000000"}
-              emissiveIntensity={w.isLit ? 0.5 : 0}
-            />
-          </mesh>
-        ))}
-      {buildingData.hasAC && (
-        <>
-          <mesh position={[buildingWidth / 2 - 0.3, height * 0.4, buildingDepth / 2]}>
-            <boxGeometry args={[0.4, 0.3, 0.25]} />
-            <meshStandardMaterial
-              color="#505560"
-              metalness={0.7}
-              roughness={0.3}
-            />
-          </mesh>
-          <mesh position={[buildingWidth / 2 - 0.3, height * 0.4, buildingDepth / 2 + 0.13]}>
-            <cylinderGeometry args={[0.12, 0.12, 0.02, 8]} />
-            <meshStandardMaterial
-              color="#2a2a2a"
-              metalness={0.5}
-              roughness={0.5}
-            />
-          </mesh>
-        </>
-      )}
-      {buildingData.hasCables && (
-        <>
-          <mesh
-            position={[0, height / 2, 0]}
-            rotation={[0, 0, Math.PI / 2]}
-          >
-            <cylinderGeometry args={[0.02, 0.02, buildingWidth * 1.5, 8]} />
-            <meshStandardMaterial
-              color="#1a1a1a"
-              roughness={0.8}
-            />
-          </mesh>
-          <mesh
-            position={[0, height / 2 - 0.8, 0.1]}
-            rotation={[0, 0, Math.PI / 2]}
-          >
-            <cylinderGeometry args={[0.015, 0.015, buildingWidth * 1.3, 6]} />
-            <meshStandardMaterial
-              color="#2a2a2a"
-              roughness={0.8}
-            />
-          </mesh>
-        </>
-      )}
-      {buildingData.hasPipe && (
-        <mesh position={[-buildingWidth / 2 + 0.2, 0, buildingDepth / 2]}>
-          <cylinderGeometry args={[0.08, 0.08, height, 8]} />
+
+      {/* Windows. Lit ones carry a warm interior glow; dark ones read as depth. */}
+      {building.windows.map((window, i) => (
+        <mesh
+          key={window.id}
+          position={[facadeX * 1.01, ALLEY_STREET_Y + building.height * 0.12 + i * 2.4, 0]}
+          rotation={[0, building.side === "left" ? Math.PI / 2 : -Math.PI / 2, 0]}
+        >
+          <planeGeometry args={[building.width * 0.34, 1.1]} />
           <meshStandardMaterial
-            color="#3a3a3a"
+            color={window.isLit ? "#3a2f1a" : "#101018"}
+            emissive={window.isLit ? "#ffb765" : "#000000"}
+            emissiveIntensity={window.isLit ? 0.7 : 0}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+
+      {hasSign && panelMaterial && reflectionMaterial && (
+        <>
+          {/*
+            Blade sign: mounted perpendicular to the facade and projecting into the alley.
+            A sign laid flat on a side wall is viewed almost edge-on from down the street,
+            which is why the previous wall-mounted rectangles showed no readable text at
+            all -- `signText` was generated, drawn as a featureless quad, and never
+            legible. Facing the sign down the alley is what makes the copy readable.
+          */}
+          <mesh
+            position={[facadeX * 0.72, ALLEY_STREET_Y + signY, 0.2]}
+            rotation={[0, 0, 0]}
+          >
+            <planeGeometry args={[signWidth, SIGN_HEIGHT]} />
+            <primitive
+              object={panelMaterial}
+              attach="material"
+            />
+          </mesh>
+
+          {/* Backing box, so the sign reads as a physical object on the wall. */}
+          <mesh position={[facadeX * 0.75, ALLEY_STREET_Y + signY, 0]}>
+            <boxGeometry args={[signWidth * 1.08, SIGN_HEIGHT * 1.18, 0.16]} />
+            <meshStandardMaterial
+              color="#141420"
+              roughness={0.7}
+              metalness={0.4}
+            />
+          </mesh>
+
+          {/* Mounting arm back to the facade. */}
+          <mesh
+            position={[facadeX * 0.88, ALLEY_STREET_Y + signY, 0]}
+            rotation={[0, 0, Math.PI / 2]}
+          >
+            <cylinderGeometry args={[0.04, 0.04, signWidth * 0.35, 6]} />
+            <meshStandardMaterial
+              color="#1c1c28"
+              roughness={0.8}
+            />
+          </mesh>
+
+          {/*
+            Reflection in the wet street. Additively blended and stretched away from the
+            viewer along the road. A real mirrored render pass would cost a second scene
+            render; this is the standard cheap approximation, and it is what makes the
+            asphalt read as soaked.
+          */}
+          <mesh
+            position={[facadeX * 0.72, ALLEY_STREET_Y + 0.02, REFLECTION_LENGTH * 0.42]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <planeGeometry args={[signWidth * 1.3, REFLECTION_LENGTH]} />
+            <primitive
+              object={reflectionMaterial}
+              attach="material"
+            />
+          </mesh>
+        </>
+      )}
+
+      {/* Awning / air-con unit. */}
+      {building.hasAC && (
+        <mesh position={[facadeX * 0.72, ALLEY_STREET_Y + building.height * 0.34, 0]}>
+          <boxGeometry args={[0.5, 0.45, 0.4]} />
+          <meshStandardMaterial
+            color="#4a4f5a"
             metalness={0.6}
-            roughness={0.4}
+            roughness={0.45}
+          />
+        </mesh>
+      )}
+
+      {/* Overhead cabling, which is what makes an alley read as an alley. */}
+      {building.hasCables && (
+        <>
+          <mesh
+            position={[0, ALLEY_STREET_Y + building.height * 0.82, 0]}
+            rotation={[0, 0, Math.PI / 2]}
+          >
+            <cylinderGeometry args={[0.025, 0.025, building.width * 1.3, 6]} />
+            <meshStandardMaterial
+              color="#14141c"
+              roughness={0.9}
+            />
+          </mesh>
+          <mesh
+            position={[0, ALLEY_STREET_Y + building.height * 0.78, 0.2]}
+            rotation={[0, 0, Math.PI / 2]}
+          >
+            <cylinderGeometry args={[0.018, 0.018, building.width * 1.1, 6]} />
+            <meshStandardMaterial
+              color="#1c1c26"
+              roughness={0.9}
+            />
+          </mesh>
+        </>
+      )}
+
+      {/* Drainpipe running down the facade. */}
+      {building.hasPipe && (
+        <mesh
+          position={[facadeX * 0.9, ALLEY_STREET_Y + building.height / 2, building.depth * 0.3]}
+        >
+          <cylinderGeometry args={[0.09, 0.09, building.height, 8]} />
+          <meshStandardMaterial
+            color="#33333f"
+            metalness={0.5}
+            roughness={0.5}
           />
         </mesh>
       )}
@@ -195,118 +297,49 @@ function CyberpunkBuilding({
 
 function AlleyScene() {
   const groupRef = useRef<THREE.Group>(null);
-  // Keep direct refs to building groups to avoid scanning all children each frame
   const buildingRefs = useRef<THREE.Group[]>([]);
-  // Collected neon materials for centralized pulsing
-  const neonMaterialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
+  const neonRegistry = useRef<Map<string, NeonEntry>>(new Map());
   const scrollProgressRef = useRef(0);
+  const scrollZRef = useRef(0);
 
-  // Shared alley layout constants
-  const BUILDING_PAIRS = 6;
-  const zSpacing = -2.2; // tighter depth spacing for more consistent scroll progression
-  const zStart = -0.9; // start almost at camera plane for immediacy
-  const nearLeftX = -1.4; // much closer near gap
-  const nearRightX = 1.4;
-  const farLeftX = -14;
-  const farRightX = 14;
+  const supportsCjk = useMemo(() => supportsCjkRendering(), []);
+  const glowTexture = useMemo(() => getRadialGlowTexture(), []);
+  const hemiRef = useRef<THREE.HemisphereLight>(null);
+  const fillRef = useRef<THREE.PointLight>(null);
+  const magentaRef = useRef<THREE.PointLight>(null);
+  const depthRef = useRef<THREE.PointLight>(null);
+  const gridPower = useMemo(() => ({ current: 1 }), []);
 
-  // Generate static building data once with increased heights and consistent per row
-  const buildingData = useMemo(() => {
-    const rng = createPRNG(seedHash("cyberpunk:alley:v1"));
-    // Generate array of random heights for buildings (left and right will share same heights for consistency)
-    // Prior height ranges progressively reduced to make buildings non-imposing.
-    // Further reduction: (1.05–2.10) * 1.2 => ~1.26 – 2.52 units total height.
-    // Keeps bases consistent while lowering crowns for stronger backdrop emphasis.
-    const heights = Array.from({ length: 12 }, () => (1.2 + rng() * 1.05) * 1.4);
+  // A lightning strike browns out the whole street, not just the bolt.
+  useEffect(
+    () =>
+      subscribeGridPower((level) => {
+        gridPower.current = level;
+      }),
+    [gridPower]
+  );
+  const buildings = useMemo(() => buildAlley("cyberpunk:alley:v2", supportsCjk), [supportsCjk]);
 
-    // Alley runs toward the backdrop (negative Z). Camera stands near z = 0 looking down -Z.
-    // We place buildings in pairs along -Z; near pair close to viewer, far pair close to backdrop.
-    // (Constants hoisted above for reuse in animation loop)
+  // Single-frame registry, keyed by building id so remounts cannot leak duplicates.
+  const registerNeon = useMemo(
+    () => (entry: NeonEntry | null, key: string) => {
+      if (entry) neonRegistry.current.set(key, entry);
+      else neonRegistry.current.delete(key);
+    },
+    []
+  );
 
-    const left = Array.from({ length: BUILDING_PAIRS }, (_, i) => {
-      const height = heights[i]; // Use shared heights
-      const width = 1.0 + rng() * 0.6; // slimmer
-      const depth = 0.8 + rng() * 0.4; // shallower
-      const windowCount = Math.floor(height / 2);
-      const windowLights = Array.from({ length: windowCount }, (_, w) => ({
-        id: `win-${w}`,
-        isLit: rng() > 0.5,
-      }));
-
-      const zPos = zStart + i * zSpacing; // extends negatively
-      const divergenceFactor = i / (BUILDING_PAIRS - 1); // 0 near, 1 far
-      const xPos = nearLeftX + (farLeftX - nearLeftX) * divergenceFactor; // interpolate outward
-
-      const divergence = i / (BUILDING_PAIRS - 1);
-      return {
-        id: `left-${i}`,
-        height,
-        xPos,
-        zPos,
-        index: i,
-        side: "left" as const,
-        divergence,
-        data: {
-          buildingType: ["ramen", "tech", "clinic", "bar"][Math.floor(rng() * 4)],
-          hasNeon: rng() > 0.15,
-          neonColor: ["cyan", "fuchsia", "red", "hotpink", "lime", "orange", "electricblue"][
-            Math.floor(rng() * 7)
-          ],
-          signText: ["ラーメン", "営業中", "酒場", "診療所", "OPEN", "BAR"][Math.floor(rng() * 6)],
-          hasWindow: rng() > 0.3,
-          hasAC: rng() > 0.5,
-          hasCables: rng() > 0.4,
-          hasPipe: rng() > 0.6,
-          width,
-          depth,
-          windowLights,
-        },
-      };
-    });
-
-    const right = Array.from({ length: BUILDING_PAIRS }, (_, i) => {
-      const height = heights[i]; // Use same height as corresponding left building
-      const width = 1.0 + rng() * 0.6;
-      const depth = 0.8 + rng() * 0.4;
-      const windowCount = Math.floor(height / 2);
-      const windowLights = Array.from({ length: windowCount }, (_, w) => ({
-        id: `win-${w}`,
-        isLit: rng() > 0.5,
-      }));
-
-      const zPos = zStart + i * zSpacing; // extends negatively
-      const divergenceFactor = i / (BUILDING_PAIRS - 1); // 0 near, 1 far
-      const xPos = nearRightX + (farRightX - nearRightX) * divergenceFactor; // interpolate outward
-
-      const divergence = i / (BUILDING_PAIRS - 1);
-      return {
-        id: `right-${i}`,
-        height,
-        xPos,
-        zPos,
-        index: i,
-        side: "right" as const,
-        divergence,
-        data: {
-          buildingType: ["ramen", "tech", "clinic", "bar"][Math.floor(rng() * 4)],
-          hasNeon: rng() > 0.15,
-          neonColor: ["cyan", "fuchsia", "red", "hotpink", "lime", "orange", "electricblue"][
-            Math.floor(rng() * 7)
-          ],
-          signText: ["ラーメン", "営業中", "酒場", "診療所", "OPEN", "BAR"][Math.floor(rng() * 6)],
-          hasWindow: rng() > 0.3,
-          hasAC: rng() > 0.5,
-          hasCables: rng() > 0.4,
-          hasPipe: rng() > 0.6,
-          width,
-          depth,
-          windowLights,
-        },
-      };
-    });
-
-    return [...left, ...right];
-  }, []);
+  // Lamp positions are static, so derive them once.
+  const lamps = useMemo(
+    () =>
+      Array.from({ length: LAMP_COUNT }, (_, i) => ({
+        id: `lamp-${i}`,
+        z: -(i * LAMP_SPACING + 12),
+        side: i % 2 === 0 ? "left" : "right",
+      })),
+    []
+  );
+  const lampRefs = useRef<THREE.Group[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -314,8 +347,7 @@ function AlleyScene() {
     const update = () => {
       const doc = document.documentElement;
       const maxScroll = Math.max(1, doc.scrollHeight - window.innerHeight);
-      const progress = window.scrollY / maxScroll;
-      scrollProgressRef.current = Math.min(1, Math.max(0, progress));
+      scrollProgressRef.current = Math.min(1, Math.max(0, window.scrollY / maxScroll));
     };
 
     update();
@@ -338,187 +370,189 @@ function AlleyScene() {
     };
   }, []);
 
-  // Precompute alley depth for dynamic distance-based effects
-  const alleyDepth = Math.abs(zSpacing) * (BUILDING_PAIRS - 1); // total span of one alley cycle
+  useFrame((state, delta) => {
+    // Scroll drives distance travelled along the street; the buildings travel toward the
+    // viewer and wrap, so the alley stays populated however far the page is scrolled.
+    const targetZ = -scrollProgressRef.current * ALLEY_TRAVEL_RANGE;
+    const eased = THREE.MathUtils.damp(scrollZRef.current, targetZ, 4, delta);
+    scrollZRef.current = eased;
 
-  useFrame((state) => {
-    const { camera, viewport } = state;
-    const minZ = zStart + (BUILDING_PAIRS - 1) * zSpacing;
-    // Map page scroll progress (0..1) to alley depth (0..minZ)
-    const progress = scrollProgressRef.current;
-    const clampedTargetZ = THREE.MathUtils.lerp(0, minZ, progress);
+    const camera = state.camera;
+    camera.position.set(0, ALLEY_EYE_Y, ALLEY_CAMERA_Z);
+    // Kept close to level: aiming up pushed the horizon down and filled the lower half
+    // of the frame with empty road.
+    camera.lookAt(0, ALLEY_EYE_Y + 0.4, ALLEY_CAMERA_Z - ALLEY_LOOK_DISTANCE);
 
-    // Smooth camera movement - walking forward
-    camera.position.z += (clampedTargetZ - camera.position.z) * 0.1;
-    // Keep eye height low, but avoid excessive vertical drift in the alley
-    camera.position.y = -0.7;
-    camera.position.x = 0;
-    camera.lookAt(0, -0.7, -50); // keep gaze level aligned with new eye height
+    const pulse = neonPulseAt(state.clock.elapsedTime);
 
-    // Update building positions for "walking through" effect with cycling
-    const refs = buildingRefs.current;
-    if (refs.length) {
-      const persp = camera as THREE.PerspectiveCamera;
-      const halfVFOV = THREE.MathUtils.degToRad(persp.fov / 2);
-      const halfHFOVFactor = Math.tan(halfVFOV) * viewport.aspect;
-      const invPairs = 1 / (BUILDING_PAIRS - 1);
-      const maxVisibleDistance = alleyDepth + 10;
-      const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.3 + 1; // shared neon pulse
-      for (let i = 0; i < refs.length; i++) {
-        const child = refs[i];
-        if (!child) continue;
-        const building = buildingData[i];
-        if (!building) continue;
-        const height = building.height;
-        const baseZPos = building.zPos;
-        child.position.z = baseZPos;
+    for (const building of buildings) {
+      const group = buildingRefs.current[building.index * 2 + (building.side === "left" ? 0 : 1)];
+      if (!group) continue;
+      const z = alleyZ(building.baseZ, scrollZRef.current);
+      group.position.z = z;
 
-        const currentRelativeZ = baseZPos - camera.position.z;
-        const distance = -currentRelativeZ;
-        const distanceFactor = Math.max(0, Math.min(1, distance / maxVisibleDistance));
+      // Hide anything that has walked past the camera rather than letting it fill the
+      // near plane and smear across the frame.
+      group.visible = depthFromCamera(z) > 0.5;
+    }
 
-        // Tighter Y band so scrolling feels like forward motion, not a vertical plunge
-        const nearestBaseY = -1.8;
-        const furthestBaseY = -12.0;
-        const easedFactorY = distanceFactor ** 1.1;
-        let baseYPos = nearestBaseY + (furthestBaseY - nearestBaseY) * easedFactorY;
-        const pairFactor = building.index * invPairs;
-        baseYPos -= pairFactor * 1.8;
-        child.position.y = baseYPos + height / 2;
+    const power = gridPower.current;
+    for (const entry of neonRegistry.current.values()) {
+      entry.panel.opacity = pulse * power;
+      entry.reflection.opacity = 0.3 * pulse * power;
+    }
+    // Authored intensities, so a dip multiplies rather than accumulates each frame.
+    if (hemiRef.current) hemiRef.current.intensity = HEMI_INTENSITY * power;
+    if (fillRef.current) fillRef.current.intensity = FILL_CYAN_INTENSITY * power;
+    if (magentaRef.current) magentaRef.current.intensity = FILL_MAGENTA_INTENSITY * power;
+    if (depthRef.current) depthRef.current.intensity = DEPTH_INTENSITY * power;
 
-        const edgeX = distance * halfHFOVFactor * 1.05;
-        const easedDiv = (building.divergence ?? building.index * invPairs) ** 0.65;
-        if (building.side === "left") {
-          child.position.x = THREE.MathUtils.lerp(nearLeftX, -edgeX, easedDiv);
-        } else {
-          child.position.x = THREE.MathUtils.lerp(nearRightX, edgeX, easedDiv);
-        }
-
-        const minLean = 0.06;
-        const maxLean = 0.32;
-        child.rotation.x = THREE.MathUtils.lerp(minLean, maxLean, distanceFactor);
-      }
-      // Update all neon emissive intensities once per frame
-      neonMaterialsRef.current.forEach((mat) => {
-        if (!mat) return;
-        mat.emissiveIntensity = pulse * (mat.emissiveIntensity ? 1 : 1); // pulse baseline
-      });
+    // Lamp pools follow the loop so the near street is always lit.
+    for (const lamp of lamps) {
+      const group = lampRefs.current[Number(lamp.id.split("-")[1])];
+      if (!group) continue;
+      const z = alleyZ(lamp.z, scrollZRef.current);
+      group.position.z = z;
+      group.position.x = (lamp.side === "left" ? -1 : 1) * (ALLEY_HALF_WIDTH + 0.4);
     }
   });
 
   return (
     <group ref={groupRef}>
-      {/* Ground - wet reflective street sloping downward to meet backdrop base */}
+      {/*
+        The street. One plane, correctly aligned with the building bases. The previous
+        ground was a 150x250 plane at y=-10/-27 that shared no plane with the buildings
+        standing on it, which is why the alley appeared to plunge.
+
+        Kept mostly dielectric: a metallic surface with no environment map renders black,
+        so `metalness` is low and the wet look is carried by the light pools below plus
+        the specular response of the rig.
+      */}
       <mesh
-        rotation={[-Math.PI / 2 - 0.3, 0, 0]}
-        position={[0, -10, -27]}
-        receiveShadow
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, ALLEY_STREET_Y, -ALLEY_TRAVEL_RANGE / 2 - 10]}
       >
-        <planeGeometry args={[150, 250]} />
+        <planeGeometry args={[90, 260]} />
         <meshStandardMaterial
-          color="#0a0a0f"
-          roughness={0.15}
-          metalness={0.85}
-          envMapIntensity={0.6}
-          opacity={0.35}
-          transparent
+          color="#0d0d16"
+          roughness={0.28}
+          metalness={0.12}
         />
       </mesh>
 
-      {/* Ground fog planes for atmosphere */}
-      <mesh
-        rotation={[-Math.PI / 2 - 0.3, 0, 0]}
-        position={[0, -12, -35]}
-      >
-        <planeGeometry args={[145, 105]} />
-        <meshBasicMaterial
-          color="#8800ff"
-          transparent
-          opacity={0.025}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      {/*
+        Light pools on the asphalt. A handful of real lights cannot convincingly light a
+        100-unit street, and the previous per-building rig left the ground as a black void
+        occupying the lower half of the frame. These are unlit additive planes laid along
+        the corridor, which cost nothing and give the road its wet sheen.
+      */}
+      {LIGHT_POOLS.map((pool) => (
+        <mesh
+          key={pool.id}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, ALLEY_STREET_Y + 0.015, pool.z]}
+        >
+          <planeGeometry args={[15, 34]} />
+          <meshBasicMaterial
+            map={glowTexture}
+            color={pool.tint}
+            transparent
+            opacity={0.3}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
 
-      <mesh
-        rotation={[-Math.PI / 2 - 0.3, 0, 0]}
-        position={[0, -15, -52]}
-      >
-        <planeGeometry args={[96, 50]} />
-        <meshBasicMaterial
-          color="#00ffff"
-          transparent
-          opacity={0.018}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      {/* Side alley buildings - scroll-aware positioning */}
-      {buildingData.map((building, i) => (
+      {/* Buildings, indexed positionally to match the frame loop's lookup. */}
+      {buildings.map((building) => (
         <group
           key={building.id}
           ref={(el) => {
-            if (el) buildingRefs.current[i] = el;
+            if (el) {
+              buildingRefs.current[building.index * 2 + (building.side === "left" ? 0 : 1)] = el;
+            }
           }}
         >
           <CyberpunkBuilding
-            position={[building.xPos, 0, building.zPos] as [number, number, number]}
-            height={building.height}
-            side={building.side}
-            buildingData={building.data}
-            width={building.data.width}
-            depth={building.data.depth}
-            registerNeon={(mat) => {
-              if (mat) neonMaterialsRef.current.push(mat);
-            }}
+            building={building}
+            registerNeon={registerNeon}
           />
         </group>
       ))}
 
-      {/* Enhanced atmospheric lighting */}
+      {/* Lamp posts: two-sided emissive tubes, no additional real lights. */}
+      {lamps.map((lamp, i) => (
+        <group
+          key={lamp.id}
+          ref={(el) => {
+            if (el) lampRefs.current[i] = el;
+          }}
+        >
+          <mesh position={[0, 3.2, 0]}>
+            <cylinderGeometry args={[0.07, 0.09, 6.4, 6]} />
+            <meshStandardMaterial
+              color="#1a1a24"
+              roughness={0.8}
+            />
+          </mesh>
+          <mesh position={[(lamp.side === "left" ? 1 : -1) * 0.7, 6.2, 0]}>
+            <sphereGeometry args={[0.28, 10, 8]} />
+            <meshBasicMaterial
+              color="#ffe9b0"
+              toneMapped={false}
+            />
+          </mesh>
+        </group>
+      ))}
+
+      {/*
+        Lighting rig: four lights total, down from twenty-seven. A hemisphere light gives
+        cheap sky/ground separation, and three tinted point lights ride the corridor so
+        near facades are lit without paying for a light per building.
+      */}
+      <hemisphereLight args={["#4a4a8a", "#141428", 1.1]} />
       <ambientLight
-        intensity={0.12}
+        intensity={0.16}
         color="#1a1a2e"
       />
-
-      {/* Purple atmospheric light from behind */}
       <pointLight
-        position={[0, 8, -60]}
-        color="#8800ff"
-        intensity={4}
-        distance={150}
-        decay={2}
-      />
-
-      {/* Cyan street light from front */}
-      <pointLight
-        position={[0, 10, 15]}
-        color="#00ffff"
-        intensity={2.5}
-        distance={120}
-        decay={2}
-      />
-
-      {/* Side accent lights for alley ambiance */}
-      <pointLight
-        position={[-10, 5, -30]}
-        color="#ff00ff"
-        intensity={1.5}
-        distance={40}
-        decay={2}
+        position={[-3.2, 3.2, ALLEY_CAMERA_Z - 5]}
+        color="#00e5ff"
+        intensity={30}
+        distance={30}
+        decay={1.6}
       />
       <pointLight
-        position={[10, 5, -30]}
-        color="#00ff88"
-        intensity={1.5}
-        distance={40}
-        decay={2}
+        position={[3.2, 3.2, ALLEY_CAMERA_Z - 13]}
+        color="#ff3ce0"
+        intensity={26}
+        distance={30}
+        decay={1.6}
+      />
+      <pointLight
+        position={[0, 8, ALLEY_CAMERA_Z - 36]}
+        color="#8844ff"
+        intensity={70}
+        distance={90}
+        decay={1.8}
       />
 
-      {/* Atmospheric fog with better depth */}
+      {/*
+        Fog matches the void colour the CSS sky resolves to, so the far end of the alley
+        dissolves into the atmosphere layers instead of terminating on a hard edge.
+      */}
       <fog
         attach="fog"
-        args={["#0a0a0f", 10, 90]}
+        args={["#0a0813", 14, 96]}
       />
+
+      {/*
+        Last in the tree so it grades everything above it. Bloom is what turns emissive
+        colour into actual light.
+      */}
+      <CyberpunkPostFX />
     </group>
   );
 }
@@ -527,8 +561,8 @@ export function CitySilhouette() {
   const canvasRefBehind = useRef<HTMLCanvasElement>(null); // 80% streams behind skyline
   const canvasRefFront = useRef<HTMLCanvasElement>(null); // 20% streams in front
   const lightningCanvasRef = useRef<HTMLCanvasElement>(null); // procedural bolt layer (behind skyline)
-  useDataRain(canvasRefBehind);
-  useDataRain(canvasRefFront);
+  useDataRain(canvasRefBehind, { profile: "drizzle" });
+  useDataRain(canvasRefFront, { profile: "heavy" });
 
   // Procedural lightning bolts (cyan & yellow) drawn on dedicated canvas behind skyline
   useEffect(() => {
@@ -629,6 +663,8 @@ export function CitySilhouette() {
       flashTimeout = setTimeout(() => {
         if (!mounted || paused) return;
         createBolt();
+        // The strike takes the street's power with it.
+        triggerPowerDip(0.24 + Math.random() * 0.16);
         if (Math.random() < 0.3) {
           secondaryTimeout = setTimeout(createBolt, 80 + Math.random() * 120);
         }
@@ -708,6 +744,7 @@ export function CitySilhouette() {
 
     return () => {
       mounted = false;
+      resetGridPower();
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       stopRaf();
@@ -715,119 +752,40 @@ export function CitySilhouette() {
       if (secondaryTimeout) clearTimeout(secondaryTimeout);
     };
   }, []);
-
-  // Memoize static backdrop buildings - raised and more prominent
-  const backdropBuildings = useMemo(() => {
-    const rng = createPRNG(seedHash("cyberpunk:skyline:v1"));
-    return Array.from({ length: 32 }, (_, i) => ({
-      id: `skyline-${i}`,
-      left: (i / 32) * 100,
-      width: 2 + rng() * 3,
-      height: 55 + rng() * 55,
-      hasBeacon: rng() > 0.7,
-      hasWinPattern: rng() > 0.7,
-    }));
-  }, []);
-
   return (
     <div className="absolute inset-0">
-      {/* BACKGROUND LAYERS */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Multi-layer sky gradient for depth */}
-        <div className="absolute inset-0 bg-linear-to-b from-[#0a0510] via-[#0f0a15] to-[#050a10]" />
-        <div className="absolute inset-0 bg-linear-to-b from-purple-950/30 via-purple-900/10 to-transparent" />
-        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-cyan-950/20" />
+      {/*
+        The sky, haze, distant skyline and colour grade now live in Atmosphere.tsx,
+        which CyberpunkScene renders as a separate layer beneath this one. What remains
+        here is only what has to sit *between* that backdrop and the viewer.
+      */}
 
-        {/* 80% DATA RAIN (behind skyline) - now vanishes at 40% screen height */}
-        <canvas
-          ref={canvasRefBehind}
-          className="absolute inset-0 pointer-events-none opacity-12"
-          style={{
-            mixBlendMode: "screen",
-            clipPath: "inset(0 0 60% 0)",
-            zIndex: 2,
-          }}
-        />
-        {/* Mask overlay to block rain below skyline silhouette */}
-        <div
-          className="absolute left-0 right-0 bottom-0"
-          style={{
-            height: "60%", // matches the skyline's bottom edge
-            background: "linear-gradient(to top, #0a0a12 90%, transparent 100%)",
-            zIndex: 2,
-            pointerEvents: "none",
-          }}
-        />
+      {/* Procedural lightning, behind the alley but in front of the far skyline.
+          `h-full w-full` is load-bearing: a <canvas> is a replaced element, so with only
+          `inset-0` the used width comes from its intrinsic (attribute) size and the
+          over-constrained `right` is dropped. Sizing it explicitly breaks the loop where
+          resize() reads clientWidth and writes back the same 300x150 default. */}
+      <canvas
+        ref={lightningCanvasRef}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        style={{
+          zIndex: 1,
+          mixBlendMode: "screen",
+          filter: "brightness(1.25)",
+        }}
+      />
 
-        {/* Procedural lightning canvas (behind skyline) */}
-        <canvas
-          ref={lightningCanvasRef}
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            zIndex: 2,
-            mixBlendMode: "screen",
-            filter: "brightness(1.25)",
-          }}
-        />
+      {/* Rear rain: distant, thinner and slower, so the alley reads as deep. */}
+      <canvas
+        ref={canvasRefBehind}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        style={{
+          zIndex: 2,
+          mixBlendMode: "screen",
+          opacity: "calc(var(--cp-rain-opacity) * 0.55)",
+        }}
+      />
 
-        {/* Atmospheric glow behind skyline */}
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_30%,rgba(136,0,255,0.15)_0%,transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(0,255,255,0.12)_0%,transparent_50%)]" />
-        </div>
-
-        {/* Static city skyline with enhanced depth - raised vertically and more prominent */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[85%] flex items-end opacity-80"
-          style={{ zIndex: 3 }}
-        >
-          {backdropBuildings.map((building) => (
-            <div
-              key={building.id}
-              className="absolute bottom-0 transition-opacity duration-300"
-              style={{
-                left: `${building.left}%`,
-                width: `${building.width}%`,
-                height: `${building.height}%`,
-                background: "linear-gradient(to top, #0a0a12, #12121a, #1a1a22)",
-                boxShadow: "inset -1px 0 3px rgba(0,0,0,0.9), 0 0 25px rgba(0,0,0,0.6)",
-              }}
-            >
-              {building.hasBeacon && (
-                <div
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-0.5 bg-red-500 rounded-full animate-[beacon-blink_2s_ease-in-out_infinite]"
-                  style={{
-                    boxShadow: "0 0 6px 2px rgba(255,0,0,0.6), 0 0 12px 4px rgba(255,0,0,0.3)",
-                  }}
-                />
-              )}
-
-              {/* Subtle window lights on backdrop buildings */}
-              {building.hasWinPattern && (
-                <div
-                  className="absolute w-[40%] h-[60%] left-[30%] top-[20%] opacity-20"
-                  style={{
-                    background:
-                      "repeating-linear-gradient(0deg, transparent 0px, transparent 8px, rgba(255,200,100,0.3) 8px, rgba(255,200,100,0.3) 10px)",
-                  }}
-                />
-              )}
-            </div>
-          ))}
-
-          {/* Enhanced ground atmospheric glow */}
-          <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-linear-to-t from-cyan-500/15 via-purple-500/8 to-transparent blur-md" />
-          <div className="absolute bottom-0 left-0 right-0 h-[10%] bg-linear-to-t from-cyan-400/10 to-transparent blur-sm" />
-        </div>
-
-        {/* (Removed radial flash overlay; replaced by procedural bolt canvas) */}
-
-        {/* Enhanced scan lines with variation */}
-        <div className="absolute inset-0 opacity-[0.04] mix-blend-screen [background:repeating-linear-gradient(180deg,transparent_0_9px,rgba(0,255,255,0.2)_9px_10px,transparent_10px_22px)] animate-[rain-fall_1.4s_linear_infinite]" />
-        <div className="absolute inset-0 opacity-[0.02] mix-blend-screen [background:repeating-linear-gradient(90deg,transparent_0_3px,rgba(136,0,255,0.15)_3px_4px,transparent_4px_12px)]" />
-      </div>
-
-      {/* 3D Scene with side buildings only */}
       <Canvas
         camera={{ position: [0, 1.6, -2], fov: 75 }}
         gl={{
@@ -842,15 +800,14 @@ export function CitySilhouette() {
         <AlleyScene />
       </Canvas>
 
-      {/* Data rain layer - visible between 3D buildings */}
+      {/* Front rain: the full, dense layer the viewer is looking through. */}
       <canvas
         ref={canvasRefFront}
-        className="absolute inset-0 pointer-events-none opacity-18"
+        className="pointer-events-none absolute inset-0 h-full w-full"
         style={{
           mixBlendMode: "screen",
           zIndex: 12,
-          width: "100%",
-          left: 0,
+          opacity: "var(--cp-rain-opacity)",
         }}
       />
     </div>

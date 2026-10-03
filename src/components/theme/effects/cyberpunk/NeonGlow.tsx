@@ -1,4 +1,18 @@
 "use client";
+
+/**
+ * @file: src/components/theme/effects/cyberpunk/NeonGlow.tsx
+ * @description: Screen-blended neon wash that saturates the alley with signage colour.
+ *
+ * The keyframes this used to declare inline via `<style jsx>` now live in
+ * animations.css. Declaring them in the component meant a second injected stylesheet
+ * per instance and left the animation definitions invisible to the reduced-motion
+ * kill-switch list that the rest of the app honours.
+ *
+ * Must be rendered inside the same isolated layer as AtmosphereBackdrop, since
+ * `mix-blend-mode` composites against that layer's backdrop rather than page content.
+ */
+
 import type React from "react";
 
 export const NeonGlow: React.FC = () => {
@@ -8,41 +22,63 @@ export const NeonGlow: React.FC = () => {
       className="pointer-events-none absolute inset-0"
     >
       {/* Primary neon gradient wash - Cyan */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_35%,rgba(0,255,255,0.35),transparent_50%)] mix-blend-screen animate-[neon-pulse_8s_ease-in-out_infinite]" />
+      <div
+        className="animate-neon-pulse absolute inset-0 mix-blend-screen"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 25% 35%, hsl(var(--cp-haze-cyan) / 0.35), transparent 50%)",
+        }}
+      />
 
       {/* Secondary neon gradient - Magenta */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_60%,rgba(255,0,180,0.28),transparent_55%)] mix-blend-screen animate-[neon-pulse_10s_ease-in-out_infinite_2s]" />
+      <div
+        className="animate-neon-pulse absolute inset-0 mix-blend-screen"
+        style={{
+          animationDelay: "2s",
+          animationDuration: "10s",
+          backgroundImage:
+            "radial-gradient(circle at 75% 60%, hsl(var(--cp-haze-magenta) / 0.28), transparent 55%)",
+        }}
+      />
 
-      {/* Accent neon gradient - Purple */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(200,0,255,0.22),transparent_60%)] mix-blend-screen animate-[neon-pulse_12s_ease-in-out_infinite_4s]" />
+      {/* Accent neon gradient - deep violet, grounded at the street */}
+      <div
+        className="animate-neon-pulse absolute inset-0 mix-blend-screen"
+        style={{
+          animationDelay: "4s",
+          animationDuration: "12s",
+          backgroundImage:
+            "radial-gradient(circle at 50% 82%, hsl(var(--cp-accent) / 0.22), transparent 60%)",
+        }}
+      />
 
-      {/* Vertical scan flicker - Enhanced */}
-      <div className="absolute inset-0 animate-[cyber-scan_5s_linear_infinite] bg-[linear-gradient(180deg,transparent,rgba(0,255,255,0.35)_30%,rgba(255,0,255,0.25)_50%,transparent_70%)] opacity-40" />
+      {/* Vertical scan flicker - a bright band travelling down the frame. */}
+      <div
+        className="animate-cyber-scan absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, transparent, hsl(var(--cp-haze-cyan) / 0.35) 30%, hsl(var(--cp-haze-magenta) / 0.25) 50%, transparent 70%)",
+        }}
+      />
 
-      {/* Horizontal data sweep */}
-      <div className="absolute inset-0 animate-[data-sweep_15s_linear_infinite] bg-[linear-gradient(90deg,transparent,rgba(0,255,200,0.15)_45%,rgba(255,0,180,0.12)_55%,transparent)] opacity-30" />
+      {/* Horizontal data sweep. */}
+      <div
+        className="animate-data-sweep absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, transparent, hsl(var(--cp-neon-lime) / 0.15) 45%, hsl(var(--cp-haze-magenta) / 0.12) 55%, transparent)",
+        }}
+      />
 
-      {/* Grid overlay for depth */}
-      <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(0,255,255,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.3)_1px,transparent_1px)] bg-[size:40px_40px] animate-[grid-drift_20s_linear_infinite]" />
-
-      <style jsx>{`
-        @keyframes cyber-scan {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
-        }
-        @keyframes neon-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.1); }
-        }
-        @keyframes data-sweep {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes grid-drift {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(40px, 40px); }
-        }
-      `}</style>
+      {/* Perspective grid overlay for depth. */}
+      <div
+        className="animate-grid-drift absolute inset-0 opacity-10"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--cp-haze-cyan) / 0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--cp-haze-cyan) / 0.3) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
     </div>
   );
 };

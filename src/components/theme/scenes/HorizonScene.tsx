@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
  */
 import { type DayPhase, useDayPhase } from "@/hooks/useDayPhase";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { FILM_GRAIN_BACKGROUND } from "@/components/theme/effects/filmGrain";
 
 const HorizonTheaterCanvas = dynamic(
   () =>
@@ -31,9 +32,6 @@ const readIsCalm = (): boolean => {
   const root = document.documentElement;
   return root.hasAttribute("data-low-data") || root.hasAttribute("data-reduce-motion");
 };
-
-const HORIZON_GRAIN_DATA_URI =
-  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='180'%20height='180'%20viewBox='0%200%20180%20180'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='.9'%20numOctaves='3'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='180'%20height='180'%20filter='url(%23n)'%20opacity='.38'/%3E%3C/svg%3E";
 
 const canUseWebGL = (): boolean => {
   if (typeof document === "undefined") return false;
@@ -473,7 +471,7 @@ const HorizonScene = ({ phaseOverride, disableAnimation }: HorizonSceneProps) =>
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `url(${HORIZON_GRAIN_DATA_URI})`,
+          backgroundImage: FILM_GRAIN_BACKGROUND,
           backgroundRepeat: "repeat",
           backgroundSize: "180px 180px",
           mixBlendMode: "soft-light",
