@@ -371,9 +371,15 @@ function AlleyScene() {
   }, []);
 
   useFrame((state, delta) => {
-    // Scroll drives distance travelled along the street; the buildings travel toward the
-    // viewer and wrap, so the alley stays populated however far the page is scrolled.
-    const targetZ = -scrollProgressRef.current * ALLEY_TRAVEL_RANGE;
+    /*
+     * Scroll drives distance travelled along the street; the buildings travel toward the
+     * viewer and wrap, so the alley stays populated however far the page is scrolled.
+     *
+     * Positive, so scrolling down brings the street toward the camera. This was negative,
+     * which walked every building further away as the visitor progressed and made the
+     * alley feel like it was running backwards.
+     */
+    const targetZ = scrollProgressRef.current * ALLEY_TRAVEL_RANGE;
     const eased = THREE.MathUtils.damp(scrollZRef.current, targetZ, 4, delta);
     scrollZRef.current = eased;
 
