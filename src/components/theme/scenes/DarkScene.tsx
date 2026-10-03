@@ -7,8 +7,34 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import { useEffect, useState } from "react";
 import { Suspense } from "react";
 import { Starfield } from "@/components/theme/effects/Starfield";
+import { useCalmMode } from "@/hooks/useCalmMode";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
+
+/** `--background` for the Dark theme (`240 12% 6%`), used until the token resolves. */
+const BACKGROUND_FALLBACK = "#0d0d11";
+
+/**
+ * Track whether the document is visible.
+ *
+ * A background tab has its requestAnimationFrame callbacks throttled by the browser,
+ * which is a heuristic rather than a guarantee and varies by engine and battery state.
+ * Switching the renderer to a hard stop is both cheaper and deterministic.
+ */
+function useDocumentHidden(): boolean {
+  const [isHidden, setIsHidden] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsHidden(document.visibilityState === "hidden");
+    update();
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
+
+  return isHidden;
+}
 
 /**
  * The background scene component for the Dark theme.
@@ -16,11 +42,22 @@ import { Starfield } from "@/components/theme/effects/Starfield";
  * specific parameters that defined its original "Abyss" appearance.
  */
 const DarkScene = () => {
+  const isCalm = useCalmMode();
+  const isHidden = useDocumentHidden();
+  const { background } = useThemeTokens(["background"]);
+
+  // Reduced-motion / low-data: render nothing so the static fallback gradient painted
+  // by ThemeBackground shows through. A continuously rotating starfield has no
+  // meaningful still frame.
+  if (isCalm) return null;
+
   return (
     <Suspense fallback={null}>
       <Canvas
         camera={{ position: [0, 0, 1] }}
-        style={{ background: "#030304" }}
+        dpr={[1, 1.75]}
+        frameloop={isHidden ? "never" : "always"}
+        style={{ background: background || BACKGROUND_FALLBACK }}
       >
         <Starfield
           // --- Recreating the original Starfield settings ---
