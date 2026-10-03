@@ -11,6 +11,34 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
+
+// --- Scene constants ---
+const TRAVEL_SPEED = 4;
+const ANOMALY_TRIGGER_DISTANCE = 5;
+const LERP_FACTOR = 0.05;
+const CAMERA_OFFSET = new THREE.Vector3(0, 15, 25);
+const ANOMALY_POS = new THREE.Vector3(0, 0, 0);
+const START_POS = new THREE.Vector3(0, 0, 40);
+
+/**
+ * Scratch vectors reused every frame. The previous implementation allocated four
+ * `THREE.Vector3` instances per frame, which is 240 objects/second of GC churn.
+ */
+const SCRATCH_MIDPOINT = new THREE.Vector3();
+const SCRATCH_TARGET = new THREE.Vector3();
+const SCRATCH_FIRST_PERSON_LOOK = new THREE.Vector3();
+
+/**
+ * The player travels at 4 units/second, so reporting distance on every change means a
+ * ~60fps React re-render for a value the HUD displays to one decimal place. Report on
+ * a 0.5-unit quantum instead: still ~8 updates/second, so the readout stays live, but
+ * the render cost becomes negligible.
+ */
+const DISTANCE_REPORT_EPSILON = 0.5;
+
+/** `--foreground` for the Light theme (`220 18% 18%`), used until the token resolves. */
+const FOREGROUND_FALLBACK = "#262b36";
 
 // Define the props that this component accepts from the main scene.
 interface CameraRigProps {
@@ -28,51 +56,55 @@ export function CameraRig({
 }: CameraRigProps) {
   const lookAtTarget = useRef<THREE.Vector3>(new THREE.Vector3());
   const shuttleRef = useRef<THREE.Mesh>(null);
-  const playerPosition = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 40));
+  const playerPosition = useRef<THREE.Vector3>(START_POS.clone());
+  const lastReportedDistance = useRef(Number.NaN);
+  const { foreground } = useThemeTokens(["foreground"]);
 
   useFrame((state, delta) => {
     let targetPos: THREE.Vector3;
     let lookAtPoint: THREE.Vector3;
-    const anomalyPos = new THREE.Vector3(0, 0, 0);
 
     // --- DEFINITIVE REFINEMENT: Create a clean state machine for camera logic ---
     if (hasReachedAnomaly) {
       // Post-collapse: Lock to a dramatic, fixed observation point to watch the supernova.
       // All player movement and control is disabled.
-      targetPos = new THREE.Vector3(0, 15, 25);
-      lookAtPoint = anomalyPos;
+      targetPos = CAMERA_OFFSET;
+      lookAtPoint = ANOMALY_POS;
     } else {
       // Pre-collapse: The shuttle is actively exploring.
       // 1. Update the player's conceptual position.
-      playerPosition.current.z -= delta * 4; // Travel speed
+      playerPosition.current.z -= delta * TRAVEL_SPEED;
 
       // 2. Check if the critical threshold has been reached.
-      const criticalThreshold = 5;
-      if (playerPosition.current.z < criticalThreshold) {
+      if (playerPosition.current.z < ANOMALY_TRIGGER_DISTANCE) {
         onReachAnomaly();
       }
 
       // 3. Determine camera and look-at positions based on the view mode.
       if (isThirdPerson) {
         // Third-Person: Calculate a true equidistant point and pull back for a cinematic shot.
-        const midPoint = new THREE.Vector3().lerpVectors(playerPosition.current, anomalyPos, 0.5);
-        const offset = new THREE.Vector3(0, 15, 25);
-        targetPos = midPoint.add(offset);
-        lookAtPoint = midPoint;
+        // These must stay two distinct vectors. `Vector3.add` mutates and returns its
+        // receiver, so sharing one scratch vector would make the camera look at its own
+        // position, leaving the shot aimed at nothing.
+        SCRATCH_MIDPOINT.lerpVectors(playerPosition.current, ANOMALY_POS, 0.5);
+        SCRATCH_TARGET.copy(SCRATCH_MIDPOINT).add(CAMERA_OFFSET);
+        targetPos = SCRATCH_TARGET;
+        lookAtPoint = SCRATCH_MIDPOINT;
       } else {
         // First-Person: The camera's position IS the player's position.
         targetPos = playerPosition.current;
-        lookAtPoint = new THREE.Vector3(
+        SCRATCH_FIRST_PERSON_LOOK.set(
           state.pointer.x * 2,
           -state.pointer.y * 2,
           playerPosition.current.z - 15
         );
+        lookAtPoint = SCRATCH_FIRST_PERSON_LOOK;
       }
     }
 
     // 4. Smoothly interpolate the camera and its focus target for a cinematic feel.
-    state.camera.position.lerp(targetPos, 0.05);
-    lookAtTarget.current.lerp(lookAtPoint, 0.05);
+    state.camera.position.lerp(targetPos, LERP_FACTOR);
+    lookAtTarget.current.lerp(lookAtPoint, LERP_FACTOR);
     state.camera.lookAt(lookAtTarget.current);
 
     // 5. Update the visible shuttle mesh's position and orientation.
@@ -84,8 +116,15 @@ export function CameraRig({
       shuttle.lookAt(lookAtTarget.current);
     }
 
-    // 6. Update the distance readout in the HUD.
-    setDistance(playerPosition.current.length());
+    // 6. Update the distance readout in the HUD, only when it changes enough to matter.
+    const distance = playerPosition.current.length();
+    if (
+      Number.isNaN(lastReportedDistance.current) ||
+      Math.abs(distance - lastReportedDistance.current) >= DISTANCE_REPORT_EPSILON
+    ) {
+      lastReportedDistance.current = distance;
+      setDistance(distance);
+    }
   });
 
   // The shuttle mesh is part of this rig, as its state is entirely dependent on the camera's logic.
@@ -93,7 +132,7 @@ export function CameraRig({
     <mesh ref={shuttleRef}>
       <coneGeometry args={[0.2, 1, 4]} />
       <meshStandardMaterial
-        color="hsl(var(--foreground))"
+        color={foreground || FOREGROUND_FALLBACK}
         metalness={0.8}
         roughness={0.4}
       />

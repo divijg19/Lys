@@ -15,6 +15,11 @@ import { HUD } from "@/components/theme/effects/light/HUD";
 import { TheAnomaly } from "@/components/theme/effects/light/TheAnomaly";
 // --- Import all the modularized, stable components ---
 import { Starfield } from "@/components/theme/effects/Starfield";
+import { useCalmMode } from "@/hooks/useCalmMode";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
+
+/** `--foreground` for the Light theme (`220 18% 18%`), used until the token resolves. */
+const FOREGROUND_FALLBACK = "#262b36";
 
 // --- The Main Scene Component ---
 const LightScene = () => {
@@ -24,6 +29,9 @@ const LightScene = () => {
   const [scanTarget, setScanTarget] = useState<string | null>(null);
   const [hasReachedAnomaly, setHasReachedAnomaly] = useState(false);
 
+  const isCalm = useCalmMode();
+  const { foreground } = useThemeTokens(["foreground"]);
+
   // This callback is passed down to the CameraRig to trigger the scene's climax.
   const handleReachAnomaly = () => {
     if (!hasReachedAnomaly) {
@@ -32,19 +40,31 @@ const LightScene = () => {
     }
   };
 
+  // Reduced-motion / low-data: render nothing so the static fallback gradient painted by
+  // ThemeBackground shows through. This scene is a continuous 60fps journey with orbiting
+  // debris, so there is nothing meaningful to show in a still frame.
+  if (isCalm) return null;
+
   return (
     <>
       {/* The entire UI is a single, self-contained component. */}
       <HUD
         isThirdPerson={isThirdPerson}
-        setIsThirdPerson={setIsThirdPerson}
         hasReachedAnomaly={hasReachedAnomaly}
         distance={distance}
         scanTarget={scanTarget}
       />
 
       {/* The main 3D canvas where the scene is rendered. */}
-      <Canvas camera={{ fov: 75, position: [0, 0, 40], near: 0.1, far: 80 }}>
+      <Canvas
+        camera={{
+          fov: 75,
+          position: [0, 0, 40],
+          near: 0.1,
+          far: 80,
+        }}
+        dpr={[1, 1.75]}
+      >
         <color
           attach="background"
           args={["#ffffff"]}
@@ -69,7 +89,7 @@ const LightScene = () => {
           <Starfield
             count={500}
             speed={-0.03}
-            color="hsl(var(--foreground))"
+            color={foreground || FOREGROUND_FALLBACK}
             size={0.002}
             radius={200}
             opacity={0.15}
