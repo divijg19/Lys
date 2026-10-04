@@ -56,8 +56,7 @@
   will-change: opacity, filter;
 }
 
-/* text-shadow/opacity driven */
-.animate-neon-flicker,
+/* opacity driven */
 .animate-horizon-city-flicker {
   will-change: opacity;
 }
@@ -68,9 +67,7 @@
   .animate-star-scroll,
   .animate-deep-star-scroll,
   .animate-defocus-fade,
-  .animate-data-rain,
-  .animate-neon-flicker,
-  .animate-dreamscape-flow,
+  .animate-data-rain .animate-dreamscape-flow,
   .animate-float-subtle,
   .animate-sky-pan,
   .animate-pan-diagonal,
@@ -183,33 +180,6 @@
 }
 .animate-data-rain {
   animation: data-rain 25s linear infinite;
-}
-
-/* The classic, unstable neon sign flicker for primary text elements */
-@keyframes neon-flicker {
-  0%,
-  18%,
-  22%,
-  24%,
-  53%,
-  55%,
-  100% {
-    opacity: 1;
-    text-shadow:
-      0 0 4px #fff,
-      0 0 10px hsl(var(--primary)),
-      0 0 20px hsl(var(--primary) / 0.8),
-      0 0 30px hsl(var(--primary) / 0.7);
-  }
-  20%,
-  23%,
-  54% {
-    opacity: 0.7;
-    text-shadow: none;
-  }
-}
-.animate-neon-flicker {
-  animation: neon-flicker 4s linear infinite;
 }
 
 /* === Theme 4: Ethereal (Lucid Dreamscape) === */

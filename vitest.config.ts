@@ -33,7 +33,9 @@ export default defineConfig({
         resolve: {
           alias: {
             "@": path.resolve(dirname, "src"),
-            "#velite": path.resolve(dirname, "src/.velite/generated"),
+            // Must mirror the "#velite" path mapping in tsconfig.json ("./.velite").
+            // velite emits its output to <root>/.velite, not src/.velite/generated.
+            "#velite": path.resolve(dirname, ".velite"),
           },
         },
       },

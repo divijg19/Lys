@@ -10,7 +10,12 @@ export const metadata = {
 
 export default function ProjectsPage() {
   return (
-    <main className="container mx-auto max-w-5xl py-12 md:py-20">
+    /*
+     * Not a `<main>` element. `MainWrapper` in the root layout already renders the page's single
+     * `<main>`, and carries its id, aria-label and skip-link target. This was a second, nested
+     * `<main>`, which is invalid HTML and splits the landmark.
+     */
+    <div className="container mx-auto max-w-5xl py-12 md:py-20">
       <header className="mb-12 flex flex-col items-start gap-y-4">
         <div className="flex items-center gap-x-3">
           <FolderKanban className="h-8 w-8 text-primary" />
@@ -24,6 +29,6 @@ export default function ProjectsPage() {
 
       {/* 3. Render the Client Component, which handles all animation and interactivity. */}
       <ProjectList />
-    </main>
+    </div>
   );
 }

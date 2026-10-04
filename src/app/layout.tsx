@@ -25,7 +25,6 @@ import { THEME_NAMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 
 // Styles
-import "@/styles/a11y.css";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {

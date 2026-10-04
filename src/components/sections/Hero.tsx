@@ -41,7 +41,7 @@ export function Hero() {
   const reduceMotion = usePrefersReducedMotion();
   const motionReady = useMotionReady();
   const { theme, isMounted } = useTheme();
-  const { greeting } = useDayPhase();
+  const { greeting, hydrated: clockHydrated } = useDayPhase();
   const taglines = HERO_TAGLINES as readonly string[];
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [typedTagline, setTypedTagline] = useState("");
@@ -83,6 +83,25 @@ export function Hero() {
     };
   }, [taglineIndex, typedTagline, isDeleting]);
 
+  /*
+   * The terminal caret is a Cyberpunk signature, and it is a continuous CSS blink.
+   *
+   * Two reasons not to show it, both previously ignored:
+   *
+   * 1. Motion. A blinking caret is the one element in the hero that never stops, so a
+   *    reduced-motion visitor should not get one.
+   * 2. Theme. `.terminal-cursor` is scoped to `[data-theme="cyberpunk"]`, so under every other
+   *    theme the class is just an un-blinked 4px rule -- a stray bar beside the tagline. Before
+   *    the scope existed the blink itself ran on all seven themes.
+   *
+   * `isMounted` is required, not defensive. `next-themes` resolves its theme from localStorage in
+   * a `useState` initialiser that returns `undefined` on the server, so during hydration the client
+   * already knows the theme while the server rendered with the fallback. Gating on motion alone
+   * made the server emit no caret and the client emit one -- a hydration mismatch on every
+   * Cyberpunk page load.
+   */
+  const showCaret = isMounted && !reduceMotion && theme.name === "cyberpunk";
+
   const nameGradientClass = isMounted
     ? NAME_GRADIENTS[theme.name] || "text-foreground"
     : "text-foreground";
@@ -91,6 +110,7 @@ export function Hero() {
     return (
       <HeroAnimated
         greeting={greeting}
+        greetingReady={clockHydrated}
         nameGradientClass={nameGradientClass}
         tagline={typedTagline}
         taglineLabel={currentTaglineLabel}
@@ -109,10 +129,11 @@ export function Hero() {
       <div className="flex w-full max-w-7xl flex-col items-center gap-6 text-center lg:flex-row lg:items-start lg:justify-center lg:gap-14 lg:text-left">
         <HeroContent
           greeting={greeting}
+          greetingReady={clockHydrated}
           nameGradientClass={nameGradientClass}
           tagline={typedTagline}
           taglineLabel={currentTaglineLabel}
-          showCaret
+          showCaret={showCaret}
         />
         <HeroImage reduceMotion={reduceMotion} />
       </div>
@@ -123,12 +144,15 @@ export function Hero() {
 const HeroContent = memo(
   ({
     greeting,
+    greetingReady,
     nameGradientClass,
     tagline,
     taglineLabel,
     showCaret,
   }: {
     greeting: string;
+    /** False until the visitor's clock has been read; see {@link useDayPhase}. */
+    greetingReady: boolean;
     nameGradientClass: string;
     tagline: string;
     taglineLabel: string;
@@ -138,11 +162,16 @@ const HeroContent = memo(
     return (
       <div className="flex flex-col items-center lg:items-start">
         <div className="flex flex-col items-center lg:items-start">
+          {/*
+            Time-dependent text, so it cannot be rendered during hydration -- see
+            `useDayPhase`. The element keeps its line height (`min-h-lh`, matching the type
+            scale) so nothing below it shifts when the greeting arrives.
+          */}
           <span
-            className="font-medium text-muted-foreground text-xl md:text-2xl"
+            className="min-h-lh font-medium text-muted-foreground text-xl md:text-2xl"
             aria-live="polite"
           >
-            {greeting}
+            {greetingReady ? greeting : null}
           </span>
 
           <div className="flex flex-row items-center gap-x-1">

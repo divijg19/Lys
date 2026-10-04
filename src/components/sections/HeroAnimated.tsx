@@ -15,6 +15,8 @@ import { HERO_SOCIALS } from "./Hero.data";
 
 type HeroAnimatedProps = {
   greeting: string;
+  /** False until the visitor's clock has been read; see {@link useDayPhase}. */
+  greetingReady: boolean;
   nameGradientClass: string;
   tagline: string;
   taglineLabel: string;
@@ -24,6 +26,7 @@ type HeroAnimatedProps = {
 
 export function HeroAnimated({
   greeting,
+  greetingReady,
   nameGradientClass,
   tagline,
   taglineLabel,
@@ -34,6 +37,7 @@ export function HeroAnimated({
     <div className="flex w-full max-w-7xl flex-col items-center gap-6 text-center lg:flex-row lg:items-start lg:justify-center lg:gap-14 lg:text-left">
       <HeroContentAnimated
         greeting={greeting}
+        greetingReady={greetingReady}
         nameGradientClass={nameGradientClass}
         tagline={tagline}
         taglineLabel={taglineLabel}
@@ -63,6 +67,7 @@ export function HeroAnimated({
 const HeroContentAnimated = memo(
   ({
     greeting,
+    greetingReady,
     nameGradientClass,
     tagline,
     taglineLabel,
@@ -70,6 +75,7 @@ const HeroContentAnimated = memo(
     reduceMotion,
   }: {
     greeting: string;
+    greetingReady: boolean;
     nameGradientClass: string;
     tagline: string;
     taglineLabel: string;
@@ -83,11 +89,13 @@ const HeroContentAnimated = memo(
           variants={reduceMotion ? undefined : fadeUp}
           className="flex flex-col items-center lg:items-start"
         >
+          {/* Time-dependent text; see the note in `Hero`. The line keeps its height so nothing
+              shifts when the greeting arrives. */}
           <span
-            className="font-medium text-muted-foreground text-xl md:text-2xl"
+            className="min-h-lh font-medium text-muted-foreground text-xl md:text-2xl"
             aria-live="polite"
           >
-            {greeting}
+            {greetingReady ? greeting : null}
           </span>
 
           <div className="flex flex-row items-center gap-x-1">

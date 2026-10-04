@@ -76,7 +76,12 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
   const isoDate = new Date(blog.date).toISOString();
   return (
-    <main className="container mx-auto max-w-3xl py-12 md:py-20">
+    /*
+     * Not a `<main>` element. `MainWrapper` in the root layout already renders the page's single
+     * `<main>`, and carries its id, aria-label and skip-link target. This was a second, nested
+     * `<main>`, which is invalid HTML and splits the landmark.
+     */
+    <div className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
         <ArticleJsonLd
           title={blog.title}
@@ -138,6 +143,6 @@ export default async function BlogPage({ params }: BlogPageProps) {
           <MdxContent code={blog.content} />
         </div>
       </article>
-    </main>
+    </div>
   );
 }

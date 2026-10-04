@@ -352,7 +352,17 @@
       linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)));
   }
 
-  /* --- CYBERPUNK-SPECIFIC UTILITIES --- */
+  /*
+   * --- CYBERPUNK UTILITIES (opt-in, unscoped) ---
+   *
+   * These are deliberately *not* theme-scoped: they are opt-in utilities and a component applies
+   * one by naming it, so applying one under another theme is a visible authoring mistake rather
+   * than something the cascade does silently. `.terminal-cursor` below is the exception, because
+   * it is applied by the shared `Hero` -- see its own comment.
+   *
+   * Five of these have no consumer anywhere in `src/` (`text-glitch`, `text-neon`, `holographic`,
+   * `scanlines`, `cyber-grid`). They are inert until named.
+   */
 
   /* Glitch effect for text */
   .text-glitch {
@@ -432,8 +442,16 @@
     z-index: 1;
   }
 
-  /* Terminal cursor effect */
-  .terminal-cursor {
+  /*
+   * Terminal cursor effect -- scoped to Cyberpunk.
+   *
+   * This is the only class here with a shared consumer, and it is why the Cyberpunk text flicker
+   * appeared in every theme: `@keyframes cursor-blink` below is global, because keyframes always
+   * are, so an unscoped `.terminal-cursor` animated the hero caret in all seven themes.
+   *
+   * Scoped the same way as the `simple` overrides further up this file.
+   */
+  html[data-theme="cyberpunk"] .terminal-cursor {
     border-right: 4px solid hsl(var(--primary));
     animation: cursor-blink 1s step-end infinite;
     position: relative;
