@@ -2,19 +2,8 @@
   "buildCommand": "bun run build",
   "framework": "nextjs",
   "functions": {
-    "app/api/contact/route.ts": {
+    "src/app/api/contact/route.ts": {
       "maxDuration": 10
     }
-  },
-  "headers": [
-    {
-      "source": "/fonts/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    }
-  ]
+  }
 }

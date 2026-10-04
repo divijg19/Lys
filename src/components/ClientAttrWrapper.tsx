@@ -43,12 +43,6 @@ export function ClientAttrWrapper({ children }: { children: React.ReactNode }) {
     if (reduceMotion || themeForcesCalm) root.setAttribute("data-reduce-motion", "true");
     else root.removeAttribute("data-reduce-motion");
   }, [reduceMotion, themeForcesCalm]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (themeForcesCalm) root.setAttribute("data-ui-calm", "true");
-    else root.removeAttribute("data-ui-calm");
-  }, [themeForcesCalm]);
   // Fallback: ensure a data-theme attribute exists very early if next-themes hasn't applied yet
   useEffect(() => {
     const root = document.documentElement;
