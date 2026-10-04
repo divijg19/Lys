@@ -14,6 +14,7 @@ import {
 import { CitySilhouette } from "@/components/theme/effects/cyberpunk/CitySilhouette";
 import { NeonGlow } from "@/components/theme/effects/cyberpunk/NeonGlow";
 import { useCalmMode } from "@/hooks/useCalmMode";
+import { sceneMotionPolicy } from "@/lib/calm";
 
 /**
  * The background scene component for the Cyberpunk theme.
@@ -30,22 +31,29 @@ import { useCalmMode } from "@/hooks/useCalmMode";
 const CyberpunkScene = () => {
   // Force a remount pulse AFTER theme transition completes to fight potential race with AnimatePresence exit.
   const [ready, setReady] = useState(false);
-  const isCalm = useCalmMode();
+  const policy = sceneMotionPolicy(useCalmMode());
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(id);
   }, []);
 
-  // Reduced-motion / low-data: stand the whole scene down. The alley is a continuous
-  // 60fps scroll with a bloom pass and two animated rain canvases, so there is nothing
-  // meaningful to show in a still frame; ThemeBackground's fallback gradient carries the
-  // theme instead. Returning null also skips mounting the canvas, the composer and the
-  // lightning scheduler entirely.
-  if (isCalm) return null;
-
   if (!ready) return null; // brief (1 frame) skip ensures background gradient + container ready
 
+  /*
+   * Calm: freeze, do not delete.
+   *
+   * This scene used to return null under calm, standing down the whole theme. That shipped
+   * as a production regression -- Cyberpunk, Light and Dark all vanished for visitors whose
+   * browser reported reduced motion or a constrained connection, while Ethereal, Horizon and
+   * Mirage carried on.
+   *
+   * The rationale for deleting was that the alley is a continuous 60fps scroll with a bloom
+   * pass. But that cost argument only justifies dropping the *animated* parts, not the theme.
+   * So `CitySilhouette` now renders a still frame: no rain, no lightning, no post-processing,
+   * one frameloop step to position the street, and the backdrop, neon wash and grade layers
+   * left intact -- they are already static CSS.
+   */
   return (
     <div className="relative isolate h-full w-full">
       {/* Layer 1: sky, haze and distant skyline, with the neon wash over it. */}
@@ -56,7 +64,7 @@ const CyberpunkScene = () => {
 
       {/* Layer 2: the WebGL alley, lightning and rain. */}
       <div className="pointer-events-none absolute inset-0 isolate overflow-hidden">
-        <CitySilhouette />
+        <CitySilhouette policy={policy} />
       </div>
 
       {/* Layer 3: scanlines, vignette and grain, over everything. */}

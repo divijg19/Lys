@@ -7,6 +7,7 @@
 
 import type { RefObject } from "react";
 import { useEffect, useRef } from "react";
+import { readThemeToken } from "@/hooks/useThemeTokens";
 
 // --- Constants ---
 const ALPHABET =
@@ -31,6 +32,17 @@ export interface DataRainOptions {
   density?: number;
   /** Multiplier on fall speed. @default 1 */
   speed?: number;
+  /**
+   * Set false to stop the effect entirely.
+   *
+   * This matters more than it looks: the hook owns its own requestAnimationFrame loop and a
+   * debounced resize timer, neither of which is governed by the renderer's `frameloop`. A
+   * scene that freezes its frameloop under calm mode still needs to tell this hook to stop,
+   * or the rain keeps falling at 60fps behind a "frozen" scene.
+   *
+   * @default true
+   */
+  enabled?: boolean;
 }
 
 const PROFILE_DEFAULTS: Record<DataRainProfile, { density: number; speed: number }> = {
@@ -97,27 +109,32 @@ class Stream {
 /**
  * Read the theme tokens this effect paints with.
  *
- * These are stored as bare HSL triplets and wrapped in `hsl()` here, because
- * CanvasRenderingContext2D.fillStyle cannot resolve `hsl(var(--primary))`.
+ * Tokens are stored as bare HSL triplets and have to be wrapped here, because
+ * CanvasRenderingContext2D.fillStyle cannot resolve `hsl(var(--primary))`. The wrapping
+ * itself comes from `readThemeToken`, so the resolution rules live in one place.
  */
-const readRainColors = () => {
-  const style = getComputedStyle(document.documentElement);
-  const primary = style.getPropertyValue("--primary").trim();
-  const accent = style.getPropertyValue("--accent").trim();
-  const background = style.getPropertyValue("--background").trim();
-  return {
-    primaryColor: `hsl(${primary})`,
-    accentColor: `hsl(${accent})`,
-    backgroundColor: `hsla(${background} / 0.1)`,
-  };
-};
+const readRainColors = () => ({
+  primaryColor: readThemeToken("primary"),
+  accentColor: readThemeToken("accent"),
+  backgroundColor: readRainBackground(),
+});
+
+/**
+ * The trail colour needs an explicit alpha, which `readThemeToken` does not provide, so it
+ * is resolved here from the same source.
+ */
+function readRainBackground(): string {
+  if (typeof document === "undefined") return "";
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--background").trim();
+  return raw ? `hsla(${raw} / 0.1)` : "";
+}
 
 // --- The Custom Hook ---
 // THE DEFINITIVE FIX: The function signature now accepts a RefObject where the generic
 // type itself can be null, perfectly matching the type provided by the component.
 export const useDataRain = (
   canvasRef: RefObject<HTMLCanvasElement | null>,
-  { profile = "heavy", density = 1, speed: speedScale = 1 }: DataRainOptions = {}
+  { profile = "heavy", density = 1, speed: speedScale = 1, enabled = true }: DataRainOptions = {}
 ) => {
   const streamsRef = useRef<Stream[]>([]);
   const animationFrameId = useRef<number>(0);
@@ -127,6 +144,10 @@ export const useDataRain = (
   const effectiveSpeed = speedScale * profileDefaults.speed;
 
   useEffect(() => {
+    // Disabled (calm mode): never start the loop or the debounce timer. Bailing out here
+    // rather than inside the loop is what guarantees a pending resize cannot restart it.
+    if (!enabled) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return; // This guard clause correctly handles the null case.
 
@@ -228,5 +249,5 @@ export const useDataRain = (
       window.removeEventListener("resize", debouncedSetup);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [canvasRef, effectiveDensity, effectiveSpeed]);
+  }, [canvasRef, effectiveDensity, effectiveSpeed, enabled]);
 };

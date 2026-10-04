@@ -12,7 +12,17 @@ const FADE_UP_VARIANTS = {
 };
 
 export function BlogList() {
-  const sortedPosts = blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  /*
+   * Copy before sorting.
+   *
+   * `Array.prototype.sort` sorts in place. `blogs` is a Velite content collection, which is
+   * a module-level array shared by every importer in the process, so sorting it directly
+   * mutated shared state -- the order was then baked in for any later reader, and the result
+   * depended on import order rather than on the data.
+   */
+  const sortedPosts = [...blogs].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 
   if (sortedPosts.length === 0) {
     return (

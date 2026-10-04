@@ -2,40 +2,33 @@
 
 /**
  * @file: src/hooks/useCalmMode.ts
- * @description: Single source of truth for "should this theme render motion?".
+ * @description: Reactive access to calm mode for React consumers.
  *
- * Three separate scenes each carried a private `readIsCalm()` copy that checked the
- * same two root attributes, and two scenes checked neither. This hook is the single
- * implementation, so every scene agrees on what counts as calm and stays reactive to
- * preference changes that happen after mount.
+ * All of the rules live in `@/lib/calm`, which is pure and unit tested. This file is only
+ * the subscription: it reads the `<html>` attributes that `ClientAttrWrapper` derives, and
+ * re-reads them when they change.
  *
- * The source of truth is the `data-reduce-motion` / `data-low-data` attributes on
- * `<html>`, which `ClientAttrWrapper` already derives from `prefers-reduced-motion`
- * and the Network Information API.
+ * Reading the derived attributes rather than querying `matchMedia` directly is deliberate.
+ * It means one place decides what calm means, every consumer agrees, and the answer stays
+ * correct when the active theme also forces calm (the `simple` theme).
  */
 
 import { useEffect, useState } from "react";
+import {
+  CALM_ATTRIBUTES,
+  type CalmReason,
+  readCalmMode,
+  readCalmReasonFromElement,
+} from "@/lib/calm";
 
-/** Attributes that suppress decorative motion, set by `ClientAttrWrapper`. */
-export const CALM_ATTRIBUTES = ["data-reduce-motion", "data-low-data"] as const;
-
-/**
- * Read the current calm state synchronously.
- *
- * Exported so animation loops (which cannot depend on React state) can branch on the
- * same definition the hook uses.
- */
-export function readCalmMode(): boolean {
-  if (typeof document === "undefined") return false;
-  const root = document.documentElement;
-  return CALM_ATTRIBUTES.some((attribute) => root.hasAttribute(attribute));
-}
+export { CALM_ATTRIBUTES, readCalmMode, sceneMotionPolicy } from "@/lib/calm";
+export type { CalmReason, SceneMotionPolicy } from "@/lib/calm";
 
 /**
- * Reactive calm-mode flag for theme scenes.
+ * Reactive calm-mode flag.
  *
- * @returns `true` when the user prefers reduced motion, the device reports a
- * data-constrained connection, or the active theme forces calm presentation.
+ * @returns `true` when the visitor prefers reduced motion, the device reports a
+ *   data-constrained connection, or the active theme forces calm presentation.
  */
 export function useCalmMode(): boolean {
   const [isCalm, setIsCalm] = useState(false);
@@ -55,4 +48,30 @@ export function useCalmMode(): boolean {
   }, []);
 
   return isCalm;
+}
+
+/**
+ * Reactive calm mode with the reason attached.
+ *
+ * Use this where the distinction matters, such as diagnostics or choosing a cheaper
+ * fallback for a transient network constraint.
+ */
+export function useCalmReason(): CalmReason | null {
+  const [reason, setReason] = useState<CalmReason | null>(null);
+
+  useEffect(() => {
+    const update = () => setReason(readCalmReasonFromElement(document.documentElement));
+
+    update();
+
+    if (typeof MutationObserver === "undefined") return;
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: [...CALM_ATTRIBUTES],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return reason;
 }

@@ -7,34 +7,15 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { useEffect, useState } from "react";
 import { Suspense } from "react";
 import { Starfield } from "@/components/theme/effects/Starfield";
 import { useCalmMode } from "@/hooks/useCalmMode";
+import { useDocumentHidden } from "@/hooks/useDocumentVisibility";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { sceneMotionPolicy } from "@/lib/calm";
 
 /** `--background` for the Dark theme (`240 12% 6%`), used until the token resolves. */
 const BACKGROUND_FALLBACK = "#0d0d11";
-
-/**
- * Track whether the document is visible.
- *
- * A background tab has its requestAnimationFrame callbacks throttled by the browser,
- * which is a heuristic rather than a guarantee and varies by engine and battery state.
- * Switching the renderer to a hard stop is both cheaper and deterministic.
- */
-function useDocumentHidden(): boolean {
-  const [isHidden, setIsHidden] = useState(false);
-
-  useEffect(() => {
-    const update = () => setIsHidden(document.visibilityState === "hidden");
-    update();
-    document.addEventListener("visibilitychange", update);
-    return () => document.removeEventListener("visibilitychange", update);
-  }, []);
-
-  return isHidden;
-}
 
 /**
  * The background scene component for the Dark theme.
@@ -46,17 +27,26 @@ const DarkScene = () => {
   const isHidden = useDocumentHidden();
   const { background } = useThemeTokens(["background"]);
 
-  // Reduced-motion / low-data: render nothing so the static fallback gradient painted
-  // by ThemeBackground shows through. A continuously rotating starfield has no
-  // meaningful still frame.
-  if (isCalm) return null;
+  /*
+   * Calm: freeze, do not delete.
+   *
+   * A starfield has a perfectly good still frame -- it is a field of points, and holding
+   * them still reads as deep space rather than as a missing theme. Returning null here is
+   * what made this scene disappear in production for reduced-motion visitors.
+   *
+   * A hidden document also stops the loop. Browsers throttle requestAnimationFrame in
+   * background tabs, but that is a heuristic that varies by engine and battery state, and
+   * it does nothing for this scene's own work.
+   */
+  const policy = sceneMotionPolicy(isCalm);
+  const frameloop = isHidden || policy.frameloop === "never" ? "never" : "always";
 
   return (
     <Suspense fallback={null}>
       <Canvas
         camera={{ position: [0, 0, 1] }}
         dpr={[1, 1.75]}
-        frameloop={isHidden ? "never" : "always"}
+        frameloop={frameloop}
         style={{ background: background || BACKGROUND_FALLBACK }}
       >
         <Starfield

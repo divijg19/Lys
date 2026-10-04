@@ -112,7 +112,15 @@ export function Hero() {
           nameGradientClass={nameGradientClass}
           tagline={typedTagline}
           taglineLabel={currentTaglineLabel}
-          showCaret
+          /*
+           * Gate the caret on motion preference.
+           *
+           * This branch is the reduced-motion presentation, and `terminal-cursor` is a CSS
+           * blink -- so passing `showCaret` unconditionally meant reduced-motion visitors got
+           * the one continuously animating element in the hero. It was the only call site in
+           * the file, so `showCaret` was effectively a constant `true` here.
+           */
+          showCaret={!reduceMotion}
         />
         <HeroImage reduceMotion={reduceMotion} />
       </div>

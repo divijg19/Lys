@@ -47,7 +47,14 @@ export function subscribeGridPower(listener: Listener): () => void {
   };
 }
 
-let dipTimer: ReturnType<typeof setTimeout> | undefined;
+/**
+ * Pending timers for the current dip sequence.
+ *
+ * Held as a list rather than a single handle: the sequence is four chained steps, and
+ * assigning each to one variable meant only the last was ever cancellable, so three timers
+ * survived `resetGridPower()` and kept publishing after the scene was gone.
+ */
+let dipTimers: Array<ReturnType<typeof setTimeout>> = [];
 
 /**
  * Brown out the street, then bring it back with a stutter.
@@ -57,21 +64,28 @@ let dipTimer: ReturnType<typeof setTimeout> | undefined;
 export function triggerPowerDip(depth = 0.28): void {
   publish(depth);
 
-  if (dipTimer) clearTimeout(dipTimer);
+  clearDipTimers();
 
   // Two quick stutters before settling, which is what sells it as a failing grid rather
   // than a scripted fade.
-  dipTimer = setTimeout(() => publish(0.75), 90);
-  dipTimer = setTimeout(() => publish(depth * 0.8), 190);
-  dipTimer = setTimeout(() => publish(0.92), 300);
-  dipTimer = setTimeout(() => publish(1), 620);
+  const steps: Array<[delay: number, level: number]> = [
+    [90, 0.75],
+    [190, depth * 0.8],
+    [300, 0.92],
+    [620, 1],
+  ];
+  for (const [delay, level] of steps) {
+    dipTimers.push(setTimeout(() => publish(level), delay));
+  }
+}
+
+function clearDipTimers(): void {
+  for (const timer of dipTimers) clearTimeout(timer);
+  dipTimers = [];
 }
 
 /** Restore stable power. Used when the scene unmounts. */
 export function resetGridPower(): void {
-  if (dipTimer) {
-    clearTimeout(dipTimer);
-    dipTimer = undefined;
-  }
+  clearDipTimers();
   publish(1);
 }
