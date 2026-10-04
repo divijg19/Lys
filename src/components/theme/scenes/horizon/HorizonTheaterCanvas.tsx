@@ -8,6 +8,7 @@ import { NightCityScene } from "./phases/NightCityScene";
 import { SunriseScene } from "./phases/SunriseScene";
 import { SunsetScene } from "./phases/SunsetScene";
 import { HorizonPostFX } from "./postfx/HorizonPostFX";
+import { FrozenFrame, RepaintOnVisible } from "@/components/theme/FrozenFrame";
 
 interface HorizonTheaterCanvasProps {
   variant: SkyVariant;
@@ -34,7 +35,18 @@ export function HorizonTheaterCanvas({ variant, isCalm = false }: HorizonTheater
     <Canvas
       dpr={dpr}
       camera={{ position: [0, 0, 5], fov: 50 }}
-      frameloop={isCalm ? "never" : "demand"}
+      /*
+       * "demand" in both states, deliberately.
+       *
+       * This used to be `isCalm ? "never" : "demand"`. `"never"` cannot be painted at all:
+       * R3F's `invalidate()` early-returns for that frameloop, so `gl.render` is never
+       * reached and the theatre stays blank in calm mode. `FrozenFrame` below requests the
+       * single calm frame instead, so the scene is drawn once and held.
+       *
+       * The non-calm path is already `demand` (the scene self-invalidates while animating),
+       * so this is now uniform.
+       */
+      frameloop="demand"
       gl={{
         alpha: true,
         antialias: false,
@@ -48,6 +60,8 @@ export function HorizonTheaterCanvas({ variant, isCalm = false }: HorizonTheater
         pointerEvents: "none",
       }}
     >
+      <FrozenFrame />
+      <RepaintOnVisible />
       <Suspense fallback={null}>
         {variant === "sunrise" && (
           <SunriseScene

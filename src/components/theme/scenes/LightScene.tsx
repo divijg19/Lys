@@ -9,12 +9,14 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useState } from "react";
+import { FrozenFrame, RepaintOnVisible } from "@/components/theme/FrozenFrame";
 import { CameraRig } from "@/components/theme/effects/light/CameraRig";
 import { CelestialDebrisField } from "@/components/theme/effects/light/CelestialDebrisField";
 import { HUD } from "@/components/theme/effects/light/HUD";
 import { TheAnomaly } from "@/components/theme/effects/light/TheAnomaly";
 // --- Import all the modularized, stable components ---
 import { Starfield } from "@/components/theme/effects/Starfield";
+import { useSceneSupport } from "@/components/theme/SceneSupport";
 import { useCalmMode } from "@/hooks/useCalmMode";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { sceneMotionPolicy } from "@/lib/calm";
@@ -32,6 +34,7 @@ const LightScene = () => {
 
   const isCalm = useCalmMode();
   const policy = sceneMotionPolicy(isCalm);
+  const { supported } = useSceneSupport();
   const { foreground } = useThemeTokens(["foreground"]);
 
   // This callback is passed down to the CameraRig to trigger the scene's climax.
@@ -61,59 +64,66 @@ const LightScene = () => {
         scanTarget={scanTarget}
       />
 
-      {/* The main 3D canvas where the scene is rendered. */}
-      <Canvas
-        camera={{
-          fov: 75,
-          position: [0, 0, 40],
-          near: 0.1,
-          far: 80,
-        }}
-        dpr={[1, 1.75]}
-        frameloop={policy.frameloop}
-      >
-        <color
-          attach="background"
-          args={["#ffffff"]}
-        />
-        <fog
-          attach="fog"
-          args={["#ffffff", 40, 70]}
-        />
-        <ambientLight intensity={3.0} />
-        <directionalLight
-          position={[10, 10, 5]}
-          intensity={1.0}
-        />
+      {/*
+       * No WebGL: the canvas is never mounted, so it cannot throw for lack of a context.
+       * `ThemeBackground`'s fallback gradient shows through instead.
+       */}
+      {supported && (
+        <Canvas
+          camera={{
+            fov: 75,
+            position: [0, 0, 40],
+            near: 0.1,
+            far: 80,
+          }}
+          dpr={[1, 1.75]}
+          frameloop={policy.frameloop}
+        >
+          <FrozenFrame />
+          <RepaintOnVisible />
+          <color
+            attach="background"
+            args={["#ffffff"]}
+          />
+          <fog
+            attach="fog"
+            args={["#ffffff", 40, 70]}
+          />
+          <ambientLight intensity={3.0} />
+          <directionalLight
+            position={[10, 10, 5]}
+            intensity={1.0}
+          />
 
-        {/* Suspense is a React feature that allows us to show a fallback while components are loading. */}
-        <Suspense fallback={null}>
-          <TheAnomaly
-            hasReachedAnomaly={hasReachedAnomaly}
-            animated={policy.animated}
-          />
-          <CelestialDebrisField
-            setScanTarget={setScanTarget}
-            hasReachedAnomaly={hasReachedAnomaly}
-            animated={policy.animated}
-          />
-          <Starfield
-            count={500}
-            speed={-0.03}
-            color={foreground || FOREGROUND_FALLBACK}
-            size={0.002}
-            radius={200}
-            opacity={0.15}
-          />
-          <CameraRig
-            isThirdPerson={isThirdPerson}
-            setDistance={setDistance}
-            onReachAnomaly={handleReachAnomaly}
-            hasReachedAnomaly={hasReachedAnomaly}
-            travel={policy.cameraTravel}
-          />
-        </Suspense>
-      </Canvas>
+          {/* Suspense is a React feature that allows us to show a fallback while components are loading. */}
+          <Suspense fallback={null}>
+            <TheAnomaly
+              hasReachedAnomaly={hasReachedAnomaly}
+              animated={policy.animated}
+            />
+            <CelestialDebrisField
+              setScanTarget={setScanTarget}
+              hasReachedAnomaly={hasReachedAnomaly}
+              animated={policy.animated}
+            />
+            <Starfield
+              count={500}
+              speed={-0.03}
+              color={foreground || FOREGROUND_FALLBACK}
+              size={0.002}
+              radius={200}
+              opacity={0.15}
+            />
+            <CameraRig
+              isThirdPerson={isThirdPerson}
+              setDistance={setDistance}
+              onReachAnomaly={handleReachAnomaly}
+              hasReachedAnomaly={hasReachedAnomaly}
+              travel={policy.cameraTravel}
+            />
+          </Suspense>
+        </Canvas>
+      )}
     </>
   );
 };

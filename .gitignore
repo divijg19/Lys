@@ -11,7 +11,12 @@ node_modules/
 
 # ────────────── Testing ──────────────
 coverage/
-scripts/
+
+# NOTE: `scripts/` used to be ignored wholesale. That was wrong: it holds hand-written,
+# source-controlled verification harnesses, and package.json references them as npm scripts
+# (`test:e2e:smoke`, `verify:backgrounds`). With the directory ignored, those scripts resolved
+# to files that existed only on one machine and were missing from every clone. Only generated
+# output is ignored below.
 
 # ────────────── Next.js Build Artifacts ──────────────
 .next/

@@ -13,6 +13,7 @@ import {
 } from "@/components/theme/effects/cyberpunk/Atmosphere";
 import { CitySilhouette } from "@/components/theme/effects/cyberpunk/CitySilhouette";
 import { NeonGlow } from "@/components/theme/effects/cyberpunk/NeonGlow";
+import { useSceneSupport } from "@/components/theme/SceneSupport";
 import { useCalmMode } from "@/hooks/useCalmMode";
 import { sceneMotionPolicy } from "@/lib/calm";
 
@@ -32,6 +33,7 @@ const CyberpunkScene = () => {
   // Force a remount pulse AFTER theme transition completes to fight potential race with AnimatePresence exit.
   const [ready, setReady] = useState(false);
   const policy = sceneMotionPolicy(useCalmMode());
+  const { supported } = useSceneSupport();
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setReady(true));
@@ -62,10 +64,19 @@ const CyberpunkScene = () => {
         <NeonGlow />
       </div>
 
-      {/* Layer 2: the WebGL alley, lightning and rain. */}
-      <div className="pointer-events-none absolute inset-0 isolate overflow-hidden">
-        <CitySilhouette policy={policy} />
-      </div>
+      {/*
+       * Layer 2: the WebGL alley, lightning and rain.
+       *
+       * Gated on WebGL support rather than left to fail. Layers 1 and 3 are plain CSS and are
+       * the theme's actual identity, so this one is allowed to be absent without taking them
+       * with it -- which is what used to happen, because a context failure threw and the scene
+       * boundary took the whole scene down.
+       */}
+      {supported && (
+        <div className="pointer-events-none absolute inset-0 isolate overflow-hidden">
+          <CitySilhouette policy={policy} />
+        </div>
+      )}
 
       {/* Layer 3: scanlines, vignette and grain, over everything. */}
       <div className="pointer-events-none absolute inset-0 isolate overflow-hidden">

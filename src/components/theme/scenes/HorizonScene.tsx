@@ -7,7 +7,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
 /**
  * The background scene component for the Horizon theme.
  * This component builds a complex landscape by layering a sky gradient,
@@ -17,6 +16,7 @@ import { useEffect, useState } from "react";
 import { type DayPhase, useDayPhase } from "@/hooks/useDayPhase";
 import { useCalmMode } from "@/hooks/useCalmMode";
 import { FILM_GRAIN_BACKGROUND } from "@/components/theme/effects/filmGrain";
+import { useSceneSupport } from "@/components/theme/SceneSupport";
 
 const HorizonTheaterCanvas = dynamic(
   () =>
@@ -26,16 +26,6 @@ const HorizonTheaterCanvas = dynamic(
     loading: () => null,
   }
 );
-
-const canUseWebGL = (): boolean => {
-  if (typeof document === "undefined") return false;
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-  } catch {
-    return false;
-  }
-};
 
 interface HorizonVariant {
   id: string; // semantic id (e.g., sunrise, sunset, night-city)
@@ -65,17 +55,22 @@ const HorizonScene = ({ phaseOverride, disableAnimation }: HorizonSceneProps) =>
   // "delete instead of freeze" behaviour v0.2.7 removes from the other scenes.
   const calmMode = useCalmMode();
   const isCalm = disableAnimation || calmMode;
-  const [webglOk, setWebglOk] = useState(false);
 
-  // Calm drops the WebGL theatre -- the expensive half -- and keeps the CSS atmosphere,
-  // which is already static. Freezing, not deleting.
-  useEffect(() => {
-    if (isCalm) {
-      setWebglOk(false);
-      return;
-    }
-    setWebglOk(canUseWebGL());
-  }, [isCalm]);
+  /*
+   * Shared capability probe.
+   *
+   * This used to be a private `canUseWebGL()` plus local state that was also forced to `false`
+   * whenever the scene was calm. That second part was the bug: it made calm *delete* the WebGL
+   * theatre, which is precisely what `src/lib/calm.ts` forbids ("calm can stop time and switch
+   * effects off; it cannot delete a theme"). It survived v0.2.7 because the guard test only
+   * looked for a calm-gated `return null`, and a capability disabling a sub-layer is a different
+   * shape of regression.
+   *
+   * Now calm freezes the theatre -- `HorizonTheaterCanvas` runs `frameloop: "demand"` and
+   * `FrozenFrame` paints one frame -- while the CSS atmosphere keeps rendering underneath
+   * exactly as before.
+   */
+  const { supported: webglOk } = useSceneSupport();
 
   // Map day phase -> requested narrative variants
   // late-night  -> night city moonbeam

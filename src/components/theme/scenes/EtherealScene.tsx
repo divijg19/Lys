@@ -17,7 +17,9 @@ import { cn } from "@/lib/utils";
 import { RippleCue } from "../effects/ethereal/RippleCue";
 import { type WispData, Wisps } from "../effects/ethereal/Wisps";
 import { type RippleEvent, Ripples, saturateColor } from "../effects/ethereal/Ripples";
+import { FrozenFrame, RepaintOnVisible } from "@/components/theme/FrozenFrame";
 import { FlowingPlane } from "../effects/FlowingPlane";
+import { useSceneSupport } from "@/components/theme/SceneSupport";
 import { useCalmMode } from "@/hooks/useCalmMode";
 import { useRippleField } from "@/hooks/useRippleField";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
@@ -118,6 +120,7 @@ const SceneContent = ({ policy }: { policy: SceneMotionPolicy }) => {
 
 const EtherealScene = () => {
   const policy = sceneMotionPolicy(useCalmMode());
+  const { supported } = useSceneSupport();
 
   return (
     <div className="pointer-events-none absolute inset-0">
@@ -125,14 +128,18 @@ const EtherealScene = () => {
         className={cn("-z-10 absolute inset-0 animate-dreamscape-flow")}
         style={{
           backgroundSize: "200% 200%",
-          backgroundImage: "linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)))",
+          // Deeper than the fallback's identical gradient. The fallback uses
+          // background->muted; holding muted for the whole lower half is what made this layer
+          // invisible against it.
+          backgroundImage:
+            "linear-gradient(165deg, hsl(var(--background)) 0%, hsl(var(--muted)) 46%, hsl(258 60% 90%) 100%)",
         }}
       />
       <div
         className={cn("-z-10 absolute inset-0")}
         style={{
           backgroundImage:
-            "radial-gradient(1200px 900px at 22% 18%, hsl(var(--primary) / 0.22), transparent 60%), radial-gradient(1100px 800px at 82% 78%, hsl(var(--accent) / 0.18), transparent 55%)",
+            "radial-gradient(1200px 900px at 22% 18%, hsl(var(--primary) / 0.34), transparent 62%), radial-gradient(1100px 800px at 82% 78%, hsl(var(--accent) / 0.3), transparent 58%)",
         }}
       />
       <div
@@ -141,7 +148,7 @@ const EtherealScene = () => {
         )}
         style={{
           backgroundImage:
-            "radial-gradient(ellipse at center, hsl(var(--secondary) / 0.14) 0%, transparent 68%)",
+            "radial-gradient(ellipse at center, hsl(var(--secondary) / 0.26) 0%, transparent 70%)",
           animationDuration: "22s",
         }}
       />
@@ -151,7 +158,7 @@ const EtherealScene = () => {
         )}
         style={{
           backgroundImage:
-            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.12) 0%, transparent 68%)",
+            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.22) 0%, transparent 70%)",
           animationDuration: "26s",
           animationDelay: "2s",
         }}
@@ -163,16 +170,24 @@ const EtherealScene = () => {
             "radial-gradient(1200px 800px at 50% 0%, transparent 40%, hsl(var(--background) / 0.6) 100%)",
         }}
       />
-      <Canvas
-        dpr={[1, 1.5]}
-        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
-        camera={{ position: [0, 2, 5], fov: 75 }}
-        frameloop={policy.frameloop}
-        className="absolute inset-0"
-        style={{ background: "transparent" }}
-      >
-        <SceneContent policy={policy} />
-      </Canvas>
+      {/*
+       * No WebGL: the canvas is never mounted, so it cannot throw for lack of a context.
+       * The CSS atmosphere layers above are unconditional, so they still render.
+       */}
+      {supported && (
+        <Canvas
+          dpr={[1, 1.5]}
+          gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+          camera={{ position: [0, 2, 5], fov: 75 }}
+          frameloop={policy.frameloop}
+          className="absolute inset-0"
+          style={{ background: "transparent" }}
+        >
+          <FrozenFrame />
+          <RepaintOnVisible />
+          <SceneContent policy={policy} />
+        </Canvas>
+      )}
 
       {/* Above the canvas: the cursor ring and hint are affordances, not scene content. */}
       <RippleCue />

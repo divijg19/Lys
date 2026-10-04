@@ -15,30 +15,38 @@ import { HERO_SOCIALS } from "./Hero.data";
 
 type HeroAnimatedProps = {
   greeting: string;
+  /** False until the visitor's clock has been read; see {@link useDayPhase}. */
+  greetingReady: boolean;
   nameGradientClass: string;
   tagline: string;
   taglineLabel: string;
   stackRibbons: string[];
   reduceMotion: boolean;
+  /** Whether to render the blinking terminal caret. Owned by `Hero`; see the note there. */
+  showCaret: boolean;
 };
 
 export function HeroAnimated({
   greeting,
+  greetingReady,
   nameGradientClass,
   tagline,
   taglineLabel,
   stackRibbons,
   reduceMotion,
+  showCaret,
 }: HeroAnimatedProps) {
   const Inner = (
     <div className="flex w-full max-w-7xl flex-col items-center gap-6 text-center lg:flex-row lg:items-start lg:justify-center lg:gap-14 lg:text-left">
       <HeroContentAnimated
         greeting={greeting}
+        greetingReady={greetingReady}
         nameGradientClass={nameGradientClass}
         tagline={tagline}
         taglineLabel={taglineLabel}
         stackRibbons={stackRibbons}
         reduceMotion={reduceMotion}
+        showCaret={showCaret}
       />
       <HeroImageAnimated reduceMotion={reduceMotion} />
     </div>
@@ -63,18 +71,22 @@ export function HeroAnimated({
 const HeroContentAnimated = memo(
   ({
     greeting,
+    greetingReady,
     nameGradientClass,
     tagline,
     taglineLabel,
     stackRibbons,
     reduceMotion,
+    showCaret,
   }: {
     greeting: string;
+    greetingReady: boolean;
     nameGradientClass: string;
     tagline: string;
     taglineLabel: string;
     stackRibbons: string[];
     reduceMotion: boolean;
+    showCaret: boolean;
   }) => {
     const ariaLabel = taglineLabel || bio.tagline || "Tagline";
     return (
@@ -84,10 +96,12 @@ const HeroContentAnimated = memo(
           className="flex flex-col items-center lg:items-start"
         >
           <span
-            className="font-medium text-muted-foreground text-xl md:text-2xl"
+            className="min-h-lh font-medium text-muted-foreground text-xl md:text-2xl"
             aria-live="polite"
           >
-            {greeting}
+            {/* Time-dependent text; see the note in `Hero`. The line keeps its height so
+                nothing shifts when the greeting arrives. */}
+            {greetingReady ? greeting : null}
           </span>
 
           <div className="flex flex-row items-center gap-x-1">
@@ -121,7 +135,7 @@ const HeroContentAnimated = memo(
           >
             {tagline}
             {tagline.length === 0 ? <span className="sr-only">{ariaLabel}</span> : null}
-            {!reduceMotion ? (
+            {showCaret ? (
               <span
                 className="terminal-cursor ml-0.5 inline-block h-[1.15em] w-0"
                 aria-hidden

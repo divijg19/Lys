@@ -17,6 +17,7 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { writeSceneState } from "@/lib/sceneState";
 
 interface SceneBoundaryProps {
   /** Theme name, included in the report so a log line identifies the failing scene. */
@@ -53,6 +54,9 @@ export class SceneBoundary extends Component<SceneBoundaryProps, SceneBoundarySt
       message: error.message,
       componentStack: info.componentStack ?? null,
     };
+
+    // Make the failure observable in production, where the console line below is invisible.
+    writeSceneState("error");
 
     if (process.env.NODE_ENV === "production") {
       /*

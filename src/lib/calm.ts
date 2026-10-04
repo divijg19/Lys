@@ -92,8 +92,20 @@ export function readCalmMode(): boolean {
  * on `frameloop`.
  */
 export type SceneMotionPolicy = {
-  /** R3F render loop mode. `never` renders a single frame and then holds it. */
-  frameloop: "always" | "never";
+  /**
+   * R3F render loop mode.
+   *
+   * `"demand"` is the calm value, **not** `"never"`. R3F's `invalidate()` early-returns when
+   * `frameloop === "never"`, so `internal.frames` never leaves 0, the render loop's
+   * `update()` -- the only caller of `gl.render` -- is never reached, and the canvas is
+   * never painted at all. Not "blank but frozen": never drawn.
+   *
+   * v0.2.7 shipped `"never"` here on the belief that it renders one frame on mount. Measured
+   * with instrumented `drawElements`, calm mode produced **zero** draw calls across every
+   * WebGL theme. `"demand"` plus a single `invalidate()` from `FrozenFrame` renders exactly
+   * one frame and then stops, which is what "freeze" is supposed to mean.
+   */
+  frameloop: "always" | "demand";
   /** Advance time-driven animation: orbits, flows, pulses. */
   animated: boolean;
   /** Move the camera along a scripted path or trigger scripted events. */
@@ -113,12 +125,11 @@ export type SceneMotionPolicy = {
 /**
  * Motion policy while calm.
  *
- * `frameloop: "never"` rather than `"demand"` so the scene does not need an `invalidate()`
- * call to paint its single frame; the renderer performs one render on mount. This matches
- * what `HorizonTheaterCanvas` already does for the same reason.
+ * Requires `FrozenFrame` inside the Canvas to request the single frame; see the note on
+ * `frameloop` above for why `"never"` cannot be used.
  */
 export const CALM_SCENE_POLICY: SceneMotionPolicy = {
-  frameloop: "never",
+  frameloop: "demand",
   animated: false,
   cameraTravel: false,
   rain: false,

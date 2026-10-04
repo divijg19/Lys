@@ -36,6 +36,7 @@ import {
   subscribeGridPower,
   triggerPowerDip,
 } from "@/components/theme/effects/cyberpunk/gridPower";
+import { FrozenFrame, RepaintOnVisible } from "@/components/theme/FrozenFrame";
 import type { SceneMotionPolicy } from "@/lib/calm";
 import {
   getRadialGlowTexture,
@@ -816,6 +817,8 @@ export function CitySilhouette({ policy }: { policy: SceneMotionPolicy }) {
         frameloop={policy.frameloop}
         style={{ background: "transparent", zIndex: 6 }}
       >
+        <FrozenFrame />
+        <RepaintOnVisible />
         <AlleyScene policy={policy} />
       </Canvas>
 

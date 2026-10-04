@@ -156,9 +156,19 @@ export function HorizonPostFX({ enabled, variant }: { enabled: boolean; variant:
     presetTargetRef.current = PRESETS[variant];
   }, [variant]);
 
+  /*
+   * The composer is the renderer, not an effect, so it is created unconditionally.
+   *
+   * This effect used to open with `if (!enabled) return`, and calm passes `enabled={false}`.
+   * Combined with the priority-1 `useFrame` below -- which tells R3F that this subscriber owns
+   * rendering -- that left no renderer at all: no composer to call, and R3F skipping its own
+   * `gl.render`. The canvas was mounted, sized and configured and never drawn. Measured under
+   * calm: 0 draw calls and 0 clears, indefinitely.
+   *
+   * So `enabled` now gates motion and grading only. The composer is allocated either way and
+   * disposed on unmount, exactly as before.
+   */
   useEffect(() => {
-    if (!enabled) return;
-
     const composer = new EffectComposer(gl);
     composer.addPass(passes.renderPass);
     composer.addPass(passes.bloom);
@@ -173,22 +183,39 @@ export function HorizonPostFX({ enabled, variant }: { enabled: boolean; variant:
       composerRef.current = null;
       composer.dispose();
     };
-  }, [enabled, gl, passes, size.width, size.height]);
+  }, [gl, passes, size.width, size.height]);
 
   useEffect(() => {
-    if (!enabled) return;
     composerRef.current?.setSize(size.width, size.height);
 
     const gradePass = passes.grade;
     gradePass.uniforms.uResolution.value.set(size.width, size.height);
-  }, [enabled, passes.grade, size.width, size.height]);
+  }, [passes.grade, size.width, size.height]);
 
+  /*
+   * Note the priority argument at the end of this callback: `1`, not the default `0`.
+   *
+   * A positive priority tells R3F that this subscriber owns rendering, so R3F stops calling
+   * `gl.render` itself. That makes the `composer.render()` at the bottom of this function the
+   * *only* thing that paints the canvas -- there is no fallback.
+   *
+   * So `enabled` must never short-circuit before it. Gating the whole callback on `enabled`
+   * (which it used to do, with calm passing `enabled={false}`) left the canvas mounted,
+   * correctly sized, and never drawn: 0 draw calls and 0 clears. `FrozenFrame` requests the one
+   * calm frame, and this callback has to honour it.
+   */
   useFrame((_, delta) => {
-    if (!enabled) return;
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-
     const composer = composerRef.current;
     if (!composer) return;
+
+    if (!enabled) {
+      // Frozen: paint the single calm frame through the composer, with no timing or tuning
+      // updates, so the grade stays at whatever the last animated values were.
+      composer.render();
+      return;
+    }
+
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
 
     timeRef.current += delta;
     passes.grade.uniforms.uTime.value = timeRef.current;

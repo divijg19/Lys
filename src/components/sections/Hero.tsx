@@ -41,7 +41,7 @@ export function Hero() {
   const reduceMotion = usePrefersReducedMotion();
   const motionReady = useMotionReady();
   const { theme, isMounted } = useTheme();
-  const { greeting } = useDayPhase();
+  const { greeting, hydrated: clockHydrated } = useDayPhase();
   const taglines = HERO_TAGLINES as readonly string[];
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [typedTagline, setTypedTagline] = useState("");
@@ -87,15 +87,39 @@ export function Hero() {
     ? NAME_GRADIENTS[theme.name] || "text-foreground"
     : "text-foreground";
 
+  /*
+   * The terminal caret is a Cyberpunk signature, and it is a continuous CSS blink.
+   *
+   * Two separate reasons not to show it, both of which used to be ignored:
+   *
+   * 1. Motion. A blinking caret is the one element in the hero that never stops, so a
+   *    reduced-motion visitor should not get one.
+   * 2. Theme. `.terminal-cursor` is now scoped to `[data-theme="cyberpunk"]`, so under every
+   *    other theme the class is just an un-blinked 4px rule -- a stray bar beside the tagline.
+   *    Before the scope existed, the blink itself ran on all seven themes, which is the flicker
+   *    that was reported.
+   *
+   * `isMounted` is required, not defensive. `next-themes` resolves the theme from localStorage
+   * inside a `useState` initialiser that returns `undefined` on the server, so during hydration
+   * the client already knows the theme is "cyberpunk" while the server rendered with the
+   * fallback. Gating only on motion therefore made the server emit no caret and the client emit
+   * one -- React error #418 on every Cyberpunk page load, forcing a full client re-render. The
+   * caret is the first piece of page *content* that depends on the resolved theme, so it is the
+   * first thing to hit this; `ClientThemeBackground` hit it first for `simple`.
+   */
+  const showCaret = isMounted && !reduceMotion && theme.name === "cyberpunk";
+
   if (motionReady && !reduceMotion) {
     return (
       <HeroAnimated
         greeting={greeting}
+        greetingReady={clockHydrated}
         nameGradientClass={nameGradientClass}
         tagline={typedTagline}
         taglineLabel={currentTaglineLabel}
         stackRibbons={[...HERO_STACK_RIBBONS]}
         reduceMotion={reduceMotion}
+        showCaret={showCaret}
       />
     );
   }
@@ -109,18 +133,11 @@ export function Hero() {
       <div className="flex w-full max-w-7xl flex-col items-center gap-6 text-center lg:flex-row lg:items-start lg:justify-center lg:gap-14 lg:text-left">
         <HeroContent
           greeting={greeting}
+          greetingReady={clockHydrated}
           nameGradientClass={nameGradientClass}
           tagline={typedTagline}
           taglineLabel={currentTaglineLabel}
-          /*
-           * Gate the caret on motion preference.
-           *
-           * This branch is the reduced-motion presentation, and `terminal-cursor` is a CSS
-           * blink -- so passing `showCaret` unconditionally meant reduced-motion visitors got
-           * the one continuously animating element in the hero. It was the only call site in
-           * the file, so `showCaret` was effectively a constant `true` here.
-           */
-          showCaret={!reduceMotion}
+          showCaret={showCaret}
         />
         <HeroImage reduceMotion={reduceMotion} />
       </div>
@@ -131,12 +148,15 @@ export function Hero() {
 const HeroContent = memo(
   ({
     greeting,
+    greetingReady,
     nameGradientClass,
     tagline,
     taglineLabel,
     showCaret,
   }: {
     greeting: string;
+    /** False until the visitor's clock has been read; see {@link useDayPhase}. */
+    greetingReady: boolean;
     nameGradientClass: string;
     tagline: string;
     taglineLabel: string;
@@ -146,11 +166,18 @@ const HeroContent = memo(
     return (
       <div className="flex flex-col items-center lg:items-start">
         <div className="flex flex-col items-center lg:items-start">
+          {/*
+            The greeting is time-dependent, so it cannot be rendered during hydration: the
+            server's clock and the visitor's may be in different timezones, and disagreeing text
+            makes React discard the server HTML. Until the clock is read the element still
+            occupies its line (`min-h-lh`, matching the type scale) so nothing below it shifts
+            when the text arrives.
+          */}
           <span
-            className="font-medium text-muted-foreground text-xl md:text-2xl"
+            className="min-h-lh font-medium text-muted-foreground text-xl md:text-2xl"
             aria-live="polite"
           >
-            {greeting}
+            {greetingReady ? greeting : null}
           </span>
 
           <div className="flex flex-row items-center gap-x-1">

@@ -17,6 +17,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { type Theme, themes } from "@/lib/themes"; // The single source of truth!
 import { SceneBoundary } from "./SceneBoundary";
+import { SceneSupportProvider } from "./SceneSupport";
 import { themeScenes } from "./themeScenes";
 
 /*
@@ -92,13 +93,21 @@ function ThemeBackground() {
               Keyed on the theme so switching themes remounts the boundary: a scene that
               failed for the previous theme must not poison the next one.
             */}
-            <SceneBoundary
-              key={themeName}
-              themeName={themeName}
-              sceneKey={sceneKey}
-            >
-              <ResolvedScene />
-            </SceneBoundary>
+            {/*
+              `SceneSupportProvider` sits *outside* the boundary on purpose: it decides whether a
+              canvas gets mounted at all, so it has to keep working when the scene underneath
+              fails. Inside the boundary, a context failure would take the probe down with it
+              and there would be no way to recover.
+            */}
+            <SceneSupportProvider>
+              <SceneBoundary
+                key={themeName}
+                themeName={themeName}
+                sceneKey={sceneKey}
+              >
+                <ResolvedScene />
+              </SceneBoundary>
+            </SceneSupportProvider>
           </motion.div>
         )}
       </AnimatePresence>

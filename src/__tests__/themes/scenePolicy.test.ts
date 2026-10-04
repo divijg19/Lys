@@ -76,7 +76,9 @@ describe("sceneMotionPolicy", () => {
     const policy = sceneMotionPolicy(true);
     for (const [key, value] of Object.entries(policy)) {
       if (key === "frameloop") {
-        expect(value, "frameloop holds a single frame").toBe("never");
+        // Parked, not stopped. `"never"` cannot be painted at all: R3F's `invalidate()`
+        // early-returns for it, so `gl.render` is never reached. See the dedicated test below.
+        expect(value, "frameloop is parked").toBe("demand");
         continue;
       }
       expect(value, `${key} must be disabled while calm`).toBe(false);
@@ -118,10 +120,30 @@ describe("sceneMotionPolicy", () => {
     expect(sceneMotionPolicy(false)).toBe(MOTIVE_SCENE_POLICY);
   });
 
-  it("uses 'never' rather than 'demand' so a frozen frame needs no invalidate()", () => {
-    // "demand" only paints when something calls invalidate(); a calm scene that renders
-    // nothing else would stay unpainted. "never" performs one render on mount.
-    expect(CALM_SCENE_POLICY.frameloop).toBe("never");
+  it("uses 'demand' rather than 'never', because 'never' can never be painted", () => {
+    /*
+     * This assertion is the inverse of what v0.2.7 shipped, and that inversion is the whole
+     * point of v0.2.8.
+     *
+     * v0.2.7 set calm `frameloop: "never"` and documented that "the renderer performs one
+     * render on mount". That is false. R3F's `invalidate()` begins:
+     *
+     *   if (...xr.isPresenting || !state.internal.active || state.frameloop === 'never') return
+     *
+     * so with `'never'` the internal frame counter never leaves 0, the render loop's
+     * `update()` -- the only caller of `gl.render` -- is never reached, and the canvas is
+     * never drawn. Not "blank but frozen": never painted.
+     *
+     * Instrumenting `drawElements` proved it: calm mode produced 0 draw calls across every
+     * WebGL theme, where motion produced 175-2471. And the bug hides during development,
+     * because toggling calm on an already-rendering scene keeps the previous frame -- the
+     * drawing buffer is never cleared -- so it only manifests on a cold mount, which is
+     * exactly what a reduced-motion visitor gets.
+     *
+     * `'demand'` plus a single `invalidate()` from `FrozenFrame` renders one frame and holds.
+     */
+    expect(CALM_SCENE_POLICY.frameloop).toBe("demand");
+    expect(CALM_SCENE_POLICY.frameloop).not.toBe("never");
   });
 });
 
@@ -198,6 +220,74 @@ describe("calm reason is published for production diagnosis", () => {
     for (const reason of ["reduce-motion", "low-data"] satisfies CalmReason[]) {
       expect(source, `reason "${reason}" must be part of the published contract`).toContain(
         `"${reason}"`
+      );
+    }
+  });
+});
+
+/* ---------------------------------- calm must not gate a layer or a renderer out --- */
+
+/**
+ * `Canvas` elements across the theme layer, as paths relative to THEME_DIR.
+ *
+ * Storybook stories are excluded: they render a scene deliberately inside a harness that has
+ * no `ThemeBackground`, so they are not expected to carry the production wiring.
+ */
+function canvasCallSites(): string[] {
+  const found: string[] = [];
+  for (const file of themeFiles) {
+    const source = stripComments(readFileSync(path.join(THEME_DIR, file), "utf8"));
+    const count = source.match(/<Canvas\b/g)?.length ?? 0;
+    for (let i = 0; i < count; i += 1) found.push(file);
+  }
+  return found;
+}
+
+describe("every canvas can paint a frozen frame", () => {
+  const callSites = canvasCallSites();
+
+  it("finds the canvases", () => {
+    // Guards the scan: a path change that matched nothing would leave this file green while
+    // asserting nothing.
+    expect(callSites.length).toBeGreaterThan(0);
+  });
+
+  it.each(callSites)("%s renders a FrozenFrame", (file) => {
+    /*
+     * `FrozenFrame` is what requests the single calm frame. A canvas without one is parked at
+     * `frameloop: "demand"` and never painted -- which is precisely how v0.2.7 shipped.
+     *
+     * `RepaintOnVisible` is checked in the same breath for the tab-return case: a parked loop
+     * also cannot repaint when a backgrounded tab becomes visible again.
+     */
+    const source = stripComments(readFileSync(path.join(THEME_DIR, file), "utf8"));
+    const canvases = source.match(/<Canvas\b/g)?.length ?? 0;
+    const frozen = source.match(/<FrozenFrame\b/g)?.length ?? 0;
+    const repaint = source.match(/<RepaintOnVisible\b/g)?.length ?? 0;
+
+    expect(frozen, `${file}: canvases=${canvases} FrozenFrame=${frozen}`).toBe(canvases);
+    expect(repaint, `${file}: canvases=${canvases} RepaintOnVisible=${repaint}`).toBe(canvases);
+  });
+
+  it("has no canvas gated on a calm flag", () => {
+    /*
+     * The failure this catches is subtler than the scenePolicy scan's `return null` check.
+     * `HorizonScene` used to do:
+     *
+     *   if (isCalm) { setWebglOk(false); return; }
+     *
+     * which deletes the WebGL theatre under calm -- exactly what `src/lib/calm.ts` forbids --
+     * without ever matching a calm-gated `return null`. A capability disabling a sub-layer is
+     * a different shape of regression from deleting the scene.
+     */
+    for (const file of themeFiles) {
+      const source = stripComments(readFileSync(path.join(THEME_DIR, file), "utf8"));
+      // A calm flag and a WebGL-support decision appearing in the same expression.
+      expect(
+        source,
+        `${file}: a calm flag must not appear in a WebGL-support expression`
+      ).not.toMatch(
+        /(\{\s*\w*[iI]sCalm\s*&&\s*<)|(\bset\w*(Webgl|WebGL|webgl)\w*\([^)]*[iI]sCalm)|(\b\w*[wW]ebgl\w*\s*=\s*[iI]sCalm)/
       );
     }
   });

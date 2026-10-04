@@ -17,6 +17,7 @@
     "test": "vitest run",
     "test:ci": "vitest run --coverage --reporter=dot",
     "test:e2e:smoke": "node scripts/e2e-smoke.mjs",
+    "verify:backgrounds": "node scripts/verify-backgrounds.mjs",
     "qa": "bun type-check && bun lint && bun format && bun test:ci",
     "storybook": "storybook build && storybook dev -p 6006",
     "test:stories": "vitest run --project storybook"

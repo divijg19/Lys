@@ -402,7 +402,20 @@
       linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)));
   }
 
-  /* --- CYBERPUNK-SPECIFIC UTILITIES --- */
+  /*
+   * --- CYBERPUNK UTILITIES (opt-in, unscoped) ---
+   *
+   * These classes are *not* theme-scoped, which is deliberate: they are opt-in utilities, and a
+   * component applies one by naming it. Applying one under a non-Cyberpunk theme is then a
+   * visible authoring mistake rather than something the cascade does silently.
+   *
+   * `.terminal-cursor` below is the exception and is scoped, because it is the only one with a
+   * shared consumer -- see its own comment.
+   *
+   * Five of these have no consumer anywhere in src/ (`text-glitch`, `text-neon`, `holographic`,
+   * `scanlines`, `cyber-grid`). They are kept because they are the vocabulary a future
+   * schematic/blueprint layer is meant to be built from. They are inert until named.
+   */
 
   /* Glitch effect for text */
   .text-glitch {
@@ -482,8 +495,19 @@
     z-index: 1;
   }
 
-  /* Terminal cursor effect */
-  .terminal-cursor {
+  /*
+   * Terminal cursor effect -- scoped to Cyberpunk.
+   *
+   * This is the only class in this block with a live consumer, and it is why the Cyberpunk
+   * text flicker appeared in every theme: `@keyframes cursor-blink` below is global (keyframes
+   * always are), so an unscoped `.terminal-cursor` animated the caret on all seven themes.
+   * Measured with `document.getAnimations()`, `cursor-blink` was running once per theme
+   * including light, dark, ethereal, horizon and mirage.
+   *
+   * Scoped here for the same reason as the chrome block further down: applied through the
+   * theme attribute, so no component can opt in by accident and the selector cannot drift.
+   */
+  html[data-theme="cyberpunk"] .terminal-cursor {
     border-right: 4px solid hsl(var(--primary));
     animation: cursor-blink 1s step-end infinite;
     position: relative;
