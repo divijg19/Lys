@@ -17,6 +17,7 @@ import { TheAnomaly } from "@/components/theme/effects/light/TheAnomaly";
 import { Starfield } from "@/components/theme/effects/Starfield";
 import { useCalmMode } from "@/hooks/useCalmMode";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { sceneMotionPolicy } from "@/lib/calm";
 
 /** `--foreground` for the Light theme (`220 18% 18%`), used until the token resolves. */
 const FOREGROUND_FALLBACK = "#262b36";
@@ -30,6 +31,7 @@ const LightScene = () => {
   const [hasReachedAnomaly, setHasReachedAnomaly] = useState(false);
 
   const isCalm = useCalmMode();
+  const policy = sceneMotionPolicy(isCalm);
   const { foreground } = useThemeTokens(["foreground"]);
 
   // This callback is passed down to the CameraRig to trigger the scene's climax.
@@ -40,11 +42,15 @@ const LightScene = () => {
     }
   };
 
-  // Reduced-motion / low-data: render nothing so the static fallback gradient painted by
-  // ThemeBackground shows through. This scene is a continuous 60fps journey with orbiting
-  // debris, so there is nothing meaningful to show in a still frame.
-  if (isCalm) return null;
-
+  /*
+   * Calm: freeze, do not delete.
+   *
+   * This scene previously returned null under calm, which removed the entire theme. That
+   * shipped as a production regression -- visitors whose browser reported reduced motion or
+   * a constrained connection got no Light theme at all -- and it contradicted how every
+   * other scene behaves. Now the scene still renders and the frameloop is stopped, so the
+   * visitor sees a still frame of the same world with none of the motion.
+   */
   return (
     <>
       {/* The entire UI is a single, self-contained component. */}
@@ -64,6 +70,7 @@ const LightScene = () => {
           far: 80,
         }}
         dpr={[1, 1.75]}
+        frameloop={policy.frameloop}
       >
         <color
           attach="background"
@@ -81,10 +88,14 @@ const LightScene = () => {
 
         {/* Suspense is a React feature that allows us to show a fallback while components are loading. */}
         <Suspense fallback={null}>
-          <TheAnomaly hasReachedAnomaly={hasReachedAnomaly} />
+          <TheAnomaly
+            hasReachedAnomaly={hasReachedAnomaly}
+            animated={policy.animated}
+          />
           <CelestialDebrisField
             setScanTarget={setScanTarget}
             hasReachedAnomaly={hasReachedAnomaly}
+            animated={policy.animated}
           />
           <Starfield
             count={500}
@@ -99,6 +110,7 @@ const LightScene = () => {
             setDistance={setDistance}
             onReachAnomaly={handleReachAnomaly}
             hasReachedAnomaly={hasReachedAnomaly}
+            travel={policy.cameraTravel}
           />
         </Suspense>
       </Canvas>

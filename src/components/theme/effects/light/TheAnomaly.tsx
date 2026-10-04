@@ -91,13 +91,22 @@ const SupernovaMaterial = shaderMaterial(
 extend({ SupernovaMaterial });
 
 // --- 2. The Anomaly Component ---
-export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }) {
+export function TheAnomaly({
+  hasReachedAnomaly,
+  animated,
+}: {
+  hasReachedAnomaly: boolean;
+  /** False while calm: the anomaly holds a still frame instead of turning and evolving. */
+  animated?: boolean;
+}) {
   const solidRef = useRef<THREE.Mesh>(null);
   const explosionRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const { foreground } = useThemeTokens(["foreground"]);
 
   useFrame((_, delta) => {
+    if (animated === false) return;
+
     // Animate the solid dodecahedron before the collapse
     const solidMesh = solidRef.current;
     if (solidMesh) {

@@ -1,19 +1,53 @@
-/* Accessible focus ring utility */
-.focus-ring:focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 3px;
+/**
+ * Calm-mode motion kill.
+ *
+ * The two focus utilities that used to live here (`.focus-ring` and `[data-focus="true"]`)
+ * were deleted in v0.2.7: nothing in `src` referenced either one. Focus styling comes from
+ * Tailwind's `focus-visible` rings instead.
+ *
+ * This file stays, and the kill switch becomes real. It previously scoped everything to a
+ * `.motion-safe` class that no component carried, so it never matched a single element --
+ * which is why CSS-driven theme motion kept running for reduced-motion visitors even after
+ * the WebGL scenes began honouring calm mode.
+ *
+ * Selection is by attribute rather than by class so a single rule covers every animation and
+ * transition in the app, including the ones added later, instead of relying on each new
+ * animated element to remember an opt-in.
+ */
+
+/*
+ * Calm is either cause, so select both with `:is()` rather than adding a third attribute to
+ * `<html>`. `data-calm-reason` on the root element says which one is active.
+ *
+ * Durations are collapsed to ~0 rather than set to `none` on purpose. `animation: none`
+ * removes the animation entirely and drops any `animation-fill-mode` with it, so elements
+ * snap back to their un-animated base values; collapsing the duration lets the animation
+ * run once and finish instantly, which lands each element in the natural resting state its
+ * keyframes were written from.
+ *
+ * `!important` is load-bearing and the only place in this project that uses it, so it is
+ * suppressed rather than removed. An accessibility kill switch that loses to a utility class
+ * is not a kill switch: Tailwind `animate-*` utilities and inline `style` attributes both set
+ * `animation-duration` outside the cascade this rule sits in, and the Ethereal background
+ * layers set it inline. Specificity cannot be raised enough to win against an inline
+ * declaration, so `!important` is the only mechanism that reaches them.
+ */
+/* biome-ignore-start lint/complexity/noImportantStyles: accessibility kill switch, see above */
+:root:is([data-reduce-motion="true"], [data-low-data="true"]) *,
+:root:is([data-reduce-motion="true"], [data-low-data="true"]) *::before,
+:root:is([data-reduce-motion="true"], [data-low-data="true"]) *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
 }
 
-/* Global focus style for any element explicitly opting in via data-focus */
-[data-focus="true"]:focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 3px;
-  border-radius: 4px;
+/*
+ * Smooth scrolling is a motion preference of its own. `scroll-behavior: smooth` is declared
+ * on `html` in globals.css and is set on the root element, which the universal selector above
+ * does not reach.
+ */
+:root:is([data-reduce-motion="true"], [data-low-data="true"]) {
+  scroll-behavior: auto !important;
 }
-
-/* Motion & data saving fallbacks */
-[data-reduce-motion="true"] .motion-safe,
-[data-low-data="true"] .motion-safe {
-  animation: none;
-  transition: none;
-}
+/* biome-ignore-end lint/complexity/noImportantStyles: accessibility kill switch, see above */

@@ -147,19 +147,24 @@
     --cp-sky-low: 195 60% 8%;
     --cp-haze-cyan: 180 100% 55%;
     --cp-haze-magenta: 320 100% 65%;
-    --cp-neon-cyan: 180 100% 55%;
-    --cp-neon-magenta: 320 100% 65%;
+    /* Distinct from --cp-haze-magenta: a cool third hue for the sign light, not a haze. */
     --cp-neon-lime: 84 100% 55%;
-    --cp-neon-amber: 32 100% 55%;
     --cp-skyline: 232 25% 11%;
     --cp-skyline-rim: 180 90% 55%;
-    --cp-asphalt: 228 25% 7%;
-    --cp-signage-text: 190 100% 88%;
+
+    /*
+     * Removed in v0.2.7 as unreferenced: --cp-neon-cyan, --cp-neon-magenta,
+     * --cp-neon-amber, --cp-asphalt, --cp-signage-text, --cp-reflection-strength.
+     *
+     * The first three duplicated --cp-haze-cyan and --cp-haze-magenta, which are what the
+     * scene actually reads. They are covered by the bidirectional token test in
+     * src/__tests__/themes/tokens.test.ts, which fails if a declared --cp-* token is never
+     * referenced again.
+     */
 
     /* --- Scene tuning (scalar, not colour) --- */
     --cp-haze-opacity: 0.35;
     --cp-skyline-opacity: 0.9;
-    --cp-reflection-strength: 0.55;
     --cp-grain-opacity: 0.06;
     --cp-scanline-opacity: 0.05;
     /* The previous hard-coded 0.12/0.18 put both rain layers below the threshold of

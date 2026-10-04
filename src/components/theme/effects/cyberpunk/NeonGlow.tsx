@@ -47,8 +47,15 @@ export const NeonGlow: React.FC = () => {
         style={{
           animationDelay: "4s",
           animationDuration: "12s",
+          /*
+           * `--accent`, not `--cp-accent`.
+           *
+           * `--cp-accent` was referenced here but never declared in any theme block, so the
+           * whole declaration was invalid at computed-value time and the entire radial
+           * gradient resolved to `none`. This glow layer silently drew nothing.
+           */
           backgroundImage:
-            "radial-gradient(circle at 50% 82%, hsl(var(--cp-accent) / 0.22), transparent 60%)",
+            "radial-gradient(circle at 50% 82%, hsl(var(--accent) / 0.22), transparent 60%)",
         }}
       />
 

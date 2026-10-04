@@ -39,12 +39,19 @@ type InstanceData = {
 interface CelestialDebrisFieldProps {
   setScanTarget: (id: string | null) => void;
   hasReachedAnomaly: boolean;
+  /**
+   * False while calm. Halting the loop also stops the per-frame raycast, which matters
+   * because `setScanTarget` is React state: without this the scene would re-render the
+   * whole Light tree 60 times a second even though nothing on screen is moving.
+   */
+  animated?: boolean;
 }
 
 // --- 3. The Interactive Crystalline Shard Field ---
 export function CelestialDebrisField({
   setScanTarget,
   hasReachedAnomaly,
+  animated = true,
 }: CelestialDebrisFieldProps) {
   const count = 750;
   const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -77,6 +84,13 @@ export function CelestialDebrisField({
     // This freezes the shards in place, creating a static vista.
     if (hasReachedAnomaly) {
       // Hide the scanner post-collapse as well for a clean final scene.
+      if (scannerRef.current) scannerRef.current.visible = false;
+      return;
+    }
+
+    // Calm: hold the current pose. The scanner is hidden rather than left frozen over a
+    // shard it can no longer track.
+    if (!animated) {
       if (scannerRef.current) scannerRef.current.visible = false;
       return;
     }

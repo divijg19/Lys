@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
  * the feeling of looking out over a planet's horizon from orbit.
  */
 import { type DayPhase, useDayPhase } from "@/hooks/useDayPhase";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useCalmMode } from "@/hooks/useCalmMode";
 import { FILM_GRAIN_BACKGROUND } from "@/components/theme/effects/filmGrain";
 
 const HorizonTheaterCanvas = dynamic(
@@ -26,12 +26,6 @@ const HorizonTheaterCanvas = dynamic(
     loading: () => null,
   }
 );
-
-const readIsCalm = (): boolean => {
-  if (typeof document === "undefined") return false;
-  const root = document.documentElement;
-  return root.hasAttribute("data-low-data") || root.hasAttribute("data-reduce-motion");
-};
 
 const canUseWebGL = (): boolean => {
   if (typeof document === "undefined") return false;
@@ -65,24 +59,16 @@ export interface HorizonSceneProps {
 const HorizonScene = ({ phaseOverride, disableAnimation }: HorizonSceneProps) => {
   const { phase } = useDayPhase();
   const effectivePhase = phaseOverride ?? phase;
-  const reduceMotion = usePrefersReducedMotion();
-  const noAnim = disableAnimation || reduceMotion;
-  const [isCalmFromRoot, setIsCalmFromRoot] = useState(false);
+  // Reads the same derived attributes as every other scene. This carried a private
+  // readIsCalm() copy that also OR-ed in a raw matchMedia boolean, so it could disagree
+  // with the shared definition -- and it disabled WebGL outright under calm, which is the
+  // "delete instead of freeze" behaviour v0.2.7 removes from the other scenes.
+  const calmMode = useCalmMode();
+  const isCalm = disableAnimation || calmMode;
   const [webglOk, setWebglOk] = useState(false);
 
-  useEffect(() => {
-    const update = () => setIsCalmFromRoot(readIsCalm());
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-low-data", "data-reduce-motion"],
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  const isCalm = noAnim || isCalmFromRoot;
-
+  // Calm drops the WebGL theatre -- the expensive half -- and keeps the CSS atmosphere,
+  // which is already static. Freezing, not deleting.
   useEffect(() => {
     if (isCalm) {
       setWebglOk(false);

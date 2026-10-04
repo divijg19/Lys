@@ -15,7 +15,8 @@ const FADE_UP_VARIANTS = {
 };
 
 export function ProjectList() {
-  const sortedProjects = projects.sort(
+  /* Copy before sorting: `sort` mutates, and `projects` is a shared Velite content array. */
+  const sortedProjects = [...projects].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 

@@ -6,14 +6,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-
-const readIsCalm = (): boolean => {
-  if (typeof document === "undefined") return false;
-  const root = document.documentElement;
-  return root.hasAttribute("data-low-data") || root.hasAttribute("data-reduce-motion");
-};
+import { useCalmMode } from "@/hooks/useCalmMode";
 
 /**
  * The background scene component for the Mirage theme.
@@ -21,21 +14,10 @@ const readIsCalm = (): boolean => {
  * heat shimmer, a low-lying gradient, and a large, slow pulsing light source.
  */
 const MirageScene = () => {
-  const reduceMotion = usePrefersReducedMotion();
-  const [isCalmFromRoot, setIsCalmFromRoot] = useState(false);
-
-  useEffect(() => {
-    const update = () => setIsCalmFromRoot(readIsCalm());
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-low-data", "data-reduce-motion"],
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  const isCalm = reduceMotion || isCalmFromRoot;
+  // Reads the same derived attributes as every other scene. This carried a private
+  // readIsCalm() copy that also OR-ed in a raw matchMedia boolean, so it could disagree
+  // with the shared definition.
+  const isCalm = useCalmMode();
 
   return (
     <>

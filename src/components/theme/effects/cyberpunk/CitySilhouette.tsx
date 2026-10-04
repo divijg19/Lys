@@ -36,6 +36,7 @@ import {
   subscribeGridPower,
   triggerPowerDip,
 } from "@/components/theme/effects/cyberpunk/gridPower";
+import type { SceneMotionPolicy } from "@/lib/calm";
 import {
   getRadialGlowTexture,
   getSignTexture,
@@ -295,7 +296,7 @@ function CyberpunkBuilding({
   );
 }
 
-function AlleyScene() {
+function AlleyScene({ policy }: { policy: SceneMotionPolicy }) {
   const groupRef = useRef<THREE.Group>(null);
   const buildingRefs = useRef<THREE.Group[]>([]);
   const neonRegistry = useRef<Map<string, NeonEntry>>(new Map());
@@ -558,20 +559,32 @@ function AlleyScene() {
         Last in the tree so it grades everything above it. Bloom is what turns emissive
         colour into actual light.
       */}
-      <CyberpunkPostFX />
+      {policy.postFx && <CyberpunkPostFX />}
     </group>
   );
 }
 
-export function CitySilhouette() {
-  const canvasRefBehind = useRef<HTMLCanvasElement>(null); // 80% streams behind skyline
-  const canvasRefFront = useRef<HTMLCanvasElement>(null); // 20% streams in front
-  const lightningCanvasRef = useRef<HTMLCanvasElement>(null); // procedural bolt layer (behind skyline)
-  useDataRain(canvasRefBehind, { profile: "drizzle" });
-  useDataRain(canvasRefFront, { profile: "heavy" });
+/**
+ * @param policy Resolved by `CyberpunkScene` and passed down, so the whole scene reads one
+ *   snapshot of calm state for a given frame rather than subscribing separately at each
+ *   layer.
+ */
+export function CitySilhouette({ policy }: { policy: SceneMotionPolicy }) {
+  const canvasRefBehind = useRef<HTMLCanvasElement>(null); // rear, distant rain layer
+  const canvasRefFront = useRef<HTMLCanvasElement>(null); // front, dense rain layer
+  const lightningCanvasRef = useRef<HTMLCanvasElement>(null); // procedural bolt layer
 
-  // Procedural lightning bolts (cyan & yellow) drawn on dedicated canvas behind skyline
+  // Both rain hooks own their own requestAnimationFrame, so they must be told to stop
+  // explicitly; the renderer's frameloop has no influence over them.
+  useDataRain(canvasRefBehind, { profile: "drizzle", enabled: policy.rain });
+  useDataRain(canvasRefFront, { profile: "heavy", enabled: policy.rain });
+
+  // Procedural lightning bolts (cyan & yellow) drawn on dedicated canvas behind skyline.
+  //
+  // This owns a requestAnimationFrame and a self-rescheduling setTimeout chain, so it is
+  // gated on the policy directly rather than relying on the scene's frameloop.
   useEffect(() => {
+    if (!policy.lightning) return;
     const canvas = lightningCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -757,7 +770,7 @@ export function CitySilhouette() {
       if (flashTimeout) clearTimeout(flashTimeout);
       if (secondaryTimeout) clearTimeout(secondaryTimeout);
     };
-  }, []);
+  }, [policy.lightning]);
   return (
     <div className="absolute inset-0">
       {/*
@@ -800,10 +813,10 @@ export function CitySilhouette() {
           powerPreference: "high-performance",
         }}
         dpr={[1, 2]}
-        frameloop="always"
+        frameloop={policy.frameloop}
         style={{ background: "transparent", zIndex: 6 }}
       >
-        <AlleyScene />
+        <AlleyScene policy={policy} />
       </Canvas>
 
       {/* Front rain: the full, dense layer the viewer is looking through. */}

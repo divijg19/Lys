@@ -16,7 +16,10 @@ export default function ContactPage() {
     // The page now correctly returns only its unique content, which will be
     // rendered inside the main layout defined in `layout.tsx`.
     // It inherits the Navbar, Footer, and theme provider automatically.
-    <main className="container mx-auto max-w-5xl py-12 md:py-20">
+    /* `MainWrapper` in the root layout already renders the page's single <main>, and
+       carries its id, aria-label and skip-link target. This element was a second,
+       nested <main>, which is invalid and splits the landmark. */
+    <div className="container mx-auto max-w-5xl py-12 md:py-20">
       {/* --- A NEW, WELCOMING HEADER --- */}
       <header className="mb-12 text-center">
         <h1 className="font-extrabold text-4xl tracking-tight">Get in Touch</h1>
@@ -29,6 +32,6 @@ export default function ContactPage() {
       {/* We render the existing, perfected Contact section. No need to reinvent the wheel. */}
       {/* Note: The "Let's Connect" title inside the component provides a great secondary heading. */}
       <Contact />
-    </main>
+    </div>
   );
 }
