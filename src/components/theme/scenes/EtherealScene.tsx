@@ -11,7 +11,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type * as THREE from "three";
 import { cn } from "@/lib/utils";
 import { RippleCue } from "../effects/ethereal/RippleCue";
@@ -21,10 +21,15 @@ import { FlowingPlane } from "../effects/FlowingPlane";
 import { useCalmMode } from "@/hooks/useCalmMode";
 import { useRippleField } from "@/hooks/useRippleField";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { type SceneMotionPolicy, sceneMotionPolicy } from "@/lib/calm";
 
-const SceneContent = () => {
+/**
+ * @param policy Resolved once by `EtherealScene` and passed down. This scene used to call
+ *   `useCalmMode()` in both this component and its parent, which subscribed to the same
+ *   state twice and left the two readings free to disagree for a frame.
+ */
+const SceneContent = ({ policy }: { policy: SceneMotionPolicy }) => {
   const { camera, gl } = useThree();
-  const isCalm = useCalmMode();
   const { primary, secondary, accent } = useThemeTokens(["primary", "secondary", "accent"]);
 
   /** The surface whose plane defines where ripples land. */
@@ -53,7 +58,7 @@ const SceneContent = () => {
     surfaceRef,
     camera,
     domElement: gl.domElement,
-    enabled: !isCalm,
+    enabled: policy.animated,
     allowAmbient: true,
     onRipple: handleRipple,
   });
@@ -73,6 +78,18 @@ const SceneContent = () => {
     setWisps((prev) => prev.filter((w) => w.id !== id));
   }, []);
 
+  /*
+   * Drop in-flight wisps when the scene calms down.
+   *
+   * `useRippleField` already clears its own ripples when disabled, but these wisps are
+   * local state. They finish by calling `onComplete` from a `useFrame`, and the frameloop is
+   * stopped under calm mode -- so without this they would hang on screen forever, one React
+   * list entry per tap, and never expire.
+   */
+  useEffect(() => {
+    if (!policy.animated) setWisps([]);
+  }, [policy.animated]);
+
   return (
     <>
       <FlowingPlane
@@ -81,7 +98,7 @@ const SceneContent = () => {
         secondaryColor={secondary}
         accentColor={accent}
         sourcesRef={sourcesRef}
-        enabled={!isCalm}
+        enabled={policy.animated}
       />
 
       <Ripples
@@ -100,7 +117,7 @@ const SceneContent = () => {
 };
 
 const EtherealScene = () => {
-  const isCalm = useCalmMode();
+  const policy = sceneMotionPolicy(useCalmMode());
 
   return (
     <div className="pointer-events-none absolute inset-0">
@@ -150,11 +167,11 @@ const EtherealScene = () => {
         dpr={[1, 1.5]}
         gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
         camera={{ position: [0, 2, 5], fov: 75 }}
-        frameloop={isCalm ? "demand" : "always"}
+        frameloop={policy.frameloop}
         className="absolute inset-0"
         style={{ background: "transparent" }}
       >
-        <SceneContent />
+        <SceneContent policy={policy} />
       </Canvas>
 
       {/* Above the canvas: the cursor ring and hint are affordances, not scene content. */}

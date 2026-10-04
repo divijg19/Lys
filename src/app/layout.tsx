@@ -21,7 +21,6 @@ import { ClientThemeBackground } from "@/components/theme/ClientThemeBackground"
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { geistMono, geistSans } from "@/lib/fonts";
 import { METADATA_BASE, SITE_URL } from "@/lib/site";
-import { THEME_NAMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 
 // Styles
@@ -94,12 +93,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased")}>
         <ClientAttrWrapper>
-          <ThemeProvider
-            attribute="data-theme"
-            defaultTheme="light"
-            enableSystem={false}
-            themes={[...THEME_NAMES]}
-          >
+          {/*
+            No configuration props here on purpose.
+
+            `ThemeProvider` already declares attribute, themes, defaultTheme, storageKey and
+            enableSystem. Passing them again here meant the layout silently overrode the
+            provider's own defaults through its `{...props}` spread, so `storageKey` and
+            `disableTransitionOnChange` only took effect because the layout happened to omit
+            them -- two sources of truth for one configuration, and a trap for the next
+            person to add a prop.
+          */}
+          <ThemeProvider>
             {/* Debug hydration & error catcher removed */}
             <ClientThemeBackground />
             <LazyMotionProvider>

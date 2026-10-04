@@ -16,9 +16,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { type Theme, themes } from "@/lib/themes"; // The single source of truth!
+import { SceneBoundary } from "./SceneBoundary";
 import { themeScenes } from "./themeScenes";
 
-// Lightweight gradient backgrounds keyed by theme for low-data / reduced-motion situations.
+/*
+ * Gradients keyed by theme.
+ *
+ * These are no longer only a calm-mode fallback. They are also what remains visible when a
+ * scene throws and `SceneBoundary` catches it, which is what makes them load-bearing rather
+ * than decorative.
+ */
 const FALLBACK_GRADIENTS: Record<string, string> = {
   light: "bg-gradient-to-br from-white via-neutral-100 to-neutral-200",
   dark: "bg-gradient-to-br from-black via-neutral-900 to-black",
@@ -52,7 +59,13 @@ function ThemeBackground() {
 
   // Destructure the component and theme name directly from the theme object.
   const { sceneKey, name: themeName } = currentTheme as Theme;
-  const SceneComponent = themeScenes[sceneKey] ?? NULL_SCENE;
+  const SceneComponent = themeScenes[sceneKey];
+
+  /*
+   * Unknown scene key: fall back to a component that renders nothing, rather than a bare
+   * `null` in the JSX. Same result, but it keeps the element type stable across themes.
+   */
+  const ResolvedScene = SceneComponent ?? NULL_SCENE;
 
   const fallbackClass = isMounted
     ? (FALLBACK_GRADIENTS[themeName] ?? FALLBACK_GRADIENTS.light)
@@ -75,7 +88,17 @@ function ThemeBackground() {
             exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
             className="absolute inset-0 z-0"
           >
-            <SceneComponent />
+            {/*
+              Keyed on the theme so switching themes remounts the boundary: a scene that
+              failed for the previous theme must not poison the next one.
+            */}
+            <SceneBoundary
+              key={themeName}
+              themeName={themeName}
+              sceneKey={sceneKey}
+            >
+              <ResolvedScene />
+            </SceneBoundary>
           </motion.div>
         )}
       </AnimatePresence>

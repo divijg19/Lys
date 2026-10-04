@@ -5,8 +5,7 @@
 "use client";
 import type { PropsWithChildren } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-import { useReducedData } from "@/hooks/useReducedData";
+import { useCalmMode } from "@/hooks/useCalmMode";
 
 // We keep types broad; framer-motion's LazyMotion features prop accepts an internal feature bundle.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,11 +18,13 @@ const MotionReadyCtx = createContext(false);
 export const useMotionReady = () => useContext(MotionReadyCtx);
 
 export function LazyMotionProvider({ children }: PropsWithChildren) {
-  const reduceMotion = usePrefersReducedMotion();
-  const { reducedData } = useReducedData();
+  // One definition of calm, not a hand-rolled OR of two raw signals. This previously read
+  // matchMedia and navigator.connection directly, which meant it could disagree with the
+  // attributes every scene reads.
+  const isCalm = useCalmMode();
   const [fm, setFm] = useState<LazyState>(null);
 
-  const disableMotion = reduceMotion || reducedData;
+  const disableMotion = isCalm;
 
   useEffect(() => {
     if (disableMotion) return;

@@ -3,10 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CALM_ATTRIBUTES, readCalmMode, useCalmMode } from "@/hooks/useCalmMode";
 
 /**
- * `vitest.setup.ts` stubs `window.matchMedia` to report `matches: true` for everything,
- * so reduced motion is on by default here. That does not affect this hook, which reads the
- * attributes `ClientAttrWrapper` derives onto <html> rather than querying media directly --
- * which is the point: one derived attribute means every scene agrees on the answer.
+ * This hook reads the attributes `ClientAttrWrapper` derives onto <html> rather than querying
+ * media directly, which is the point: one derived attribute means every scene agrees on the
+ * answer. So these tests are indifferent to the `matchMedia` stub -- they assert on the
+ * attributes, which is also the only thing that happens in production.
  */
 /**
  * MutationObserver callbacks are delivered asynchronously, so a mutation has to be

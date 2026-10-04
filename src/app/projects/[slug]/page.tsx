@@ -69,7 +69,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   if (!project) notFound();
 
   return (
-    <main className="container mx-auto max-w-3xl py-12 md:py-20">
+    /* `MainWrapper` in the root layout already renders the page's single <main>, and
+       carries its id, aria-label and skip-link target. This element was a second,
+       nested <main>, which is invalid and splits the landmark. */
+    <div className="container mx-auto max-w-3xl py-12 md:py-20">
       <article>
         <ProjectJsonLd
           title={project.title}
@@ -144,6 +147,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <MdxContent code={project.content} />
         </div>
       </article>
-    </main>
+    </div>
   );
 }

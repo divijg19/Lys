@@ -16,21 +16,95 @@ Object.defineProperty(globalThis, "IntersectionObserver", {
   value: IntersectionObserver,
 });
 
-// Mock window.matchMedia for usePrefersReducedMotion
+/**
+ * Query-aware, reactive `matchMedia` stub.
+ *
+ * The previous stub answered `matches: true` to every query and registered no-op listeners.
+ * That had two consequences worth recording:
+ *
+ * 1. It reported reduced motion as active in tests that were not about reduced motion, so
+ *    every calm branch was live everywhere and the animated path was never exercised. The
+ *    entire motion-gated scene code had zero coverage, which is how `LightScene`,
+ *    `DarkScene` and `CyberpunkScene` could ship with `if (isCalm) return null` unnoticed.
+ * 2. Because listeners were no-ops, a hook that subscribed to `change` still worked in the
+ *    browser but could never be driven in a test.
+ *
+ * Queries that explicitly ask for reduced motion (`prefers-reduced-motion: reduce`) match;
+ * everything else, including `no-preference`, does not. That makes the default test
+ * environment an ordinary, animated one -- closer to the majority of real visitors -- and
+ * tests opt into calm deliberately.
+ */
 if (typeof window !== "undefined") {
+  const REDUCED_MOTION_QUERIES = [
+    "prefers-reduced-motion",
+    "prefers-reduced-transparency",
+    "prefers-contrast",
+  ] as const;
+
+  const mediaQueryLists = new Map<string, Set<(event: MediaQueryListEvent) => void>>();
+
+  /*
+   * Mutable so a test can flip the preference in both directions. A stub that can only ever
+   * report `true` cannot prove that a hook cleans up after itself when motion is re-enabled.
+   */
+  let reduceMotion = false;
+
+  const emitsReducedMotion = (query: string): boolean =>
+    reduceMotion && REDUCED_MOTION_QUERIES.some((feature) => query.includes(feature));
+
+  const notify = (query: string): void => {
+    const listeners = mediaQueryLists.get(query);
+    if (!listeners) return;
+    const event = { matches: emitsReducedMotion(query), media: query } as MediaQueryListEvent;
+    for (const listener of listeners) listener(event);
+  };
+
   Object.defineProperty(window, "matchMedia", {
     writable: true,
     configurable: true,
-    value: (query: string) => ({
-      matches: true, // force reduced motion true for deterministic animations
-      media: query,
-      onchange: null,
-      addListener: () => {},
-      removeListener: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      dispatchEvent: () => false,
-    }),
+    value: (query: string) => {
+      const matches = emitsReducedMotion(query);
+
+      return {
+        matches,
+        media: query,
+        onchange: null,
+        // Legacy MediaQueryList methods: kept for Safari-era callers.
+        addListener: (listener: (event: MediaQueryListEvent) => void) => {
+          const set = mediaQueryLists.get(query) ?? new Set();
+          set.add(listener);
+          mediaQueryLists.set(query, set);
+        },
+        removeListener: (listener: (event: MediaQueryListEvent) => void) => {
+          mediaQueryLists.get(query)?.delete(listener);
+        },
+        addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+          const set = mediaQueryLists.get(query) ?? new Set();
+          set.add(listener);
+          mediaQueryLists.set(query, set);
+        },
+        removeEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+          mediaQueryLists.get(query)?.delete(listener);
+        },
+        dispatchEvent: () => false,
+      };
+    },
+  });
+
+  /**
+   * Drive a media query change from a test.
+   *
+   * Flips the stub to "this query now matches" and notifies its subscribers, which is what a
+   * browser does when the user flips the OS motion setting mid-session. Use it to prove that
+   * a hook resubscribes rather than reading once.
+   *
+   * @example setReducedMotion(true); expect(document.documentElement).toHaveAttribute("data-reduce-motion")
+   */
+  Object.assign(globalThis, {
+    __setReducedMotion: (value: boolean) => {
+      reduceMotion = value;
+      for (const feature of REDUCED_MOTION_QUERIES) notify(`(${feature}: reduce)`);
+    },
   });
 }
 

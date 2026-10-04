@@ -76,6 +76,14 @@ export function RippleCue() {
     };
   }, [isCalm, hasFinePointer]);
 
+  /*
+   * One deliberate exception to the v0.2.7 "freeze, do not delete" rule, and the only
+   * remaining `return null` under calm in the theme layer.
+   *
+   * This is not scene content, it is an affordance: a cursor ring and a hint that invite the
+   * visitor to tap. Under calm mode taps no longer produce ripples, so showing the cue would
+   * be a promise the scene does not keep. Hiding it is the whole point of the component.
+   */
   if (isCalm) return null;
 
   return (

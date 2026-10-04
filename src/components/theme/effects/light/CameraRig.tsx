@@ -21,6 +21,10 @@ const CAMERA_OFFSET = new THREE.Vector3(0, 15, 25);
 const ANOMALY_POS = new THREE.Vector3(0, 0, 0);
 const START_POS = new THREE.Vector3(0, 0, 40);
 
+/** Where the shuttle holds station when travel is suppressed. */
+const HOLD_POSITION = new THREE.Vector3(0, 0, 40);
+const HOLD_LOOK_AT = new THREE.Vector3(0, 0, 5);
+
 /**
  * Scratch vectors reused every frame. The previous implementation allocated four
  * `THREE.Vector3` instances per frame, which is 240 objects/second of GC churn.
@@ -46,6 +50,11 @@ interface CameraRigProps {
   setDistance: (d: number) => void;
   onReachAnomaly: () => void;
   hasReachedAnomaly: boolean;
+  /**
+   * False while calm. Suppresses the forward journey *and* the scripted anomaly trigger,
+   * so a still frame does not drift or fire a timed cinematic on its own.
+   */
+  travel?: boolean;
 }
 
 export function CameraRig({
@@ -53,6 +62,7 @@ export function CameraRig({
   setDistance,
   onReachAnomaly,
   hasReachedAnomaly,
+  travel = true,
 }: CameraRigProps) {
   const lookAtTarget = useRef<THREE.Vector3>(new THREE.Vector3());
   const shuttleRef = useRef<THREE.Mesh>(null);
@@ -70,6 +80,12 @@ export function CameraRig({
       // All player movement and control is disabled.
       targetPos = CAMERA_OFFSET;
       lookAtPoint = ANOMALY_POS;
+    } else if (!travel) {
+      // Calm: the shuttle holds station and keeps looking down the corridor. Both targets
+      // are constants, so the lerp below settles immediately and the frame is static.
+      // No scripted anomaly trigger either -- a still frame should not fire a cinematic.
+      targetPos = HOLD_POSITION;
+      lookAtPoint = HOLD_LOOK_AT;
     } else {
       // Pre-collapse: The shuttle is actively exploring.
       // 1. Update the player's conceptual position.

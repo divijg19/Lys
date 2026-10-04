@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { themes } from "@/lib/themes";
@@ -222,5 +222,85 @@ describe("theme contrast in the redesigned set", () => {
     const card = requireToken("cyberpunk", "card");
     const ratio = contrastRatio(border, card);
     expect(ratio, "cyberpunk border/card").toBeGreaterThanOrEqual(1.4);
+  });
+});
+
+/* --------------------------------------------------- cyberpunk token integrity --- */
+
+/**
+ * Remove CSS comments so prose naming a token is not counted as a use of it, and prose
+ * describing a token is not counted as a declaration of it.
+ */
+const stripAllComments = (source: string): string => stripComments(source);
+
+function collectCpTokens(): { declared: Set<string>; used: Set<string> } {
+  const declared = new Set<string>();
+  const used = new Set<string>();
+
+  // Declarations come from globals.css only.
+  for (const match of stripAllComments(globalsCss).matchAll(/(--cp-[a-z0-9-]+)\s*:/g)) {
+    declared.add(match[1]);
+  }
+
+  // Uses can come from the stylesheet or from inline styles in components, because several
+  // Cyberpunk effects compose gradient strings in TypeScript and interpolate the token.
+  for (const file of walkSrc()) {
+    const source = stripAllComments(readFileSync(file, "utf8"));
+    for (const match of source.matchAll(/var\(\s*(--cp-[a-z0-9-]+)/g)) {
+      used.add(match[1]);
+    }
+  }
+
+  return { declared, used };
+}
+
+/** Every `.css`/`.ts`/`.tsx` under `src`, as a flat list. */
+function walkSrc(dir = path.resolve(process.cwd(), "src")): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...walkSrc(full));
+    } else if (/\.(css|ts|tsx)$/.test(entry.name)) {
+      files.push(full);
+    }
+  }
+  return files;
+}
+
+describe("cyberpunk (--cp-*) tokens", () => {
+  const { declared, used } = collectCpTokens();
+
+  it("declares at least one --cp-* token", () => {
+    // Guards the scan: an empty set would make every assertion below vacuously true.
+    expect(declared.size).toBeGreaterThan(0);
+  });
+
+  it("declares no token that is never referenced", () => {
+    /*
+     * Six were removed in v0.2.7 for exactly this: --cp-neon-cyan, --cp-neon-magenta,
+     * --cp-neon-amber, --cp-asphalt, --cp-signage-text and --cp-reflection-strength. Four
+     * of them duplicated the haze tokens the scene actually reads.
+     *
+     * An unreferenced token is worse than no token: it reads as a live design decision and
+     * invites a maintainer to "fix" a value that nothing consumes.
+     */
+    const dead = [...declared].filter((token) => !used.has(token)).sort();
+    expect(dead, `unreferenced --cp-* tokens: ${dead.join(", ")}`).toEqual([]);
+  });
+
+  it("references no token that is never declared", () => {
+    /*
+     * `--cp-accent` was referenced by NeonGlow but declared nowhere. An undeclared custom
+     * property makes the *entire* declaration invalid at computed-value time, so the glow
+     * layer it belonged to resolved to `none` and silently drew nothing -- no build error, no
+     * console warning, just a missing effect.
+     */
+    const undeclared = [...used].filter((token) => !declared.has(token)).sort();
+    expect(undeclared, `undeclared --cp-* tokens: ${undeclared.join(", ")}`).toEqual([]);
+  });
+
+  it("keeps the token ledger balanced", () => {
+    expect(declared.size).toBe(used.size);
   });
 });

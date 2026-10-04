@@ -68,7 +68,12 @@ const ChromaticAberrationShader = {
 
 const BLOOM = { strength: 0.82, radius: 0.72, threshold: 0.55 } as const;
 
-export function CyberpunkPostFX() {
+/**
+ * @param enabled Mount guard. Follows `HorizonPostFX`, which takes the same prop for the
+ *   same reason: a composer holds render targets, so under calm mode it should not be
+ *   mounted at all rather than merely skipped per frame.
+ */
+export function CyberpunkPostFX({ enabled = true }: { enabled?: boolean }) {
   const { scene, camera, size, gl } = useThree();
   const power = useMemo(() => ({ current: 1 }), []);
 
@@ -111,6 +116,7 @@ export function CyberpunkPostFX() {
   }, [composer]);
 
   useFrame((_, delta) => {
+    if (!enabled) return;
     if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
 
     // The aberration shader only uses uPower, so drive it straight from the signal.
