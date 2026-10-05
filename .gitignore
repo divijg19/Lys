@@ -44,6 +44,11 @@ next-env.d.ts
 .DS_Store
 *.pem
 
+# `CHANGELOG.md` is intentionally untracked: it is a local release log, not shared project
+# documentation. It stays on disk and remains recoverable from history at any commit
+# (`git show <rev>:CHANGELOG.md`). Re-track with `git add -f CHANGELOG.md` if that changes.
+CHANGELOG.md
+
 *storybook.log
 storybook-static
 .velite/

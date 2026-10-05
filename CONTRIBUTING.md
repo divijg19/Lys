@@ -35,7 +35,9 @@
 Husky will run linting before commits (if configured). Keep commits small and descriptive.
 
 ### Release
-- Update `CHANGELOG.md` succinctly (Added / Changed / Fixed).
+- `CHANGELOG.md` is untracked on purpose: it is a local release log, not shared project docs.
+  Do not commit it. Record notable changes there locally (Added / Changed / Fixed) if you keep
+  release notes; pull requests and tags carry the shared history.
 
 Thank you for contributing to a fast, accessible, and maintainable portfolio codebase! 🌟
 # Contributing Guide

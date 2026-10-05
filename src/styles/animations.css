@@ -89,7 +89,6 @@
   .animate-horizon-cafe-breeze,
   .animate-lens-flare-pulse,
   .animate-heat-shimmer-subtle,
-  .animate-fade-in,
   .animate-float {
     animation: none;
   }
@@ -641,6 +640,34 @@ html[data-theme="simple"] .transition-transform {
 }
 .animate-fade-in {
   animation: fade-in 0.8s ease-out forwards;
+}
+
+/*
+ * Reduced-motion override for `.animate-fade-in`.
+ *
+ * It has to live HERE, directly after the definition above, rather than in the shared
+ * reduced-motion block near the top of this file. All 30 other `.animate-*` classes are
+ * defined above that block, so `animation: none` outranks them on source order -- but
+ * `.animate-fade-in` is defined ~550 lines below it, so an equally specific `animation: none`
+ * up there loses and the fade kept playing for reduced-motion visitors. This was the only
+ * class in the file with that defect.
+ *
+ * `opacity: 1` is load-bearing, not cosmetic. `Expertise.tsx` pairs this class with
+ * Tailwind's `opacity-0` to avoid a flash of unstyled content in the frame before the fade
+ * starts. That guard would normally outrank nothing here, but `opacity-0` lives in Tailwind's
+ * `@layer utilities` while this rule is unlayered, and unlayered declarations outrank any
+ * layer regardless of source order. So without restating the end state here, cancelling the
+ * animation would leave the element at `opacity: 0` and permanently invisible.
+ * Setting both together keeps the pair atomic: no fade, and content immediately legible.
+ *
+ * The normal (motion-allowed) path is untouched -- the fade and its no-flash pre-state still
+ * behave exactly as before.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 /* Float animation for hero image */

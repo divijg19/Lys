@@ -51,7 +51,7 @@ export interface ButtonProps
 
 // 3. --- THE COMPONENT IMPLEMENTATION ---
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, type, ...props }, ref) => {
     // If 'asChild' is true, we render the child component with our styles.
     // This is perfect for wrapping a Next.js <Link>.
     const Comp = asChild ? Slot : "button";
@@ -60,6 +60,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        /*
+         * Default to `type="button"`.
+         *
+         * A `<button>` with no `type` is `type="submit"` per the HTML spec, so any un-annotated
+         * Button inside a form submits it -- including the icon Buttons on the project cards,
+         * whose handlers call `preventDefault()` only as a side effect of the card Link. An
+         * explicit `type` at the call site always wins.
+         *
+         * Deliberately not applied on the `asChild` path: there the rendered element is
+         * whatever `Slot` wraps (usually a Next `<Link>`, i.e. an `<a>`), and `type` is not a
+         * valid attribute on an anchor.
+         */
+        type={asChild ? undefined : (type ?? "button")}
         {...props}
       />
     );

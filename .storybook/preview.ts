@@ -2,8 +2,6 @@
 
 // @ts-expect-error - side-effect global CSS import accepted in Storybook environment
 import "@/styles/globals.css";
-// @ts-expect-error - side-effect global CSS import accepted in Storybook environment
-import "@/styles/a11y.css";
 import type { Decorator, Preview, StoryFn as SBStoryFn } from "@storybook/nextjs-vite";
 import { useEffect } from "react";
 

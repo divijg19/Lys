@@ -116,6 +116,7 @@ export function Hero() {
         taglineLabel={currentTaglineLabel}
         stackRibbons={[...HERO_STACK_RIBBONS]}
         reduceMotion={reduceMotion}
+        showCaret={showCaret}
       />
     );
   }

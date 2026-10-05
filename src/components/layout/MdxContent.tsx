@@ -56,7 +56,6 @@ const components = {
       {...props}
     />
   ),
-  li: (props: React.HTMLAttributes<HTMLLIElement>) => <li {...props} />,
   blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
     <blockquote
       className="mt-6 border-l-2 pl-6 italic"

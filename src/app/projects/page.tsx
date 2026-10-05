@@ -1,10 +1,13 @@
 // This is now a Server Component. It has no "use client" directive.
 import { FolderKanban } from "lucide-react";
+import type { Metadata } from "next";
 import { ProjectList } from "@/components/layout/ProjectList"; // 1. Import the new Client Component
 
 // 2. Exporting metadata from a Server Component is now valid.
-export const metadata = {
-  title: "Projects | Divij Ganjoo",
+export const metadata: Metadata = {
+  // Bare title: the root layout's template appends "| Divij Ganjoo". Hardcoding the suffix
+  // here as well rendered "Projects | Divij Ganjoo | Divij Ganjoo".
+  title: "Projects",
   description: "A collection of software, platforms, and experiments by Divij Ganjoo.",
 };
 

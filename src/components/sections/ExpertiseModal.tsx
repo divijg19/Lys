@@ -190,7 +190,6 @@ export function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: 
                         <Link
                           href={project.url}
                           key={project.slug}
-                          passHref
                         >
                           <Badge
                             variant="outline"

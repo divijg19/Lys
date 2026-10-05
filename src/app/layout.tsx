@@ -65,7 +65,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        {/* Debug utilities removed for production build */}
         <meta
           name="color-scheme"
           content="light dark"
@@ -99,7 +98,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             enableSystem={false}
             themes={[...THEME_NAMES]}
           >
-            {/* Debug hydration & error catcher removed */}
             <ClientThemeBackground />
             <LazyMotionProvider>
               <SkipLink targetId={mainId} />
@@ -111,7 +109,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     targetId={mainId}
                     className="container flex-1 py-8 md:py-12 outline-none"
                   >
-                    {/* Client debug snapshot removed */}
                     {children}
                   </MainWrapper>
                 </AppErrorBoundary>

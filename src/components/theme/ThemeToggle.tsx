@@ -69,7 +69,17 @@ export function ThemeToggle() {
             key={themeOption.name}
             // Pass the entire theme object to our custom hook's setter.
             onClick={() => setTheme(themeOption)}
-            aria-selected={currentTheme.name === themeOption.name}
+            /*
+             * `aria-current`, not `aria-selected`.
+             *
+             * `DropdownMenuItem` renders `DropdownMenuPrimitive.Item`, which is
+             * `role="menuitem"`, and `aria-selected` is not a permitted attribute on that role
+             * (axe `aria-allowed-attr`). There is no visual current-theme indicator on these
+             * items -- the className is constant -- so this attribute was the only thing
+             * conveying the selection to assistive tech. `aria-current` is a global attribute,
+             * valid on any role, and carries the same meaning.
+             */
+            aria-current={currentTheme.name === themeOption.name ? "true" : undefined}
             className="cursor-pointer"
           >
             <themeOption.icon
