@@ -1,9 +1,12 @@
 import { Library } from "lucide-react";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BlogList } from "@/components/layout/BlogList";
 
-export const metadata = {
-  title: "Blog | Divij Ganjoo",
+export const metadata: Metadata = {
+  // Bare title: the root layout's template appends "| Divij Ganjoo". Hardcoding the suffix
+  // here as well rendered "Blog | Divij Ganjoo | Divij Ganjoo".
+  title: "Blog",
   description: "Read articles, tutorials, and thoughts on development and design by Divij Ganjoo.",
 };
 

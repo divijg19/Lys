@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-
 interface MainWrapperProps {
   targetId: string;
   children: React.ReactNode;
@@ -9,11 +7,10 @@ interface MainWrapperProps {
 }
 
 export function MainWrapper({ targetId, children, className }: MainWrapperProps) {
-  const mainRef = useRef<HTMLElement | null>(null);
-
   return (
+    // `tabIndex={-1}` is what makes the skip link work: `SkipLink` focuses this element by id
+    // via `getElementById`, so focusability is all that is needed -- no ref required.
     <main
-      ref={mainRef}
       tabIndex={-1}
       className={className}
       aria-label="Main content"

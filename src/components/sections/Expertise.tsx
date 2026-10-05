@@ -344,7 +344,6 @@ const SkillCard = memo(function SkillCard({
   const reduceMotion = usePrefersReducedMotion();
   const effectiveExpanded = expanded && allowPreview;
   const competencies = skill.keyCompetencies || [];
-  const visibleCompetencies = competencies; // collapsed state no preview list anymore
   // Per-card pointer tracking only (timing handled at parent via debounced callbacks)
 
   const onKeyDown = useCallback(
@@ -442,9 +441,6 @@ const SkillCard = memo(function SkillCard({
         onMouseEnter={() => {
           if (!effectiveExpanded) onPreview();
         }}
-        onMouseLeave={() => {
-          // Grid-level leave handles collapse; allow quick move between cards
-        }}
         onFocus={() => {
           if (!allowPreview) return;
           onPreview();
@@ -470,7 +466,7 @@ const SkillCard = memo(function SkillCard({
         <div
           className={cn(
             "relative flex w-full flex-col items-center text-center transition-opacity duration-150",
-            effectiveExpanded ? "gap-2.5" : "gap-2.5" // Consistent spacing
+            "gap-2.5"
           )}
         >
           {/* Icon container - ensures consistent centering */}
@@ -546,7 +542,7 @@ const SkillCard = memo(function SkillCard({
                   }}
                 >
                   <ul className="space-y-1.5 text-[11px] leading-snug text-muted-foreground">
-                    {visibleCompetencies.map((c, i) => (
+                    {competencies.map((c, i) => (
                       <motion.li
                         key={c}
                         className="line-clamp-1"

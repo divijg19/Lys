@@ -22,6 +22,16 @@ type HeroAnimatedProps = {
   taglineLabel: string;
   stackRibbons: string[];
   reduceMotion: boolean;
+  /**
+   * Whether to render the blinking terminal caret. Owned by `Hero`, which resolves it from the
+   * theme *and* the motion preference -- see the note there.
+   *
+   * This component used to decide for itself with `!reduceMotion`, which is a constant `true`
+   * here: `Hero` only renders `HeroAnimated` when motion is allowed. That rendered the caret
+   * element in all seven themes, leaving an un-blinked 4px rule beside the tagline everywhere
+   * the CSS was not scoped to Cyberpunk.
+   */
+  showCaret: boolean;
 };
 
 export function HeroAnimated({
@@ -32,6 +42,7 @@ export function HeroAnimated({
   taglineLabel,
   stackRibbons,
   reduceMotion,
+  showCaret,
 }: HeroAnimatedProps) {
   const Inner = (
     <div className="flex w-full max-w-7xl flex-col items-center gap-6 text-center lg:flex-row lg:items-start lg:justify-center lg:gap-14 lg:text-left">
@@ -43,6 +54,7 @@ export function HeroAnimated({
         taglineLabel={taglineLabel}
         stackRibbons={stackRibbons}
         reduceMotion={reduceMotion}
+        showCaret={showCaret}
       />
       <HeroImageAnimated reduceMotion={reduceMotion} />
     </div>
@@ -73,6 +85,7 @@ const HeroContentAnimated = memo(
     taglineLabel,
     stackRibbons,
     reduceMotion,
+    showCaret,
   }: {
     greeting: string;
     greetingReady: boolean;
@@ -81,6 +94,7 @@ const HeroContentAnimated = memo(
     taglineLabel: string;
     stackRibbons: string[];
     reduceMotion: boolean;
+    showCaret: boolean;
   }) => {
     const ariaLabel = taglineLabel || bio.tagline || "Tagline";
     return (
@@ -129,7 +143,7 @@ const HeroContentAnimated = memo(
           >
             {tagline}
             {tagline.length === 0 ? <span className="sr-only">{ariaLabel}</span> : null}
-            {!reduceMotion ? (
+            {showCaret ? (
               <span
                 className="terminal-cursor ml-0.5 inline-block h-[1.15em] w-0"
                 aria-hidden
