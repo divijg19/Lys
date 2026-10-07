@@ -4,11 +4,10 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { blogs } from "#velite";
-import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Button } from "@/components/ui/Button";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 
 const BlogPreviewAnimated = dynamic(
   () => import("./BlogPreviewAnimated").then((m) => m.BlogPreviewAnimated),
@@ -16,10 +15,9 @@ const BlogPreviewAnimated = dynamic(
 );
 
 export function BlogPreview() {
-  const reduceMotion = usePrefersReducedMotion();
-  const motionReady = useMotionReady();
+  const sectionMotion = useSectionMotion();
 
-  if (motionReady && !reduceMotion) {
+  if (sectionMotion) {
     return <BlogPreviewAnimated />;
   }
 

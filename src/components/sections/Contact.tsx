@@ -12,12 +12,11 @@ import {
 } from "react-hook-form";
 import { z } from "zod";
 import { SocialLink } from "@/components/layout/SocialLink";
-import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 import { HERO_SOCIALS } from "./Hero.data";
 import { HiddenHoneypot } from "./HiddenHoneypot";
 
@@ -56,8 +55,7 @@ export function Contact() {
   const [status, setStatus] = useState<FormStatus>({ status: "idle" });
   const [announced, setAnnounced] = useState("");
   const sectionId = useId();
-  const reduceMotion = usePrefersReducedMotion();
-  const motionReady = useMotionReady();
+  const sectionMotion = useSectionMotion();
 
   const {
     register,
@@ -163,7 +161,7 @@ export function Contact() {
     </div>
   );
 
-  if (motionReady && !reduceMotion) {
+  if (sectionMotion) {
     return <ContactAnimated sectionId={sectionId}>{Inner}</ContactAnimated>;
   }
 

@@ -1,8 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useMotionReady } from "@/components/perf/LazyMotion";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useTheme } from "@/hooks/useTheme";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 import { AboutContent } from "./AboutContent";
 
 // Local variants replaced with shared motion presets.
@@ -22,10 +21,9 @@ const AboutAnimated = dynamic(() => import("./AboutAnimated").then((m) => m.Abou
 export function About() {
   const { theme } = useTheme();
   const headingGradient = headingGradients[theme.name] || headingGradients.default;
-  const reduceMotion = usePrefersReducedMotion();
-  const motionReady = useMotionReady();
+  const sectionMotion = useSectionMotion();
 
-  if (motionReady && !reduceMotion) {
+  if (sectionMotion) {
     return <AboutAnimated headingGradient={headingGradient} />;
   }
 

@@ -125,6 +125,8 @@ export function Expertise() {
   return (
     <section
       id={id}
+      data-section="expertise"
+      aria-label="Tech Stack and Expertise"
       className="relative mx-auto w-full max-w-7xl px-4 py-20"
     >
       <header className="mb-16 animate-fade-in text-center opacity-0">

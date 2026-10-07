@@ -15,7 +15,9 @@ import { MainWrapper } from "@/components/layout/MainWrapper";
 import { Navbar } from "@/components/layout/Navbar";
 import { SkipLink } from "@/components/layout/SkipLink";
 // Performance and theme components
-import { LazyMotionProvider } from "@/components/perf/LazyMotion";
+// Framer Motion's MotionConfig supplies global reduced-motion handling for its
+// animation primitives; the static-branch gating lives in `useSectionMotion`.
+import { MotionConfig } from "framer-motion";
 import { RootPersonJsonLd } from "@/components/seo/RootPersonJsonLd";
 import { ClientThemeBackground } from "@/components/theme/ClientThemeBackground";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -99,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             themes={[...THEME_NAMES]}
           >
             <ClientThemeBackground />
-            <LazyMotionProvider>
+            <MotionConfig reducedMotion="user">
               <SkipLink targetId={mainId} />
               <div className="relative z-10 flex min-h-dvh flex-col">
                 <Navbar />
@@ -117,7 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </Suspense>
               </div>
               <Toaster />
-            </LazyMotionProvider>
+            </MotionConfig>
           </ThemeProvider>
         </ClientAttrWrapper>
       </body>

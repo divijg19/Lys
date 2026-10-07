@@ -3,10 +3,9 @@
 import { Briefcase, GraduationCap } from "lucide-react";
 import dynamic from "next/dynamic";
 import { resume } from "#velite";
-import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Badge } from "@/components/ui/Badge";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 
 // Using shared fadeUp variant + reduced motion gating.
 
@@ -67,10 +66,9 @@ function StaticTimelineItem({
 }
 
 export function Experience() {
-  const reduceMotion = usePrefersReducedMotion();
-  const motionReady = useMotionReady();
+  const sectionMotion = useSectionMotion();
 
-  if (motionReady && !reduceMotion) {
+  if (sectionMotion) {
     return <ExperienceAnimated />;
   }
 

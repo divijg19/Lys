@@ -53,8 +53,6 @@
   html {
     overflow-y: scroll;
   }
-  /* Removed motion-fallback-visible overrides (no longer needed due to static-first rendering strategy). */
-
   /* --- Theme 1: Modernist Gallery --- */
   :root,
   [data-theme="light"] {
