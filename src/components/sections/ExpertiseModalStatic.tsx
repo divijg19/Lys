@@ -191,7 +191,6 @@ export function ExpandedSkillModalStatic({
                         <Link
                           href={project.url}
                           key={project.slug}
-                          passHref
                         >
                           <Badge
                             variant="outline"

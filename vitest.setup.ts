@@ -16,13 +16,18 @@ Object.defineProperty(globalThis, "IntersectionObserver", {
   value: IntersectionObserver,
 });
 
-// Mock window.matchMedia for usePrefersReducedMotion
+// Mock window.matchMedia for usePrefersReducedMotion.
+//
+// Force `reduce` to match so tests take the calm path deterministically, but answer
+// `false` for every other query. Returning `true` unconditionally (the old behaviour)
+// also matched e.g. `(prefers-color-scheme: dark)` and any future media query, silently
+// mis-testing anything that branches on it.
 if (typeof window !== "undefined") {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
     configurable: true,
     value: (query: string) => ({
-      matches: true, // force reduced motion true for deterministic animations
+      matches: /prefers-reduced-motion\s*:\s*reduce/.test(query),
       media: query,
       onchange: null,
       addListener: () => {},

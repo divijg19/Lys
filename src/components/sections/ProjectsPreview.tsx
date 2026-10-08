@@ -5,11 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { SiGithub as Github } from "react-icons/si";
 import { projects } from "#velite";
-import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { ROUTES } from "@/lib/routes";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 
 const ProjectsPreviewAnimated = dynamic(
   () => import("./ProjectsPreviewAnimated").then((m) => m.ProjectsPreviewAnimated),
@@ -17,10 +16,9 @@ const ProjectsPreviewAnimated = dynamic(
 );
 
 export function ProjectsPreview() {
-  const reduceMotion = usePrefersReducedMotion();
-  const motionReady = useMotionReady();
+  const sectionMotion = useSectionMotion();
 
-  if (motionReady && !reduceMotion) {
+  if (sectionMotion) {
     return <ProjectsPreviewAnimated />;
   }
 

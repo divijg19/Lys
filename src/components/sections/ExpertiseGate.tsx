@@ -1,8 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMotionReady } from "@/components/perf/LazyMotion";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 import { ExpertiseStatic } from "./ExpertiseStatic";
 
 const ExpertiseAnimated = dynamic(() => import("./Expertise").then((m) => m.Expertise), {
@@ -10,10 +9,9 @@ const ExpertiseAnimated = dynamic(() => import("./Expertise").then((m) => m.Expe
 });
 
 export function ExpertiseGate() {
-  const reduceMotion = usePrefersReducedMotion();
-  const motionReady = useMotionReady();
+  const sectionMotion = useSectionMotion();
 
-  if (motionReady && !reduceMotion) {
+  if (sectionMotion) {
     return <ExpertiseAnimated />;
   }
 

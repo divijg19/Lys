@@ -7,7 +7,6 @@ import Link from "next/link";
 import { memo, useEffect, useState } from "react";
 import { bio } from "#velite";
 import { SocialLink } from "@/components/layout/SocialLink";
-import { useMotionReady } from "@/components/perf/LazyMotion";
 import { Button } from "@/components/ui/Button";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useTheme } from "@/hooks/useTheme";
@@ -36,10 +35,11 @@ const NAME_GRADIENTS: Record<string, string> = {
 // Local fade variants replaced by shared presets (fadeUp + staggerContainer)
 
 import { useDayPhase } from "@/hooks/useDayPhase";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 
 export function Hero() {
   const reduceMotion = usePrefersReducedMotion();
-  const motionReady = useMotionReady();
+  const sectionMotion = useSectionMotion();
   const { theme, isMounted } = useTheme();
   const { greeting, hydrated: clockHydrated } = useDayPhase();
   const taglines = HERO_TAGLINES as readonly string[];
@@ -106,7 +106,7 @@ export function Hero() {
     ? NAME_GRADIENTS[theme.name] || "text-foreground"
     : "text-foreground";
 
-  if (motionReady && !reduceMotion) {
+  if (sectionMotion) {
     return (
       <HeroAnimated
         greeting={greeting}
