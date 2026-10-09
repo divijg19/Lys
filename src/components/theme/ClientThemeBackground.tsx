@@ -7,6 +7,12 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import ThemeBackground from "@/components/theme/ThemeBackground";
+import { suppressThreeClockDeprecation } from "@/lib/three-deprecations";
+
+// Runs at module scope, so the filter is installed before any theme scene mounts and
+// `@react-three/fiber` constructs its store. Component-scope would be too late: the warning is
+// emitted while the scene is being created.
+suppressThreeClockDeprecation();
 
 export function ClientThemeBackground() {
   const { theme } = useTheme();

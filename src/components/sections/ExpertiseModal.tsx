@@ -4,6 +4,7 @@ import { Link as LinkIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { projects } from "#velite";
 import { resolveIconFromPath } from "@/components/icons/registry";
 import { Badge } from "@/components/ui/Badge";
@@ -43,6 +44,7 @@ function InlineTechIcon({
 }
 
 export function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: () => void }) {
+  const reduceMotion = usePrefersReducedMotion();
   const relevantProjects = projects.filter((p) => skill.projectSlugs?.includes(p.slug));
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -53,7 +55,7 @@ export function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: 
     const el = dialogRef.current;
     if (!el) return;
     const selector =
-      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+      'a[href], button:not([disabled]):not([data-overlay]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
     const focusable = Array.from(el.querySelectorAll<HTMLElement>(selector));
     (focusable[0] || el).focus();
     const handleKey = (e: KeyboardEvent) => {
@@ -107,19 +109,48 @@ export function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: 
       aria-modal="true"
       role="dialog"
     >
-      <motion.div
-        initial={{ opacity: 0 }}
+      {/*
+        The dismiss overlay.
+
+        `motion.button` rather than `motion.div`, so dismissing the dialog is reachable by
+        keyboard as well as by pointer. `data-overlay` keeps the focus trap from cycling onto it
+        and `tabIndex={-1}` keeps it out of the page's tab order, so neither costs anything.
+
+        It is a motion component because the backdrop has to fade in. Converting it to a plain
+        `<button>` for the semantics above dropped the animation with it, and the black backdrop
+        then snapped to full opacity on the first frame while the panel eased in over the
+        following three -- visibly inconsistent. This restores the baseline fade while keeping
+        the button.
+      */}
+      <motion.button
+        // Same rule as the panel below: `animate` always carries the target, because an
+        // undefined `animate` paired with `initial={false}` leaves framer on the initial values.
+        initial={reduceMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={{ opacity: 0, transition: { duration: 0 } }}
+        transition={reduceMotion ? { duration: 0 } : undefined}
+        exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0 } }}
+        type="button"
+        aria-label="Close dialog"
+        data-overlay
+        tabIndex={-1}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
+        // Reduced motion still gets the dialog; it simply arrives without the scale-up.
+        //
+        // `animate` is never undefined. Paired with `initial={false}`, an undefined `animate`
+        // leaves framer holding the `initial` values, which rendered the dialog permanently at
+        // `opacity: 0; scale(0.95)` for reduced-motion visitors: the backdrop was visible and
+        // the panel behind it was not. Reduced motion skips the transition instead of the target.
+        initial={reduceMotion ? false : { scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0, transition: { duration: 0.15 } }}
+        transition={reduceMotion ? { duration: 0 } : undefined}
+        exit={
+          reduceMotion ? undefined : { scale: 0.95, opacity: 0, transition: { duration: 0.15 } }
+        }
         ref={dialogRef}
-        className="relative z-10 h-full max-h-[36rem] w-full max-w-4xl overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-muted/20 shadow-2xl focus:outline-none"
+        className="relative z-10 h-full max-h-144 w-full max-w-4xl overflow-hidden rounded-2xl border bg-linear-to-br from-card to-muted/20 shadow-2xl focus:outline-none"
       >
         <div className="h-full w-full p-8">
           <button
@@ -131,7 +162,7 @@ export function ExpandedSkillModal({ skill, onClose }: { skill: Skill; onClose: 
             <X size={24} />
           </button>
           <div className="flex items-start gap-5">
-            <div className="flex h-[60px] w-[60px] flex-shrink-0 items-center justify-center text-[hsl(var(--foreground))]">
+            <div className="flex h-15 w-15 shrink-0 items-center justify-center text-[hsl(var(--foreground))]">
               <InlineTechIcon
                 path={skill.iconPath}
                 alt={`${skill.name} icon`}
