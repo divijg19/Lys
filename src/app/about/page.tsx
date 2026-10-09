@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 // Import the world-class sections you've already built
 import { About } from "@/components/sections/About";
 import { Experience } from "@/components/sections/Experience";
-import { ExpertiseGate } from "@/components/sections/ExpertiseGate";
+import { Expertise } from "@/components/sections/Expertise";
 
 export const metadata: Metadata = {
   title: "About Me", // The layout will add "| Divij Ganjoo"
@@ -21,7 +21,7 @@ export default function AboutPage() {
       <div className="flex flex-col gap-y-24">
         <About />
         <Experience />
-        <ExpertiseGate />
+        <Expertise />
       </div>
     </div>
   );

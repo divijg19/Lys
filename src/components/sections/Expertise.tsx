@@ -20,6 +20,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { expertise } from "#velite";
 import { resolveIconFromPath } from "@/components/icons/registry";
 import { Badge } from "@/components/ui/Badge";
+import { useGridColumns } from "@/hooks/useGridColumns";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 import type { Skill } from "@/types/expertise";
@@ -200,48 +201,7 @@ function SkillGrid({
   onQueuePreview: (key: string) => void;
 }) {
   const gridRef = useRef<HTMLUListElement | null>(null);
-  const [columns, setColumns] = useState(0);
-
-  useEffect(() => {
-    const grid = gridRef.current;
-    if (!grid) return;
-
-    const computeVisibleColumns = () => {
-      const viewport = grid.parentElement as HTMLElement | null;
-      const viewportWidth = viewport?.clientWidth ?? grid.clientWidth;
-      const styles = window.getComputedStyle(grid);
-      const gap =
-        Number.parseFloat(styles.columnGap || styles.gap || "0") ||
-        Number.parseFloat(styles.rowGap || "0") ||
-        0;
-      const autoCol = styles.gridAutoColumns || "";
-      const tile = Number.parseFloat(autoCol) || 0;
-      if (!tile) {
-        setColumns((prev) => (prev === 1 ? prev : 1));
-        return;
-      }
-      const visible = Math.max(1, Math.floor((viewportWidth + gap) / (tile + gap)));
-      setColumns((prev) => (prev === visible ? prev : visible));
-    };
-
-    computeVisibleColumns();
-
-    const RO: typeof ResizeObserver | undefined =
-      typeof window !== "undefined" && "ResizeObserver" in window
-        ? window.ResizeObserver
-        : undefined;
-
-    if (RO) {
-      const ro = new RO(() => computeVisibleColumns());
-      ro.observe(grid);
-      return () => ro.disconnect();
-    }
-
-    // Fallback for test environments without ResizeObserver.
-    const onResize = () => computeVisibleColumns();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+  const columns = useGridColumns(gridRef);
 
   const allowPreview = columns >= 2;
   const rows = 2;
@@ -275,10 +235,17 @@ function SkillGrid({
       }}
       data-skill-grid
       onMouseLeave={(e) => {
-        // Collapse when pointer leaves entire grid
-        if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
-          onQueueCollapse();
-        }
+        /*
+         * Collapse when the pointer leaves the entire grid.
+         *
+         * `relatedTarget` is not reliably a `Node`: when the pointer leaves the document the
+         * browser reports `window`, and `Node.contains(window)` throws
+         * "parameter 1 is not of type 'Node'". Type-checking before the call makes a null or
+         * non-element target count as "outside the grid", which is what it means.
+         */
+        const related = e.relatedTarget;
+        const stillInside = related instanceof Node && e.currentTarget.contains(related);
+        if (!stillInside) onQueueCollapse();
       }}
     >
       {orderedSkills.map((s) => {
@@ -346,10 +313,36 @@ const SkillCard = memo(function SkillCard({
   const reduceMotion = usePrefersReducedMotion();
   const effectiveExpanded = expanded && allowPreview;
   const competencies = skill.keyCompetencies || [];
+  const panelId = useId();
   // Per-card pointer tracking only (timing handled at parent via debounced callbacks)
 
+  /*
+   * Keyboard collapse.
+   *
+   * Hover intent alone could not dismiss the preview for keyboard users: the grid-level
+   * `onMouseLeave` never fires without a pointer, and Escape is only a section-level escape
+   * hatch. Tabbing away therefore left a card stuck open with the pointer far away.
+   *
+   * `relatedTarget` is null when focus leaves the document entirely (blur to the browser
+   * chrome), which counts as leaving the card. Tabbing to the collapse button stays inside
+   * the card and must not collapse it.
+   */
+  const onBlur = useCallback(
+    (e: React.FocusEvent<HTMLButtonElement>) => {
+      if (!effectiveExpanded) return;
+      // `relatedTarget` may be `null` (focus left the document) or a non-Node target such as
+      // `window`, so it is type-checked before `contains` sees it.
+      const next = e.relatedTarget;
+      if (next instanceof Node && e.currentTarget.closest("[data-skill-card]")?.contains(next)) {
+        return;
+      }
+      onCollapse();
+    },
+    [effectiveExpanded, onCollapse]
+  );
+
   const onKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
+    (e: React.KeyboardEvent<HTMLButtonElement>) => {
       const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "Enter", " "];
       if (!keys.includes(e.key)) return;
       const grid = e.currentTarget.closest("[data-skill-grid]") as HTMLElement | null;
@@ -360,7 +353,7 @@ const SkillCard = memo(function SkillCard({
         return;
       }
       e.preventDefault();
-      const cards = Array.from(grid.querySelectorAll<HTMLDivElement>("[data-skill-card]"));
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>("[data-skill-trigger]"));
       if (!cards.length) return;
       const currentIndex = cards.indexOf(e.currentTarget);
       const total = cards.length;
@@ -422,55 +415,108 @@ const SkillCard = memo(function SkillCard({
 
   return (
     <motion.li
-      layout
-      transition={{
-        layout: {
-          type: "tween",
-          duration: 0.4,
-          delay: 0.02,
-          ease: [0.22, 1, 0.36, 1],
-        },
-      }}
+      layout={!reduceMotion}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : {
+              layout: {
+                type: "tween",
+                duration: 0.4,
+                delay: 0.02,
+                ease: [0.22, 1, 0.36, 1],
+              },
+            }
+      }
       className={cn(effectiveExpanded ? "col-span-2 row-span-2" : undefined)}
     >
+      {/*
+        Card container.
+
+        A `motion.div` again so the hover affordance is framer's spring rather than a flat CSS
+        transition -- that spring is what the card had at v0.1.19 through v0.1.23, and it is what
+        makes the hover feel right.
+
+        It carries no `role` and no `tabIndex`. The earlier `role="button"` was the actual
+        accessibility defect: it made the card a focusable control that contained another
+        focusable control (the collapse button), which axe reports as `nested-interactive`.
+        Using `motion.div` is unrelated to that fault, and `whileHover` on a child of a
+        `layout`-animated parent is exactly the arrangement the baseline used, so the two do not
+        fight each other.
+
+        `onClick` lives here, as in the baseline, so any click on the card opens the details --
+        header, badges or competency list. The keyboard control below deliberately has no
+        `onClick`: its clicks bubble to this handler, so there is exactly one click path.
+      */}
       <motion.div
-        role="button"
-        tabIndex={0}
-        aria-label={`View details for ${skill.name}`}
-        aria-expanded={effectiveExpanded}
         whileHover={reduceMotion ? undefined : { scale: 1.01 }}
         whileTap={reduceMotion ? undefined : { scale: 0.995 }}
+        /*
+         * Hover intent lives here, on the card, and must not be moved onto the trigger button.
+         *
+         * The trigger is scoped to the header so the expanded panel below it stays clickable and
+         * scrollable, which means it is only as tall as the header: 66px of a 152px tile. While
+         * the hover handler lived there, the bottom 86px of every card was inert and aiming at a
+         * card often did nothing at all -- exactly the disconnect this placement removes. A handler
+         * on the container covers the whole subtree, so the full tile is the hover target without
+         * the trigger ever having to sit above the panel again.
+         */
         onMouseEnter={() => {
           if (!effectiveExpanded) onPreview();
         }}
-        onFocus={() => {
-          if (!allowPreview) return;
-          onPreview();
-        }}
-        onKeyDown={onKeyDown}
         onClick={(e) => {
-          // avoid triggering when clicking collapse button
+          // The collapse control is a sibling and not an ancestor, so this guard is what keeps
+          // "collapse" from also opening the dialog.
           if ((e.target as HTMLElement).closest("[data-collapse-btn]")) return;
           onSelect();
         }}
         className={cn(
-          "group flex h-full w-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm outline-none ring-primary/40 transition-shadow focus-visible:ring-2",
+          "group relative flex h-full w-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm ring-primary/40 transition-shadow",
           effectiveExpanded ? "p-4 shadow-xl" : "hover:shadow-md",
-          effectiveExpanded && !reduceMotion && "[animation-duration:400ms]",
-          !effectiveExpanded && "items-center justify-center relative", // Default state: center all content
+          !effectiveExpanded && "items-center justify-center", // Default state: center all content
           !effectiveExpanded && previewActive && "opacity-90", // subtle de-emphasis (avoid scale jank)
           effectiveExpanded && "items-start justify-start"
         )}
         data-skill-card
         data-skill={skill.name}
       >
-        {/* HEADER (shared structure for both states) */}
+        {/*
+          Header (shared structure for both states).
+
+          `relative` because the keyboard control below is absolutely positioned to cover it,
+          which keeps the control exactly as tall as the header without hard-coding a height
+          that would drift whenever the level badge appears or disappears.
+        */}
         <div
           className={cn(
             "relative flex w-full flex-col items-center text-center transition-opacity duration-150",
             "gap-2.5"
           )}
         >
+          {/*
+            Keyboard and assistive-tech control for the card.
+
+            Scoped to the header on purpose. A full-bleed overlay would sit above the expanded
+            panel and make the competency list unclickable and unscrollable; instead the card
+            container handles the pointer, and this button carries focus, the accessible name and
+            the expanded/controls relationship. It has no `onClick` and no `onMouseEnter`: both
+            bubble to the container, so there is one click path and one hover target, and the
+            hover target is the whole tile rather than just the header.
+          */}
+          <button
+            type="button"
+            data-skill-trigger
+            aria-label={`View details for ${skill.name}`}
+            aria-expanded={effectiveExpanded}
+            aria-controls={effectiveExpanded ? panelId : undefined}
+            onFocus={() => {
+              if (!allowPreview) return;
+              onPreview();
+            }}
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
+            className="absolute inset-0 z-10 cursor-pointer rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          />
           {/* Icon container - ensures consistent centering */}
           <div className="flex items-center justify-center h-9">
             <TechIcon
@@ -495,68 +541,70 @@ const SkillCard = memo(function SkillCard({
               </Badge>
             )}
           </div>
-          {effectiveExpanded && (
-            <button
-              type="button"
-              data-collapse-btn
-              onClick={(e) => {
-                e.stopPropagation();
-                onCollapse();
-              }}
-              aria-label="Collapse preview"
-              className="absolute top-2 right-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 bg-background/70 text-muted-foreground transition-colors hover:text-foreground hover:bg-background/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 z-40"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
         </div>
+
+        {/* Collapse control: a sibling of the overlay button, never a descendant of it. */}
+        {effectiveExpanded && (
+          <button
+            type="button"
+            data-collapse-btn
+            onClick={onCollapse}
+            aria-label="Collapse preview"
+            className="absolute top-2 right-2 z-30 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 bg-background/70 text-muted-foreground transition-colors hover:text-foreground hover:bg-background/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
 
         {/* EXPANDED STATE - description content */}
         <AnimatePresence>
           {effectiveExpanded && (
             <motion.div
               key="expanded-content"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  type: "tween",
-                  duration: 0.26,
-                  delay: 0.06,
-                  ease: [0.22, 1, 0.36, 1],
-                },
-              }}
-              exit={{
-                opacity: 0,
-                y: 3,
-                transition: { duration: 0.18, ease: [0.4, 0, 0.2, 1] },
-              }}
+              // `animate` is never undefined. Paired with `initial={false}` an undefined
+              // `animate` leaves framer holding the `initial` values, which renders the panel at
+              // its pre-animation opacity and size. Reduced motion skips the transition instead.
+              initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : {
+                      type: "tween",
+                      duration: 0.26,
+                      delay: 0.06,
+                      ease: [0.22, 1, 0.36, 1],
+                    }
+              }
+              exit={
+                reduceMotion
+                  ? undefined
+                  : {
+                      opacity: 0,
+                      y: 3,
+                      transition: { duration: 0.18, ease: [0.4, 0, 0.2, 1] },
+                    }
+              }
+              id={panelId}
               className="mt-3 flex h-full w-full flex-col overflow-hidden"
             >
               {competencies.length > 0 && (
                 <motion.div
                   className="flex-1 overflow-y-auto pr-1 [-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.6),rgba(0,0,0,1)_10%,rgba(0,0,0,1)_90%,rgba(0,0,0,0.6))]"
-                  initial={{ opacity: 0 }}
-                  animate={{
-                    opacity: 1,
-                    transition: { delay: 0.05, duration: 0.2 },
-                  }}
+                  initial={reduceMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={reduceMotion ? { duration: 0 } : { delay: 0.05, duration: 0.2 }}
                 >
                   <ul className="space-y-1.5 text-[11px] leading-snug text-muted-foreground">
                     {competencies.map((c, i) => (
                       <motion.li
                         key={c}
                         className="line-clamp-1"
-                        initial={{ opacity: 0, x: -4 }}
-                        animate={{
-                          opacity: 1,
-                          x: 0,
-                          transition: {
-                            delay: 0.08 + i * 0.02,
-                            duration: 0.2,
-                          },
-                        }}
+                        initial={reduceMotion ? false : { opacity: 0, x: -4 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={
+                          reduceMotion ? { duration: 0 } : { delay: 0.08 + i * 0.02, duration: 0.2 }
+                        }
                       >
                         • {c}
                       </motion.li>
@@ -567,12 +615,9 @@ const SkillCard = memo(function SkillCard({
               {skill.ecosystem && skill.ecosystem.length > 0 && (
                 <motion.div
                   className="mt-2 flex flex-wrap gap-1.5"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    transition: { delay: 0.1, duration: 0.2 },
-                  }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={reduceMotion ? { duration: 0 } : { delay: 0.1, duration: 0.2 }}
                 >
                   {skill.ecosystem.slice(0, 8).map((tool) => (
                     <Badge
@@ -587,11 +632,9 @@ const SkillCard = memo(function SkillCard({
               )}
               <motion.div
                 className="pt-2 text-[9px] font-medium uppercase tracking-wide text-primary/80"
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 1,
-                  transition: { delay: 0.15, duration: 0.2 },
-                }}
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={reduceMotion ? { duration: 0 } : { delay: 0.15, duration: 0.2 }}
               >
                 Click for full details
               </motion.div>
