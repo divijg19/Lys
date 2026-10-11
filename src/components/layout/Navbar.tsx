@@ -2,9 +2,11 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useIsDesktopViewport } from "@/hooks/useIsDesktopViewport";
 import { useScroll } from "@/hooks/useScroll";
 import { acquireScrollLock } from "@/lib/scrollLock";
 import { useTheme } from "@/hooks/useTheme";
@@ -15,6 +17,30 @@ import { cn } from "@/lib/utils";
 export function Navbar() {
   const { scrolledDown } = useScroll();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // Focus returns here when the menu closes. Without it, dismissing the menu dropped focus on
+  // <body>, so a keyboard user lost their place in the header entirely.
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const isDesktop = useIsDesktopViewport();
+  const pathname = usePathname();
+
+  // Dismiss the mobile menu on the way up to desktop. The overlay is `md:hidden`, so past this
+  // width it is invisible while still mounted -- and while mounted it holds the scroll lock, marks
+  // every sibling `inert` and `aria-hidden`, and traps focus. Rotating a phone or resizing a
+  // window past the breakpoint used to leave the page unreachable with no visible way out.
+  useEffect(() => {
+    if (isDesktop) setIsMenuOpen(false);
+  }, [isDesktop]);
+
+  // Close on navigation. The menu links deliberately have no click handler: closing there
+  // unmounted the anchor in the same tick as the click, so Next's router never acted on it and
+  // the tap did nothing. Watching the pathname closes the menu once the route has actually
+  // committed, which is also what desktop nav links already did via their own `onClick`.
+  useEffect(() => {
+    // `pathname` is read here only to mark this effect as route-driven; the value itself is not
+    // needed. Without the reference the lint rule flags it as an unnecessary dependency, but the
+    // effect genuinely must re-run when the route changes.
+    if (pathname) setIsMenuOpen(false);
+  }, [pathname]);
 
   return (
     <header>
@@ -57,12 +83,14 @@ export function Navbar() {
           <MobileNavToggle
             isMenuOpen={isMenuOpen}
             setIsMenuOpen={setIsMenuOpen}
+            toggleRef={toggleRef}
           />
         </div>
       </nav>
       <MobileMenu
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
+        toggleRef={toggleRef}
       />
     </header>
   );
@@ -134,12 +162,15 @@ function DesktopNav() {
 function MobileNavToggle({
   isMenuOpen,
   setIsMenuOpen,
+  toggleRef,
 }: {
   isMenuOpen: boolean;
   setIsMenuOpen: (isOpen: boolean) => void;
+  toggleRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   return (
     <button
+      ref={toggleRef}
       type="button"
       onClick={() => setIsMenuOpen(!isMenuOpen)}
       className="relative z-50 rounded-full p-2 text-foreground transition-colors hover:bg-secondary md:hidden"
@@ -155,10 +186,15 @@ function MobileNavToggle({
 function MobileMenu({
   isMenuOpen,
   setIsMenuOpen,
+  toggleRef,
 }: {
   isMenuOpen: boolean;
   setIsMenuOpen: (isOpen: boolean) => void;
+  toggleRef: React.RefObject<HTMLButtonElement | null>;
 }) {
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const titleId = useId();
+
   useEffect(() => {
     // Held for as long as the menu is open, and released on close or unmount. Reference
     // counted, so a dialog that opens on top of the menu keeps the page locked when the menu
@@ -169,25 +205,96 @@ function MobileMenu({
     return release;
   }, [isMenuOpen]);
 
-  // Escape closes the menu. Without this the only ways out were the toggle button and picking a
-  // link, so a keyboard user who opened the menu had no keyboard route back -- and because the
-  // open menu holds a scroll lock, the page stayed locked with no way to release it either.
   useEffect(() => {
     if (!isMenuOpen) return;
+    const el = menuRef.current;
+    if (!el) return;
+
+    const selector = "a[href], button:not([disabled])";
+    // Move focus into the menu on open. Previously focus stayed on the toggle button while a
+    // full-screen overlay covered the page, so a keyboard or screen-reader user was left with
+    // nothing focused inside the thing they had just opened.
+    (Array.from(el.querySelectorAll<HTMLElement>(selector))[0] || el).focus();
+
     const onKey = (e: KeyboardEvent) => {
+      // Escape closes the menu. Without this the only ways out were the toggle button and picking
+      // a link, so a keyboard user who opened the menu had no keyboard route back -- and because
+      // the open menu holds a scroll lock, the page stayed locked with no way to release it.
       if (e.key === "Escape") {
         e.preventDefault();
         setIsMenuOpen(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        // Recomputed per keypress rather than captured once at mount, matching the expertise
+        // dialog: a snapshot taken at mount would miss focusables that appear later and let Tab
+        // walk straight out of the overlay into the page behind it.
+        const focusable = Array.from(el.querySelectorAll<HTMLElement>(selector));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [isMenuOpen, setIsMenuOpen]);
 
+  // Return focus to the toggle on close, and take the page behind the overlay out of reach.
+  //
+  // Both are done in cleanup rather than on close, so they are correct no matter which path closed
+  // the menu -- Escape, the toggle, or following a link. Restoring focus before the overlay has
+  // finished unmounting is not an issue here: the menu has no exit animation, so the element is
+  // gone by the time this runs.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const overlay = menuRef.current;
+    if (!overlay) return;
+    // Portalled to document.body, so the overlay's siblings are exactly the page behind it.
+    // The same reasoning as the expertise dialog: rendered inline inside <header>, the guard would
+    // never hold and the page behind would stay reachable.
+    const parent = overlay.parentElement;
+    if (parent !== document.body) return;
+    const siblings = Array.from(document.body.children).filter((el) => el !== overlay);
+    siblings.forEach((el) => {
+      el.setAttribute("aria-hidden", "true");
+      // @ts-expect-error inert polyfill
+      el.inert = true;
+    });
+    return () => {
+      siblings.forEach((el) => {
+        el.removeAttribute("aria-hidden");
+        // @ts-expect-error
+        el.inert = false;
+      });
+      // Only if the toggle is still on the page: the user may have navigated away.
+      const toggle = toggleRef.current;
+      if (toggle?.isConnected) toggle.focus();
+    };
+  }, [isMenuOpen, toggleRef]);
+
   if (!isMenuOpen) return null;
 
-  return (
-    <div className="fixed inset-0 top-0 z-40 h-dvh bg-background/80 backdrop-blur-xl md:hidden animate-fade-in">
+  const menu = (
+    <div
+      ref={menuRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 top-0 z-40 h-dvh bg-background/80 backdrop-blur-xl md:hidden animate-fade-in"
+    >
+      <h2
+        id={titleId}
+        className="sr-only"
+      >
+        Site navigation
+      </h2>
       <ul className="flex h-full flex-col items-center justify-center gap-10">
         {NAV_LINKS.map((link, index) => (
           <li
@@ -195,9 +302,17 @@ function MobileMenu({
             className="animate-slot-in"
             style={{ animationDelay: `${index * 60}ms` }}
           >
+            {/*
+              No onClick that closes the menu.
+
+              Closing here unmounts this anchor in the same tick as the click, so Next's router
+              never gets to act on it and the tap does nothing at all. Since the menu is portalled
+              to `document.body`, the unmount is immediate and the navigation is reliably lost.
+              The menu closes on the pathname changing instead -- see the effect above -- which
+              happens after the route has actually committed.
+            */}
             <Link
               href={link.href}
-              onClick={() => setIsMenuOpen(false)}
               className="block text-center font-bold text-3xl text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
@@ -207,4 +322,6 @@ function MobileMenu({
       </ul>
     </div>
   );
+
+  return createPortal(menu, document.body);
 }
