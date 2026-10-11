@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Expertise } from "@/components/sections/Expertise";
-import { isScrollLocked } from "@/lib/scrollLock";
+import { isScrollLocked, resetScrollLockForTests } from "@/lib/scrollLock";
 
 vi.mock("#velite", () => ({
   expertise: {
@@ -29,7 +29,10 @@ vi.mock("#velite", () => ({
 }));
 
 afterEach(() => {
-  document.body.style.overflow = "";
+  // Reset through the module rather than by hand. Clearing `style.overflow` alone leaves the
+  // `overflow-hidden` class this lock adds, which leaks into the next test and would also be
+  // recorded as the "previous" state by any later acquire, permanently re-locking the body.
+  resetScrollLockForTests();
 });
 
 describe("dialog + scroll lock + background isolation", () => {

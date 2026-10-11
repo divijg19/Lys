@@ -47,7 +47,10 @@ export function acquireScrollLock(): () => void {
     if (released) return;
     released = true;
 
-    state.count -= 1;
+    // Clamped at zero. A reset (see resetScrollLockForTests) can drop the counter while a caller
+    // is still mounted; its release then runs afterwards and would otherwise take the count to
+    // -1, after which `count > 0` is never true again and every later lock silently does nothing.
+    if (state.count > 0) state.count -= 1;
     if (state.count > 0) return;
 
     // Last holder out. Restore exactly what was there, rather than guessing "auto".
@@ -64,10 +67,25 @@ export function isScrollLocked(): boolean {
 }
 
 /**
- * Test/diagnostic helper: drops all recorded locks without touching the DOM.
+ * Test/diagnostic helper: drops all recorded locks and undoes anything they applied to the DOM.
  * Only intended for teardown between tests.
+ *
+ * Restoring the DOM matters, and not just for tidiness. This used to only zero the counters,
+ * which left `overflow: hidden` and the `overflow-hidden` class on `document.body`. jsdom shares
+ * one document across every test in a file, so that leaked silently into the tests after it. Worse,
+ * it corrupted the next lock rather than just the current one: with the counters at zero, the next
+ * `acquireScrollLock()` would record the *leaked* `hidden` values as `previousOverflow` /
+ * `previousBodyClass`, and releasing would then faithfully restore them -- leaving the page
+ * permanently locked no matter how many times the lock was cycled.
  */
 export function resetScrollLockForTests(): void {
+  // Only touch the DOM if this module actually wrote to it, so calling this while unlocked cannot
+  // stomp on overflow styling owned by something else.
+  if (state.count > 0) {
+    document.body.style.overflow = state.previousOverflow;
+    document.body.className = state.previousBodyClass;
+  }
+
   state.count = 0;
   state.previousOverflow = "";
   state.previousBodyClass = "";
