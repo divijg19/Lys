@@ -42,6 +42,13 @@ describe("Expertise modal", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).toBeNull();
     });
-    expect(document.activeElement).toBe(trigger);
+    // Focus is restored from AnimatePresence's onExitComplete after a short delay, because the
+    // portal teardown blurs the trigger in the same tick. Hence waitFor rather than a bare check.
+    await waitFor(
+      () => {
+        expect(document.activeElement).toBe(trigger);
+      },
+      { timeout: 3000 }
+    );
   }, 10000);
 });
