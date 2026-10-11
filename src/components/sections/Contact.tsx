@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle, Loader2, MessageCircle, XCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { ComponentProps } from "react";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   type FieldErrors,
   type SubmitHandler,
@@ -142,8 +142,17 @@ export function Contact() {
         >
           {announced}
         </div>
+        {/*
+          Focus management on submit.
+
+          The form unmounts in favour of a result panel on both success and error, and the submit
+          button it contained is what held focus. Left alone, focus fell back to <body>: the
+          aria-live region still announced the outcome, but a keyboard user was dropped out of the
+          form with nothing focused and no way back to what just happened -- the result panel had
+          no tab stop of its own. Each result now takes focus on mount.
+        */}
         {status.status === "success" ? (
-          <SuccessMessage />
+          <SuccessMessage onReset={() => setStatus({ status: "idle" })} />
         ) : status.status === "error" ? (
           <ErrorMessage
             message={status.message}
@@ -287,7 +296,13 @@ function ContactForm({
   );
 }
 
-function SuccessMessage() {
+function SuccessMessage({ onReset }: { onReset: () => void }) {
+  // Focused on mount rather than a container: the heading carries the outcome, and screen readers
+  // announce it twice over -- once via focus, once via the live region. `tabIndex={-1}` keeps it
+  // out of the tab order while still being a valid focus target.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => headingRef.current?.focus(), []);
+
   return (
     <div className="flex animate-fade-in flex-col items-center justify-center text-center">
       <CheckCircle
@@ -295,13 +310,35 @@ function SuccessMessage() {
         focusable="false"
         className="h-16 w-16 text-green-500"
       />
-      <h3 className="mt-4 font-bold text-2xl">Thank You!</h3>
+      <h3
+        ref={headingRef}
+        tabIndex={-1}
+        className="mt-4 font-bold text-2xl outline-none"
+      >
+        Thank You!
+      </h3>
       <p className="mt-2 text-muted-foreground">Your message has been sent successfully.</p>
+      {/*
+        Without this the success panel is a dead end: it contains no control at all, so a keyboard
+        user who submitted a second message would have to Shift+Tab back out to reach the form.
+      */}
+      <Button
+        onClick={onReset}
+        variant="outline"
+        className="mt-6"
+      >
+        Send another message
+      </Button>
     </div>
   );
 }
 
 function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => void }) {
+  // The retry button is the only control here, so it is the natural focus target: focus lands on
+  // the action instead of on the text describing the failure.
+  const retryRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => retryRef.current?.focus(), []);
+
   return (
     <div className="flex animate-fade-in flex-col items-center justify-center text-center">
       <XCircle
@@ -312,6 +349,7 @@ function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => vo
       <h3 className="mt-4 font-bold text-2xl">Oops!</h3>
       <p className="mt-2 text-muted-foreground">{message}</p>
       <Button
+        ref={retryRef}
         onClick={onRetry}
         variant="outline"
         className="mt-6"
