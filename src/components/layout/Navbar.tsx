@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useScroll } from "@/hooks/useScroll";
+import { acquireScrollLock } from "@/lib/scrollLock";
 import { useTheme } from "@/hooks/useTheme";
 import { NAV_LINKS, ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -159,15 +160,29 @@ function MobileMenu({
   setIsMenuOpen: (isOpen: boolean) => void;
 }) {
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-    return () => {
-      document.body.style.overflow = "auto";
-    };
+    // Held for as long as the menu is open, and released on close or unmount. Reference
+    // counted, so a dialog that opens on top of the menu keeps the page locked when the menu
+    // closes -- without this, this component's own release would have unlocked the page
+    // behind the dialog.
+    if (!isMenuOpen) return;
+    const release = acquireScrollLock();
+    return release;
   }, [isMenuOpen]);
+
+  // Escape closes the menu. Without this the only ways out were the toggle button and picking a
+  // link, so a keyboard user who opened the menu had no keyboard route back -- and because the
+  // open menu holds a scroll lock, the page stayed locked with no way to release it either.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isMenuOpen, setIsMenuOpen]);
 
   if (!isMenuOpen) return null;
 

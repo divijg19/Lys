@@ -28,6 +28,7 @@ import type { Skill } from "@/types/expertise";
 const ExpandedSkillModal = dynamic<{
   skill: Skill;
   onClose: () => void;
+  onUnmounted?: () => void;
 }>(() => import("./ExpertiseModal").then((m) => m.ExpandedSkillModal), { ssr: false });
 
 const iconMap = { Code, Feather, Server, Cloud, Database, BarChart, GraduationCap } as const;
@@ -78,7 +79,6 @@ function TechIcon({
 export function Expertise() {
   const [skill, setSkill] = useState<Skill | null>(null); // modal state (third state)
   const [previewSkill, setPreviewSkill] = useState<string | null>(null); // expanded preview key (second state)
-  const prevFocus = useRef<HTMLElement | null>(null);
   const id = useId();
 
   // Debounced hover intent (enter) & collapse (leave) handlers
@@ -100,18 +100,44 @@ export function Expertise() {
     setPreviewSkill(null);
   }, [debouncedCollapse, debouncedPreview]);
 
-  useEffect(() => {
-    if (skill) {
-      prevFocus.current = document.activeElement as HTMLElement;
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.removeProperty("overflow");
-      prevFocus.current?.focus();
-    }
-    return () => {
-      document.body.style.removeProperty("overflow");
-    };
-  }, [skill]);
+  // Scroll locking is owned by ExpandedSkillModal via the shared reference-counted lock. Locking
+  // here as well would write body.style.overflow directly, bypassing the counter and making the
+  // page stay locked (or unlock early) when the dialog and mobile menu overlapped.
+
+  // The card that opened the dialog, captured from the click's own currentTarget.
+  //
+  // Deliberately not document.activeElement: that is only reliably the trigger on a keyboard
+  // activation. A pointer click on the tile body (the button covers just the header) leaves focus
+  // wherever it was, so on every reopen after the first, activeElement was <body> and focus was
+  // restored to nothing -- which is how this ended up intermittently stranding users at the top
+  // of the page. The card is unambiguous, so use it directly.
+  //
+  // A ref rather than state: it is only read by the unmount handler below, and routing it through
+  // state would re-render the whole expertise grid on every open just to move focus back.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  const handleSelectSkill = useCallback((next: Skill, card: HTMLElement) => {
+    returnFocusRef.current = card;
+    setSkill(next);
+  }, []);
+
+  // Hand focus back to the tile that opened the dialog, from the modal's true unmount.
+  //
+  // Restoring here rather than when `skill` becomes null matters: AnimatePresence keeps the
+  // portalled overlay mounted through its exit animation, and the teardown blurs whatever is
+  // focused. Every earlier attempt (a `[skill]` effect, AnimatePresence's onExitComplete, a
+  // fixed delay, even a retry loop) left `document.activeElement` as <body> because the blur
+  // lands after them. The modal calls this from its cleanup, which is the last thing that runs.
+  const restoreFocus = useCallback(() => {
+    const card = returnFocusRef.current;
+    if (!card?.isConnected) return;
+    returnFocusRef.current = null;
+    // Focus the card's trigger button rather than the card container itself: the button is the
+    // element that carries the accessible name and aria-expanded, so this is where a keyboard
+    // user expects to land.
+    const trigger = card.querySelector<HTMLElement>("[data-skill-trigger]") ?? card;
+    trigger.focus();
+  }, []);
 
   // ESC to collapse preview
   useEffect(() => {
@@ -153,7 +179,7 @@ export function Expertise() {
                   skills={cat.skills}
                   previewSkill={previewSkill}
                   setPreviewSkill={setPreviewSkill}
-                  onSelectSkill={setSkill}
+                  onSelectSkill={handleSelectSkill}
                   onQueueCollapse={() => {
                     debouncedPreview.cancel();
                     debouncedCollapse();
@@ -174,6 +200,7 @@ export function Expertise() {
           <ExpandedSkillModal
             skill={skill}
             onClose={() => setSkill(null)}
+            onUnmounted={restoreFocus}
           />
         )}
       </AnimatePresence>
@@ -195,7 +222,7 @@ function SkillGrid({
   skills: Skill[];
   previewSkill: string | null;
   setPreviewSkill: Dispatch<SetStateAction<string | null>>;
-  onSelectSkill: (s: Skill) => void;
+  onSelectSkill: (s: Skill, card: HTMLElement) => void;
   onQueueCollapse: () => void;
   onCollapseNow: () => void;
   onQueuePreview: (key: string) => void;
@@ -256,7 +283,7 @@ function SkillGrid({
             skill={s}
             expanded={previewSkill === key}
             allowPreview={allowPreview}
-            onSelect={() => onSelectSkill(s)}
+            onSelect={(card: HTMLElement) => onSelectSkill(s, card)}
             onPreview={() => {
               if (!allowPreview) return;
               onQueuePreview(key);
@@ -293,7 +320,8 @@ function CategoryHeading({
 
 interface SkillCardProps {
   skill: Skill;
-  onSelect: () => void;
+  /** Receives the card element so focus can be handed back to it when the dialog closes. */
+  onSelect: (card: HTMLElement) => void;
   expanded: boolean;
   allowPreview: boolean;
   onPreview: () => void;
@@ -349,7 +377,8 @@ const SkillCard = memo(function SkillCard({
       if (!grid) return;
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        onSelect();
+        // currentTarget is the trigger button; its parent card is what focus returns to.
+        onSelect(e.currentTarget.closest<HTMLElement>("[data-skill-card]") ?? e.currentTarget);
         return;
       }
       e.preventDefault();
@@ -468,7 +497,7 @@ const SkillCard = memo(function SkillCard({
           // The collapse control is a sibling and not an ancestor, so this guard is what keeps
           // "collapse" from also opening the dialog.
           if ((e.target as HTMLElement).closest("[data-collapse-btn]")) return;
-          onSelect();
+          onSelect(e.currentTarget);
         }}
         className={cn(
           "group relative flex h-full w-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm ring-primary/40 transition-shadow",

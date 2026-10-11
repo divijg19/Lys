@@ -187,7 +187,14 @@ describe("Expertise skill card states", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).toBeNull();
     });
-    expect(document.activeElement).toBe(card);
+    // Restoration is deferred past the portal teardown, so wait for it rather than asserting
+    // synchronously.
+    await waitFor(
+      () => {
+        expect(document.activeElement).toBe(card);
+      },
+      { timeout: 3000 }
+    );
   });
 
   it("moves focus across the grid with arrow, Home and End keys", () => {

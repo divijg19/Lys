@@ -64,6 +64,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={cn("scroll-smooth", geistSans.variable, geistMono.variable)}
+      // Opt in to Next's route-transition handling of `scroll-behavior: smooth`.
+      //
+      // The `scroll-smooth` class above sets `scroll-behavior: smooth`, but that makes every
+      // client-side navigation animate the scroll to the top of the new page, which reads as a
+      // long, janky lurch on a long route. Next fixes this by forcing `scroll-behavior: auto`
+      // for the duration of a route transition, then restoring it -- but only if this
+      // attribute is present. Without it Next logs a dev warning and does nothing.
+      //
+      // In-page and anchor scrolling stay smooth; only route changes jump.
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>
@@ -75,13 +85,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           name="theme-color"
           content="#000000"
         />
-        {/* Performance and optimization hints */}
-        <link
-          rel="preload"
-          href="/assets/images/divij-ganjoo.jpg"
-          as="image"
-          type="image/jpeg"
-        />
+        {/*
+          No manual `<link rel="preload">` for the hero photo here.
+          `next/image`'s `priority` on the hero (Hero.tsx / HeroAnimated.tsx) already emits a
+          preload, and unlike a hand-written link it carries `imagesrcset`/`imagesizes`, so it
+          points at an optimised candidate rather than the 1.2 MB original. Keeping both meant the
+          browser downloaded the raw JPEG *and* the optimised variant, then warned that the
+          preloaded resource "was not used within a few seconds".
+        */}
         <meta
           name="robots"
           content="index,follow"
