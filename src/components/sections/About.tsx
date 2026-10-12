@@ -18,13 +18,21 @@ const AboutAnimated = dynamic(() => import("./AboutAnimated").then((m) => m.Abou
   ssr: false,
 });
 
-export function About() {
+export function About({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) {
   const { theme } = useTheme();
   const headingGradient = headingGradients[theme.name] || headingGradients.default;
   const sectionMotion = useSectionMotion();
 
   if (sectionMotion) {
-    return <AboutAnimated headingGradient={headingGradient} />;
+    // headingAs has to be forwarded here too. This is the branch that renders in a normal browser
+    // (vitest.setup forces reduced motion, so tests take the plain path below) -- missing it here
+    // means the animated path silently kept `<h1>` and the home page still had two of them.
+    return (
+      <AboutAnimated
+        headingGradient={headingGradient}
+        headingAs={headingAs}
+      />
+    );
   }
 
   return (
@@ -33,7 +41,10 @@ export function About() {
       className="mx-auto w-full max-w-7xl px-4 py-16"
       aria-label="About section"
     >
-      <AboutContent headingGradient={headingGradient} />
+      <AboutContent
+        headingGradient={headingGradient}
+        headingAs={headingAs}
+      />
     </section>
   );
 }

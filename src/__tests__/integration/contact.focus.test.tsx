@@ -34,10 +34,12 @@ describe("contact form focus on result", () => {
     fireEvent.click(screen.getByRole("button", { name: /^send/i }));
 
     const heading = await waitFor(() => screen.getByRole("heading", { name: /thank you/i }));
+    // Wait for the effect that moves focus, rather than asserting on the same tick the heading
+    // appears -- focus is set after render, and asserting immediately races it.
+    await waitFor(() => expect(heading).toHaveFocus());
 
     // The failure mode before the fix: activeElement was <body>, because the form -- and the
     // submit button holding focus -- had unmounted with nothing taking over.
-    expect(heading).toHaveFocus();
     expect(document.activeElement).not.toBe(document.body);
   }, 15000);
 
@@ -56,6 +58,7 @@ describe("contact form focus on result", () => {
     const reset = await waitFor(() =>
       screen.getByRole("button", { name: /send another message/i })
     );
+    await waitFor(() => expect(reset).toBeEnabled());
 
     fireEvent.click(reset);
     expect(await screen.findByLabelText(/name/i)).toHaveValue("");
@@ -72,7 +75,7 @@ describe("contact form focus on result", () => {
     fireEvent.click(screen.getByRole("button", { name: /^send/i }));
 
     const retry = await waitFor(() => screen.getByRole("button", { name: /try again/i }));
-    expect(retry).toHaveFocus();
+    await waitFor(() => expect(retry).toHaveFocus());
   }, 15000);
 
   it("announces the outcome in the live region as well as moving focus", async () => {

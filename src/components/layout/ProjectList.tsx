@@ -76,6 +76,18 @@ function ProjectCard(project: (typeof projects)[number]) {
               View Case Study <ArrowUpRight className="ml-1 h-4 w-4" />
             </span>
             <div className="flex items-center gap-2">
+              {/*
+                `preventDefault()` is the whole fix.
+
+                These buttons sit inside the card's `<Link>`. The previous onClick called only
+                `stopPropagation()`, which does not cancel the browser's default action -- so clicking
+                one opened the popup *and* followed the card link, navigating the user off the
+                projects list to the project detail. Verified in a browser: the URL became
+                /projects/Nargis alongside the popup.
+
+                ProjectsPreview and ProjectsPreviewAnimated both call preventDefault() and so never
+                had this bug; this is the copy that drifted.
+              */}
               {project.repository && (
                 <Button
                   variant="ghost"
@@ -83,6 +95,7 @@ function ProjectCard(project: (typeof projects)[number]) {
                   type="button"
                   aria-label={`View source code for ${project.title}`}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     window.open(project.repository, "_blank", "noopener,noreferrer");
                   }}
@@ -97,6 +110,7 @@ function ProjectCard(project: (typeof projects)[number]) {
                   type="button"
                   aria-label={`View live site for ${project.title}`}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     window.open(project.liveUrl, "_blank", "noopener,noreferrer");
                   }}
