@@ -8,6 +8,12 @@ import { cn } from "@/lib/utils";
 
 type AboutContentProps = {
   headingGradient: string;
+  /**
+   * Which heading level to render. The home page already has an `<h1>` (the hero name), so its
+   * About section passes `"h2"`; `/about` keeps `"h1"`. Without this the home document exposes
+   * two level-1 headings, which dilutes single-title semantics for heading navigation.
+   */
+  headingAs?: "h1" | "h2";
 };
 
 const keyStrengths = [
@@ -29,7 +35,7 @@ const keyStrengths = [
   },
 ] as const;
 
-export function AboutContent({ headingGradient }: AboutContentProps) {
+export function AboutContent({ headingGradient, headingAs = "h1" }: AboutContentProps) {
   const [aboutImageSrc, setAboutImageSrc] = useState("/assets/images/about-photo.jpg");
   const [mounted, setMounted] = useState(false);
 
@@ -65,14 +71,21 @@ export function AboutContent({ headingGradient }: AboutContentProps) {
          * element type carries no styling of its own here. Tailwind's preflight resets both
          * `h1` and `h2` to `font-size: inherit`, so the only difference is semantics.
          */}
-        <h1
-          className={cn(
-            "bg-clip-text font-bold text-4xl text-transparent",
-            mounted ? `bg-linear-to-r ${headingGradient}` : "bg-linear-to-r from-primary to-accent"
-          )}
-        >
-          About Me
-        </h1>
+        {(() => {
+          const Heading = headingAs;
+          return (
+            <Heading
+              className={cn(
+                "bg-clip-text font-bold text-4xl text-transparent",
+                mounted
+                  ? `bg-linear-to-r ${headingGradient}`
+                  : "bg-linear-to-r from-primary to-accent"
+              )}
+            >
+              About Me
+            </Heading>
+          );
+        })()}
         <p className="text-lg text-muted-foreground leading-relaxed">
           {bio.summary} I design and build backend systems, developer tools, and platforms, from UX
           to infrastructure. I’m a full-stack developer passionate about building scalable and

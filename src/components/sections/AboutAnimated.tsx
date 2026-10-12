@@ -5,8 +5,9 @@ import { AboutContent } from "./AboutContent";
 
 type AboutAnimatedProps = {
   headingGradient: string;
+  headingAs?: "h1" | "h2";
 };
-export function AboutAnimated({ headingGradient }: AboutAnimatedProps) {
+export function AboutAnimated({ headingGradient, headingAs = "h1" }: AboutAnimatedProps) {
   return (
     <motion.section
       data-section="about"
@@ -17,7 +18,10 @@ export function AboutAnimated({ headingGradient }: AboutAnimatedProps) {
       transition={{ duration: 0.6, ease: "easeOut" }}
       aria-label="About section"
     >
-      <AboutContent headingGradient={headingGradient} />
+      <AboutContent
+        headingGradient={headingGradient}
+        headingAs={headingAs}
+      />
     </motion.section>
   );
 }

@@ -27,7 +27,8 @@ describe("DropdownMenu accessibility interactions", () => {
     trigger.focus();
     fireEvent.keyDown(trigger, { key: "Enter" });
     const first = await screen.findByTestId("first");
-    // Radix will move focus into the content; ensure the menu content is visible
-    expect(first).toBeInTheDocument();
+    // Radix is expected to move focus into the content. Asserting that it *exists* passed even if
+    // focus stayed on the trigger -- the test is named for focus, so assert focus.
+    expect(first).toHaveFocus();
   }, 10000);
 });

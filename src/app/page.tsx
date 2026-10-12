@@ -11,7 +11,11 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <About />
+      {/*
+        The home page already has its `<h1>` in the hero. Rendering About's heading as `<h1>`
+        too gave the document two level-1 headings.
+      */}
+      <About headingAs="h2" />
       <Experience />
       <Expertise />
       <ProjectsPreview />
