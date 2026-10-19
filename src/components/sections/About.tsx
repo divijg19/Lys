@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useTheme } from "@/hooks/useTheme";
 import { useSectionMotion } from "@/hooks/useSectionMotion";
+import { useTheme } from "@/hooks/useTheme";
 import { AboutContent } from "./AboutContent";
 
 // Local variants replaced with shared motion presets.

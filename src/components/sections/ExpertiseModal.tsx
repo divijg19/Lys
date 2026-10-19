@@ -5,13 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { projects } from "#velite";
 import { resolveIconFromPath } from "@/components/icons/registry";
 import { Badge } from "@/components/ui/Badge";
-import { cn } from "@/lib/utils";
-import { acquireScrollLock } from "@/lib/scrollLock";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { isolateBackground } from "@/lib/backgroundIsolation";
+import { acquireScrollLock } from "@/lib/scrollLock";
+import { cn } from "@/lib/utils";
 
 // Re-declare Skill type locally (cannot import from component due to circular concerns)
 // This mirrors the structure from expertise collection

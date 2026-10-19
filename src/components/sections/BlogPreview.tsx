@@ -5,9 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { blogs } from "#velite";
 import { Button } from "@/components/ui/Button";
+import { useSectionMotion } from "@/hooks/useSectionMotion";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { useSectionMotion } from "@/hooks/useSectionMotion";
 
 const BlogPreviewAnimated = dynamic(
   () => import("./BlogPreviewAnimated").then((m) => m.BlogPreviewAnimated),

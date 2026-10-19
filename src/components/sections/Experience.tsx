@@ -4,8 +4,8 @@ import { Briefcase, GraduationCap } from "lucide-react";
 import dynamic from "next/dynamic";
 import { resume } from "#velite";
 import { Badge } from "@/components/ui/Badge";
-import { cn } from "@/lib/utils";
 import { useSectionMotion } from "@/hooks/useSectionMotion";
+import { cn } from "@/lib/utils";
 
 // Using shared fadeUp variant + reduced motion gating.
 
