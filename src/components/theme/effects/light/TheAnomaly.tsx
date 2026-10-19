@@ -126,7 +126,13 @@ export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }
         visible={hasReachedAnomaly}
       >
         <sphereGeometry args={[1, 64, 64]} />
-        {/* @ts-ignore */}
+        {/*
+          `supernovaMaterial` comes from a drei extension that ships no type declarations. The props
+          used here (ref, transparent, depthWrite, side) are all valid for a THREE.Material, so the
+          suppression is safe -- but it must be @ts-expect-error rather than @ts-ignore, because the
+          former fails to compile if the underlying error ever goes away.
+        */}
+        {/* @ts-expect-error supernovaMaterial has no type declarations */}
         <supernovaMaterial
           ref={materialRef}
           transparent
