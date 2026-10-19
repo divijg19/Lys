@@ -11,6 +11,7 @@ import { resolveIconFromPath } from "@/components/icons/registry";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import { acquireScrollLock } from "@/lib/scrollLock";
+import { isolateBackground } from "@/lib/backgroundIsolation";
 
 // Re-declare Skill type locally (cannot import from component due to circular concerns)
 // This mirrors the structure from expertise collection
@@ -149,20 +150,10 @@ export function ExpandedSkillModal({
   useEffect(() => {
     const overlay = overlayRef.current;
     if (!overlay) return;
-    const parent = overlay.parentElement;
-    if (parent !== document.body) return;
-    const siblings = Array.from(document.body.children).filter((el) => el !== overlay);
-    siblings.forEach((el) => {
-      el.setAttribute("aria-hidden", "true");
-      // @ts-expect-error inert polyfill
-      el.inert = true;
-    });
+    const restore = isolateBackground(overlay);
+    if (!restore) return;
     return () => {
-      siblings.forEach((el) => {
-        el.removeAttribute("aria-hidden");
-        // @ts-expect-error
-        el.inert = false;
-      });
+      restore();
       // True unmount. The browser drops focus while the portal is being torn down, and that
       // blur can land after the exit animation reports completion, so focus is restored from
       // here -- the last thing this component does -- rather than on a timer. Guarded by
@@ -175,12 +166,9 @@ export function ExpandedSkillModal({
   /*
    * Rendered to `document.body` through a portal.
    *
-   * The background-isolation effect below guards on `overlay.parentElement === document.body`,
-   * which could never be true while this markup was rendered inline inside the section: without a
-   * portal the parent is that `<section>`. The effect therefore bailed on every mount and the
-   * siblings were never made `inert` / `aria-hidden`, so programmatic focus (skip link, browser
-   * find) could land on live content behind the overlay. Portalling makes the existing guard
-   * correct instead of deleting it.
+   * `isolateBackground` returns null when the overlay is not a direct child of document.body, which
+   * is why the portal matters: rendered inline inside the section the guard would fail and the page
+   * behind would stay reachable.
    */
   const dialog = (
     <div
