@@ -1,0 +1,56 @@
+# Continuous integration.
+#
+# Every gate this repo's releases were verified with by hand, enforced automatically:
+# `bunx biome check .` (lint + format + import order, non-mutating), type-check, the unit
+# suite with coverage thresholds, and a production build.
+#
+# Biome is invoked via bunx rather than a package.json script because `bun check` is bun's
+# own built-in (package.json / lockfile validation) and must stay reachable.
+#
+# Order matters: `type-check` runs `bun velite` first, and the tests import the generated
+# `#velite` data, so velite output must exist before the test step.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same ref makes older runs pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      # Floating on purpose: always the latest Bun; `engines` allows >=1.0.0.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint, format, import order
+        run: bunx biome check .
+
+      - name: Type-check
+        run: bun run type-check
+
+      # Needs the .velite output produced by the type-check step above.
+      - name: Tests with coverage
+        run: bun run test:ci
+
+      - name: Production build
+        run: bun run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"

@@ -3,6 +3,10 @@
  * @description: The root layout for the entire application.
  */
 
+// Performance and theme components
+// Framer Motion's MotionConfig supplies global reduced-motion handling for its
+// animation primitives; the static-branch gating lives in `useSectionMotion`.
+import { MotionConfig } from "framer-motion";
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
@@ -14,10 +18,6 @@ import { ClientFooter } from "@/components/layout/ClientFooter";
 import { MainWrapper } from "@/components/layout/MainWrapper";
 import { Navbar } from "@/components/layout/Navbar";
 import { SkipLink } from "@/components/layout/SkipLink";
-// Performance and theme components
-// Framer Motion's MotionConfig supplies global reduced-motion handling for its
-// animation primitives; the static-branch gating lives in `useSectionMotion`.
-import { MotionConfig } from "framer-motion";
 import { RootPersonJsonLd } from "@/components/seo/RootPersonJsonLd";
 import { ClientThemeBackground } from "@/components/theme/ClientThemeBackground";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";

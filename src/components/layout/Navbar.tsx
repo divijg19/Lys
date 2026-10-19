@@ -8,10 +8,10 @@ import { createPortal } from "react-dom";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useIsDesktopViewport } from "@/hooks/useIsDesktopViewport";
 import { useScroll } from "@/hooks/useScroll";
-import { acquireScrollLock } from "@/lib/scrollLock";
-import { isolateBackground } from "@/lib/backgroundIsolation";
 import { useTheme } from "@/hooks/useTheme";
+import { isolateBackground } from "@/lib/backgroundIsolation";
 import { NAV_LINKS, ROUTES } from "@/lib/routes";
+import { acquireScrollLock } from "@/lib/scrollLock";
 import { cn } from "@/lib/utils";
 
 // --- Main Navbar Component ---

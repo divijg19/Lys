@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deriveDayPhase, type DayPhase, greetingForPhase, useDayPhase } from "@/hooks/useDayPhase";
+import { type DayPhase, deriveDayPhase, greetingForPhase, useDayPhase } from "@/hooks/useDayPhase";
 
 const source = readFileSync(path.resolve(process.cwd(), "src/hooks/useDayPhase.ts"), "utf8");
 

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import axe from "axe-core";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ClientFooter } from "@/components/layout/ClientFooter";
 
 vi.mock("#velite", () => ({

@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
+import { describe, expect, it, vi } from "vitest";
 import { suppressThreeClockDeprecation } from "@/lib/three-deprecations";
 
 /**
