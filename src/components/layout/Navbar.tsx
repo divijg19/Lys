@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useIsDesktopViewport } from "@/hooks/useIsDesktopViewport";
 import { useScroll } from "@/hooks/useScroll";
 import { acquireScrollLock } from "@/lib/scrollLock";
+import { isolateBackground } from "@/lib/backgroundIsolation";
 import { useTheme } from "@/hooks/useTheme";
 import { NAV_LINKS, ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -257,22 +258,12 @@ function MobileMenu({
     const overlay = menuRef.current;
     if (!overlay) return;
     // Portalled to document.body, so the overlay's siblings are exactly the page behind it.
-    // The same reasoning as the expertise dialog: rendered inline inside <header>, the guard would
-    // never hold and the page behind would stay reachable.
-    const parent = overlay.parentElement;
-    if (parent !== document.body) return;
-    const siblings = Array.from(document.body.children).filter((el) => el !== overlay);
-    siblings.forEach((el) => {
-      el.setAttribute("aria-hidden", "true");
-      // @ts-expect-error inert polyfill
-      el.inert = true;
-    });
+    // Rendered inline inside <header> the guard would fail and the page behind would stay
+    // reachable -- which is why the menu is portalled at all.
+    const restore = isolateBackground(overlay);
+    if (!restore) return;
     return () => {
-      siblings.forEach((el) => {
-        el.removeAttribute("aria-hidden");
-        // @ts-expect-error
-        el.inert = false;
-      });
+      restore();
       // Only if the toggle is still on the page: the user may have navigated away.
       const toggle = toggleRef.current;
       if (toggle?.isConnected) toggle.focus();
