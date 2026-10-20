@@ -2,7 +2,13 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import * as THREE from "three";
+import {
+  DoubleSide,
+  type Group,
+  MathUtils,
+  type MeshStandardMaterial,
+  type PerspectiveCamera,
+} from "three";
 import { useDataRain } from "@/hooks/useDataRain";
 import { createPRNG, seedHash } from "@/lib/utils";
 
@@ -45,7 +51,7 @@ function CyberpunkBuilding({
   buildingData: BuildingData;
   width: number;
   depth: number;
-  registerNeon: (mat: THREE.MeshStandardMaterial | null) => void;
+  registerNeon: (mat: MeshStandardMaterial | null) => void;
 }) {
   const neonColor =
     NEON_COLORS[buildingData.neonColor as keyof typeof NEON_COLORS] || NEON_COLORS.cyan;
@@ -72,14 +78,14 @@ function CyberpunkBuilding({
               height * 0.3,
               0,
             ]}
-            ref={(m) => registerNeon(m ? (m.material as THREE.MeshStandardMaterial) : null)}
+            ref={(m) => registerNeon(m ? (m.material as MeshStandardMaterial) : null)}
           >
             <planeGeometry args={[buildingWidth * 0.85, height * 0.18]} />
             <meshStandardMaterial
               color={neonColor.color}
               emissive={neonColor.emissive}
               emissiveIntensity={neonColor.intensity}
-              side={THREE.DoubleSide}
+              side={DoubleSide}
               toneMapped={false}
             />
           </mesh>
@@ -194,11 +200,11 @@ function CyberpunkBuilding({
 }
 
 function AlleyScene() {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   // Keep direct refs to building groups to avoid scanning all children each frame
-  const buildingRefs = useRef<THREE.Group[]>([]);
+  const buildingRefs = useRef<Group[]>([]);
   // Collected neon materials for centralized pulsing
-  const neonMaterialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
+  const neonMaterialsRef = useRef<MeshStandardMaterial[]>([]);
   const scrollProgressRef = useRef(0);
 
   // Shared alley layout constants
@@ -346,7 +352,7 @@ function AlleyScene() {
     const minZ = zStart + (BUILDING_PAIRS - 1) * zSpacing;
     // Map page scroll progress (0..1) to alley depth (0..minZ)
     const progress = scrollProgressRef.current;
-    const clampedTargetZ = THREE.MathUtils.lerp(0, minZ, progress);
+    const clampedTargetZ = MathUtils.lerp(0, minZ, progress);
 
     // Smooth camera movement - walking forward
     camera.position.z += (clampedTargetZ - camera.position.z) * 0.1;
@@ -358,8 +364,8 @@ function AlleyScene() {
     // Update building positions for "walking through" effect with cycling
     const refs = buildingRefs.current;
     if (refs.length) {
-      const persp = camera as THREE.PerspectiveCamera;
-      const halfVFOV = THREE.MathUtils.degToRad(persp.fov / 2);
+      const persp = camera as PerspectiveCamera;
+      const halfVFOV = MathUtils.degToRad(persp.fov / 2);
       const halfHFOVFactor = Math.tan(halfVFOV) * viewport.aspect;
       const invPairs = 1 / (BUILDING_PAIRS - 1);
       const maxVisibleDistance = alleyDepth + 10;
@@ -389,14 +395,14 @@ function AlleyScene() {
         const edgeX = distance * halfHFOVFactor * 1.05;
         const easedDiv = (building.divergence ?? building.index * invPairs) ** 0.65;
         if (building.side === "left") {
-          child.position.x = THREE.MathUtils.lerp(nearLeftX, -edgeX, easedDiv);
+          child.position.x = MathUtils.lerp(nearLeftX, -edgeX, easedDiv);
         } else {
-          child.position.x = THREE.MathUtils.lerp(nearRightX, edgeX, easedDiv);
+          child.position.x = MathUtils.lerp(nearRightX, edgeX, easedDiv);
         }
 
         const minLean = 0.06;
         const maxLean = 0.32;
-        child.rotation.x = THREE.MathUtils.lerp(minLean, maxLean, distanceFactor);
+        child.rotation.x = MathUtils.lerp(minLean, maxLean, distanceFactor);
       }
       // Update all neon emissive intensities once per frame
       neonMaterialsRef.current.forEach((mat) => {
@@ -435,7 +441,7 @@ function AlleyScene() {
           color="#8800ff"
           transparent
           opacity={0.025}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
 
@@ -448,7 +454,7 @@ function AlleyScene() {
           color="#00ffff"
           transparent
           opacity={0.018}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
 

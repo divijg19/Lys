@@ -10,12 +10,12 @@
 import { shaderMaterial } from "@react-three/drei";
 import { extend, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import { BackSide, Color, type Mesh, type ShaderMaterial } from "three";
 
 // --- 1. The Supernova Material (Shader) ---
 // This shader creates the beautiful, reverse-colored nebula explosion.
 const SupernovaMaterial = shaderMaterial(
-  { uTime: 0, uColor1: new THREE.Color("#6a82fb"), uColor2: new THREE.Color("#fc5c7d") },
+  { uTime: 0, uColor1: new Color("#6a82fb"), uColor2: new Color("#fc5c7d") },
   // Vertex Shader
   `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
   // Fragment Shader
@@ -85,9 +85,9 @@ extend({ SupernovaMaterial });
 
 // --- 2. The Anomaly Component ---
 export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }) {
-  const solidRef = useRef<THREE.Mesh>(null);
-  const explosionRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const solidRef = useRef<Mesh>(null);
+  const explosionRef = useRef<Mesh>(null);
+  const materialRef = useRef<ShaderMaterial>(null);
 
   useFrame((_, delta) => {
     // Animate the solid dodecahedron before the collapse
@@ -128,7 +128,7 @@ export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }
         <sphereGeometry args={[1, 64, 64]} />
         {/*
           `supernovaMaterial` comes from a drei extension that ships no type declarations. The props
-          used here (ref, transparent, depthWrite, side) are all valid for a THREE.Material, so the
+          used here (ref, transparent, depthWrite, side) are all valid for a Material, so the
           suppression is safe -- but it must be @ts-expect-error rather than @ts-ignore, because the
           former fails to compile if the underlying error ever goes away.
         */}
@@ -137,7 +137,7 @@ export function TheAnomaly({ hasReachedAnomaly }: { hasReachedAnomaly: boolean }
           ref={materialRef}
           transparent
           depthWrite={false}
-          side={THREE.BackSide}
+          side={BackSide}
         />
       </mesh>
     </>

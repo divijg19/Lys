@@ -2,14 +2,14 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import type * as THREE from "three";
+import type { Group } from "three";
 
 interface GuardrailProps {
   active?: boolean;
 }
 
 export function Guardrail({ active = true }: GuardrailProps) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!active || !groupRef.current) return;

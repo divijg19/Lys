@@ -181,3 +181,145 @@ describe("theme-scoped utilities", () => {
     }
   });
 });
+
+/**
+ * The utilities that Tailwind itself provides, which are not defined in this repository's
+ * stylesheets and are not ours to cancel. `animate-in` / `animate-out` come from
+ * `tailwindcss-animate` and are used with data-state variants.
+ */
+const TAILWIND_BUILT_INS = new Set(["spin", "pulse", "bounce", "ping", "none", "in", "out"]);
+
+describe("reduced motion", () => {
+  /**
+   * Every `.animate-*` class the components apply.
+   *
+   * Read out of string and template literals only, so that prose in a comment cannot put a class
+   * name into the set. Tailwind's arbitrary values (`animate-[beacon-blink_2s_...]`) are skipped:
+   * they name a keyframe rather than one of the utility classes defined in this repository.
+   */
+  function animatedUtilityClasses(): string[] {
+    const found = new Set<string>();
+
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== "__tests__") walk(full);
+        } else if (/\.tsx?$/.test(entry.name)) {
+          const source = read(full).replace(/\/\*[\s\S]*?\*\//g, "");
+          for (const match of source.matchAll(/["'`]([^"'`]*)/g)) {
+            for (const token of match[1].split(/[^A-Za-z0-9_-]+/)) {
+              if (token.startsWith("animate-") && !token.startsWith("animate-[")) {
+                const name = token.slice("animate-".length);
+                // `animate-[beacon-blink_2s_...]` splits into an `animate-` fragment and the
+                // keyframe name; the fragment is not a class.
+                if (name) found.add(name);
+              }
+            }
+          }
+        }
+      }
+    };
+
+    walk(SRC);
+
+    return [...found].filter((name) => !TAILWIND_BUILT_INS.has(name)).sort();
+  }
+
+  /**
+   * The classes that a `prefers-reduced-motion: reduce` rule actually cancels.
+   *
+   * Two conditions have to hold, and both were violated at some point:
+   *
+   * 1. **The rule has to match.** A descendant selector such as
+   *    `.animate-data-rain .animate-dreamscape-flow` looks like it covers the second class and
+   *    does not: the rule only applies to elements inside an `.animate-data-rain` ancestor, and
+   *    no component applies that class, so the rule matches nothing.
+   *
+   * 2. **The rule has to win.** An equally specific `animation: none` that comes *before* the
+   *    class's own definition loses on source order. The shared reduced-motion block sits near the
+   *    top of the stylesheet, so a class defined further down needs its own override next to its
+   *    definition -- which is why `.animate-fade-in` and `.animate-dreamscape-flow` have one.
+   */
+  function reducedMotionClasses(): Set<string> {
+    const covered = new Set<string>();
+    const definitions = new Map<string, number>();
+    const overrides = new Map<string, number[]>();
+
+    for (const file of stylesheets()) {
+      const source = stripComments(read(file));
+
+      // The ranges of the reduced-motion blocks, so that a rule can be told apart from a
+      // definition.
+      const blockRanges: [number, number][] = [];
+      const blockPattern = /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{/g;
+      for (const block of source.matchAll(blockPattern)) {
+        const start = block.index;
+        const end = source.indexOf("\n}", start);
+        if (start !== -1 && end !== -1) blockRanges.push([start, end]);
+      }
+      const insideBlock = (index: number) =>
+        blockRanges.some(([start, end]) => index >= start && index <= end);
+
+      // Definitions: the rule that gives the class its animation.
+      //
+      // Not every mention is a definition. The `will-change` hints list the same class names, and
+      // those mentions come earlier in the file than the shared reduced-motion block -- counting
+      // them as definitions would make an override that sits *above* the real definition look
+      // like it wins.
+      for (const rule of source.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        if (insideBlock(rule.index)) continue;
+        if (!/animation/.test(rule[2])) continue;
+        for (const part of rule[1].split(",")) {
+          const single = part.trim().match(/^\.animate-([A-Za-z0-9_-]+)$/);
+          if (!single) continue;
+          const name = single[1];
+          if (!definitions.has(name)) definitions.set(name, rule.index);
+        }
+      }
+
+      // Overrides: single-compound selectors inside a reduced-motion block.
+      for (const [start, end] of blockRanges) {
+        const block = source.slice(start, end);
+        for (const rule of block.matchAll(/([^{}]+)\{/g)) {
+          for (const part of rule[1].split(",")) {
+            const selector = part.trim();
+            // A single compound selector: the class itself, optionally with pseudo-classes.
+            const single = selector.match(
+              /^\.animate-([A-Za-z0-9_-]+)((?::[A-Za-z-]+(\([^)]*\))?)*)$/
+            );
+            if (!single) continue;
+            const name = single[1];
+            overrides.set(name, [...(overrides.get(name) ?? []), start + rule.index]);
+          }
+        }
+      }
+    }
+
+    for (const [name, indices] of overrides) {
+      const definition = definitions.get(name);
+      if (definition === undefined) {
+        // Not defined in this repository's stylesheets: any override is enough.
+        covered.add(name);
+        continue;
+      }
+      // The override has to come after the definition, or it loses on source order.
+      if (indices.some((index) => index > definition)) covered.add(name);
+    }
+
+    return covered;
+  }
+
+  it("finds the utilities it needs to guard", () => {
+    // If the scan came up empty the assertions below would pass vacuously, so this pins that it
+    // points at something real.
+    expect(animatedUtilityClasses()).toContain("dreamscape-flow");
+  });
+
+  it.each(animatedUtilityClasses())("cancels .animate-%s for reduced motion", (className) => {
+    expect(
+      reducedMotionClasses().has(className),
+      `.animate-${className} is applied in a component but no reduced-motion rule cancels it`
+    ).toBe(true);
+  });
+});

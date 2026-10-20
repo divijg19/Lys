@@ -2,14 +2,14 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { AdditiveBlending, DoubleSide, type Mesh, Vector2, Vector3 } from "three";
 import { celestialBodyFragment, celestialBodyVertex } from "../shaders/celestialBody.glsl";
 
 interface CelestialBodyProps {
-  bodyPosition?: THREE.Vector2;
+  bodyPosition?: Vector2;
   radius?: number;
-  bodyColor?: THREE.Vector3;
-  glowColor?: THREE.Vector3;
+  bodyColor?: Vector3;
+  glowColor?: Vector3;
   isMoon?: boolean;
   rayCount?: number;
   pixelSize?: number;
@@ -18,23 +18,23 @@ interface CelestialBodyProps {
 }
 
 export function CelestialBody({
-  bodyPosition = new THREE.Vector2(0.3, 0.8),
+  bodyPosition = new Vector2(0.3, 0.8),
   radius = 0.08,
-  bodyColor = new THREE.Vector3(1.0, 0.95, 0.85),
-  glowColor = new THREE.Vector3(1.0, 0.8, 0.5),
+  bodyColor = new Vector3(1.0, 0.95, 0.85),
+  glowColor = new Vector3(1.0, 0.8, 0.5),
   isMoon = false,
   rayCount = 0,
   pixelSize = 3.0,
   position = [0, 0, -8],
   active = true,
 }: CelestialBodyProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uPosition: { value: bodyPosition },
       uRadius: { value: radius },
@@ -74,9 +74,9 @@ export function CelestialBody({
         fragmentShader={celestialBodyFragment}
         uniforms={uniforms}
         transparent
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
       />
     </mesh>
   );

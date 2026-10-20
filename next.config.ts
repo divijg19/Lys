@@ -5,6 +5,10 @@ const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "ts", "tsx"],
+  // `resend` is a server-only SDK and pulls in a sizeable dependency tree of its own. Bundling it
+  // into the route handler added ~216 KB of server code that is never used in the browser and never
+  // benefits from bundling: it is a Node library, loaded from node_modules at runtime.
+  serverExternalPackages: ["resend"],
   async headers() {
     // Disable CSP/security headers in dev to unblock react-refresh (unsafe-eval not needed in prod build output)
     if (!isProd) return [];
@@ -56,7 +60,11 @@ const withBundleAnalyzer = (() => {
   if (process.env.ANALYZE !== "true") return (config: NextConfig) => config;
   const require = createRequire(import.meta.url);
   const mod = require("@next/bundle-analyzer");
-  return mod.default({ enabled: true }) as (config: NextConfig) => NextConfig;
+  // The package is a CommonJS module whose export *is* the wrapper function, so `mod.default` is
+  // undefined and calling it threw `TypeError: mod.default is not a function` -- which made
+  // `bun run analyze` fail the build outright. Handle both shapes.
+  const wrap = typeof mod === "function" ? mod : mod.default;
+  return wrap({ enabled: true }) as (config: NextConfig) => NextConfig;
 })();
 
 export default withBundleAnalyzer(nextConfig);

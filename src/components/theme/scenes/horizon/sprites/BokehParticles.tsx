@@ -2,7 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import { AdditiveBlending, type Points, type PointsMaterial } from "three";
 
 interface BokehParticlesProps {
   count?: number;
@@ -10,7 +10,7 @@ interface BokehParticlesProps {
 }
 
 export function BokehParticles({ count = 100, active = true }: BokehParticlesProps) {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
 
   const { positions, sizes, colors } = (() => {
     const positions = new Float32Array(count * 3);
@@ -49,7 +49,7 @@ export function BokehParticles({ count = 100, active = true }: BokehParticlesPro
     pointsRef.current.geometry.attributes.position.needsUpdate = true;
 
     // Subtle opacity pulse
-    const material = pointsRef.current.material as THREE.PointsMaterial;
+    const material = pointsRef.current.material as PointsMaterial;
     material.opacity = 0.4 + Math.sin(t * 0.5) * 0.15;
   });
 
@@ -75,7 +75,7 @@ export function BokehParticles({ count = 100, active = true }: BokehParticlesPro
         transparent
         opacity={0.45}
         sizeAttenuation
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
         depthWrite={false}
       />
     </points>

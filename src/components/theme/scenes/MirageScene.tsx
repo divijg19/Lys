@@ -6,6 +6,9 @@
 
 "use client";
 
+// Installs the Three.js console filter at module scope, before the scene mounts.
+import "./installThreeConsole";
+
 import { useEffect, useState } from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 

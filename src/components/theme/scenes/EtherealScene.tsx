@@ -5,18 +5,18 @@
 
 "use client";
 
-import { Canvas, type ThreeEvent } from "@react-three/fiber";
-import { useCallback, useEffect, useState } from "react";
-import type * as THREE from "three";
+// Installs the Three.js console filter at module scope, before the scene mounts.
+import "./installThreeConsole";
+
+import { Canvas, useThree } from "@react-three/fiber";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Color, type PerspectiveCamera, type Vector3 } from "three";
+import { ndcFromClient, pointOnCameraSurface, pointOnFloor } from "@/lib/interactionSurface";
+import { cssVarToThreeColor } from "@/lib/threeColor";
 import { cn } from "@/lib/utils";
 import { type RippleData, Ripples } from "../effects/ethereal/Ripples";
 import { type WispData, Wisps } from "../effects/ethereal/Wisps";
 import { FlowingPlane } from "../effects/FlowingPlane";
-
-const getCssColor = (name: string): string => {
-  if (typeof window === "undefined") return "";
-  return `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
-};
 
 const readIsCalm = (): boolean => {
   if (typeof document === "undefined") return false;
@@ -24,19 +24,69 @@ const readIsCalm = (): boolean => {
   return root.hasAttribute("data-low-data") || root.hasAttribute("data-reduce-motion");
 };
 
+/*
+ * The colours the scene uses.
+ *
+ * The *foreground* variants are what the interaction effects are drawn in. The pastel tokens are
+ * the field itself -- a lavender ring on a lavender wash is invisible, which is exactly what
+ * happened: the echo read clearly over the white parts of the background and disappeared over
+ * the tinted parts. The deep tones are what the theme already defines as "the colour to put on
+ * this background", and they read on every part of it.
+ */
+type ThemeColors = {
+  primary: Color;
+  secondary: Color;
+  accent: Color;
+  primaryForeground: Color;
+  accentForeground: Color;
+};
+
 const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
   const [ripples, setRipples] = useState<RippleData[]>([]);
   const [wisps, setWisps] = useState<WispData[]>([]);
-  const [lastPlaneClick, setLastPlaneClick] = useState<THREE.Vector3 | null>(null);
+  const [lastPlaneClick, setLastPlaneClick] = useState<Vector3 | null>(null);
   const [isMounted, setMounted] = useState(false);
-  const [themeColors, setThemeColors] = useState({ primary: "", secondary: "", accent: "" });
+  const [themeColors, setThemeColors] = useState<ThemeColors>({
+    primary: new Color(),
+    secondary: new Color(),
+    accent: new Color(),
+    primaryForeground: new Color(),
+    accentForeground: new Color(),
+  });
+
+  /*
+   * One clock for the whole scene.
+   *
+   * The ripples and the wisps are spawned from DOM pointer events, but they are aged against
+   * `@react-three/fiber`'s clock inside `useFrame`. Those two clocks have different origins: the
+   * event timestamp counts from the page's time origin, while `clock.getElapsedTime()` counts from
+   * the moment the canvas mounted. The canvas always mounts *after* the page did, so the age
+   * computed from the two came out negative -- every ripple and wisp was invisible, never expired,
+   * and stayed in the scene forever, growing the state, the meshes and the draw calls with every
+   * click.
+   *
+   * The scene's own clock is now used for both ends of the comparison: it is read here, at spawn
+   * time, and read again in the effect that ages it. `clock.elapsedTime` is the raw accumulator,
+   * so reading it does not advance the clock the way `getElapsedTime()` does.
+   */
+  const clock = useThree((state) => state.clock);
+  const camera = useThree((state) => state.camera);
+  const gl = useThree((state) => state.gl);
+
+  /*
+   * A monotonic counter, so two effects spawned in the same millisecond cannot collide on a
+   * React key. `performance.now()` has millisecond resolution and was used for this before.
+   */
+  const nextId = useRef(1);
 
   useEffect(() => {
     const updateThemeColors = () => {
       setThemeColors({
-        primary: getCssColor("--primary"),
-        secondary: getCssColor("--secondary"),
-        accent: getCssColor("--accent"),
+        primary: cssVarToThreeColor("--primary"),
+        secondary: cssVarToThreeColor("--secondary"),
+        accent: cssVarToThreeColor("--accent"),
+        primaryForeground: cssVarToThreeColor("--primary-foreground"),
+        accentForeground: cssVarToThreeColor("--accent-foreground"),
       });
     };
 
@@ -66,33 +116,97 @@ const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
     []
   );
 
-  const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation();
-    if (isCalm) return;
-    setLastPlaneClick(event.point);
-    setRipples((prev) => [
-      ...prev,
-      {
-        id: performance.now(),
-        position: event.point,
-        creationTime: event.nativeEvent.timeStamp / 1000,
-      },
-    ]);
-  };
+  /*
+   * The interaction is handled on the window, not on the canvas.
+   *
+   * The scene is a background: it sits behind the page content, in a layer at `-z-50`, so a
+   * pointer never reaches the canvas. That was measured, not assumed: across the whole page, at
+   * every scroll position, the canvas was the hit target at 0 of 544 sampled points. The effects
+   * were therefore not merely broken, they were *unreachable* -- no click could ever have
+   * raised a ripple.
+   *
+   * So the pointer is read from the window, and the click is projected onto the scene's plane
+   * with the scene's own camera. A click on a real control -- a link, a button, a form field --
+   * is left alone, so the page keeps behaving exactly as it did.
+   *
+   * The gestures are the ones the theme was designed with: a click raises a ripple, a right
+   * click lifts wisps. The right click no longer suppresses the browser's context menu: that
+   * suppression was acceptable while the handler could only fire on the canvas, but from the
+   * window it would take the menu away from the whole page.
+   */
+  /*
+   * The pointer is placed on a surface that faces the camera, so the effect appears under the
+   * cursor.
+   *
+   * It used to be intersected with the scene's floor plane instead, which put the effect tens of
+   * units away at a grazing angle: a ripple there was drawn as a thin, pale ellipse about a
+   * hundred pixels wide and twenty tall, in the lower part of the screen, never where the click
+   * was. The effect happened; nobody could see it.
+   */
+  const pointerToSurface = useCallback(
+    (clientX: number, clientY: number): { surface: Vector3; floor: Vector3 | null } => {
+      const rect = gl.domElement.getBoundingClientRect();
+      const ndc = ndcFromClient(clientX, clientY, rect);
 
-  const handleContextMenu = (event: ThreeEvent<MouseEvent>) => {
-    event.stopPropagation();
-    event.nativeEvent.preventDefault();
+      // The scene's canvas is created with a perspective camera; the store's type is the union
+      // of both camera kinds.
+      const perspective = camera as PerspectiveCamera;
+
+      return {
+        surface: pointOnCameraSurface(perspective, ndc),
+        floor: pointOnFloor(perspective, ndc),
+      };
+    },
+    [camera, gl]
+  );
+
+  useEffect(() => {
     if (isCalm) return;
-    setWisps((prev) => [
-      ...prev,
-      {
-        id: performance.now(),
-        position: event.point,
-        creationTime: event.nativeEvent.timeStamp / 1000,
-      },
-    ]);
-  };
+
+    const isControl = (target: EventTarget | null): boolean =>
+      target instanceof Element &&
+      target.closest("a, button, input, textarea, select, [role='button']") !== null;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return;
+      if (isControl(event.target)) return;
+
+      const { surface, floor } = pointerToSurface(event.clientX, event.clientY);
+
+      // The wave that spreads away across the floor, and the ring at the cursor.
+      if (floor) setLastPlaneClick(floor);
+      setRipples((prev) => [
+        ...prev,
+        {
+          id: nextId.current++,
+          position: surface,
+          creationTime: clock.elapsedTime,
+        },
+      ]);
+    };
+
+    const onContextMenu = (event: MouseEvent) => {
+      if (isControl(event.target)) return;
+
+      const { surface } = pointerToSurface(event.clientX, event.clientY);
+
+      setWisps((prev) => [
+        ...prev,
+        {
+          id: nextId.current++,
+          position: surface,
+          creationTime: clock.elapsedTime,
+        },
+      ]);
+    };
+
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("contextmenu", onContextMenu, { passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("contextmenu", onContextMenu);
+    };
+  }, [clock, isCalm, pointerToSurface]);
 
   return (
     <>
@@ -108,30 +222,15 @@ const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
           <Ripples
             ripples={ripples}
             onComplete={handleRemoveRipple}
-            color={themeColors.primary}
+            color={themeColors.primaryForeground}
           />
           <Wisps
             wisps={wisps}
             onComplete={handleRemoveWisp}
-            color={themeColors.accent}
+            color={themeColors.accentForeground}
           />
         </>
       )}
-
-      {/* --- INTERACTION PLANE --- */}
-      {/* This single, invisible mesh is the ONLY interactive element. */}
-      {/* Its geometry is identical to the FlowingPlane, ensuring clicks are registered correctly. */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: This is a deliberate interaction plane for a decorative effect. */}
-      <mesh
-        position={[0, -3, 0]}
-        rotation={[-Math.PI / 2.1, 0, 0]}
-        onPointerDown={handlePointerDown}
-        onContextMenu={handleContextMenu}
-        visible={false} // Hide the plane without affecting its interactivity.
-      >
-        <planeGeometry args={[40, 40]} />
-        <meshBasicMaterial />
-      </mesh>
     </>
   );
 };

@@ -2,15 +2,15 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import { BoxGeometry, type Group, type Mesh, type MeshBasicMaterial } from "three";
 
 interface MiniCooperSpriteProps {
   active?: boolean;
 }
 
 export function MiniCooperSprite({ active = true }: MiniCooperSpriteProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const headlightRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const headlightRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!active || !groupRef.current) return;
@@ -21,7 +21,7 @@ export function MiniCooperSprite({ active = true }: MiniCooperSpriteProps) {
 
     // Headlight flicker
     if (headlightRef.current) {
-      (headlightRef.current.material as THREE.MeshBasicMaterial).opacity =
+      (headlightRef.current.material as MeshBasicMaterial).opacity =
         0.85 + Math.sin(t * 3.0) * 0.15;
     }
   });
@@ -126,14 +126,14 @@ export function MiniCooperSprite({ active = true }: MiniCooperSpriteProps) {
 
       {/* Outline edges for pixel-art clarity */}
       <lineSegments position={[0, 0, 0]}>
-        <edgesGeometry args={[new THREE.BoxGeometry(0.6, 0.25, 0.35)]} />
+        <edgesGeometry args={[new BoxGeometry(0.6, 0.25, 0.35)]} />
         <lineBasicMaterial
           color={0x1a1a1a}
           linewidth={2}
         />
       </lineSegments>
       <lineSegments position={[0, 0.15, 0]}>
-        <edgesGeometry args={[new THREE.BoxGeometry(0.35, 0.18, 0.32)]} />
+        <edgesGeometry args={[new BoxGeometry(0.35, 0.18, 0.32)]} />
         <lineBasicMaterial
           color={0x1a1a1a}
           linewidth={2}

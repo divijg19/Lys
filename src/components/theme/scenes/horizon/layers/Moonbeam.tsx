@@ -2,31 +2,31 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { AdditiveBlending, DoubleSide, type Mesh, Vector2, Vector3 } from "three";
 import { moonbeamFragment, moonbeamVertex } from "../shaders/moonbeam.glsl";
 
 interface MoonbeamProps {
-  moonPosition?: THREE.Vector2;
-  beamColor?: THREE.Vector3;
+  moonPosition?: Vector2;
+  beamColor?: Vector3;
   pixelSize?: number;
   position?: [number, number, number];
   active?: boolean;
 }
 
 export function Moonbeam({
-  moonPosition = new THREE.Vector2(0.3, 0.8),
-  beamColor = new THREE.Vector3(0.6, 0.7, 0.9),
+  moonPosition = new Vector2(0.3, 0.8),
+  beamColor = new Vector3(0.6, 0.7, 0.9),
   pixelSize = 3.0,
   position = [0, 0, -5],
   active = true,
 }: MoonbeamProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uMoonPos: { value: moonPosition },
       uBeamColor: { value: beamColor },
@@ -52,9 +52,9 @@ export function Moonbeam({
         fragmentShader={moonbeamFragment}
         uniforms={uniforms}
         transparent
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
       />
     </mesh>
   );

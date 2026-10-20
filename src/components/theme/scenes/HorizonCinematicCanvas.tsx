@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import * as THREE from "three";
+import { type Mesh, type ShaderMaterial, Vector2 } from "three";
 
 export type HorizonCinematicVariantId = "sunrise" | "sunset" | "night-city" | "day";
 
@@ -652,14 +652,14 @@ function pixelSizeForVariant(
 }
 
 function CinematicQuad({ variantId, active }: HorizonCinematicCanvasProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const meshRef = useRef<Mesh>(null);
+  const materialRef = useRef<ShaderMaterial>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(() => {
     return {
       uTime: { value: 0 },
-      uRes: { value: new THREE.Vector2(1, 1) },
+      uRes: { value: new Vector2(1, 1) },
       uVariant: { value: 0 },
       uPixelSize: { value: 3.0 },
     };

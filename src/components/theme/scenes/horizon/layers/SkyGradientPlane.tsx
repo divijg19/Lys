@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { DoubleSide, type Mesh, Vector2 } from "three";
 import { skyGradientFragment, skyGradientVertex } from "../shaders/skyGradient.glsl";
 
 export type SkyVariant = "sunrise" | "sunset" | "night-city" | "day";
@@ -31,13 +31,13 @@ export function SkyGradientPlane({
   pixelSize = 3.0,
   active = true,
 }: SkyGradientPlaneProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uVariant: { value: variantToInt(variant) },
     }),
@@ -61,7 +61,7 @@ export function SkyGradientPlane({
         vertexShader={skyGradientVertex}
         fragmentShader={skyGradientFragment}
         uniforms={uniforms}
-        side={THREE.DoubleSide}
+        side={DoubleSide}
       />
     </mesh>
   );

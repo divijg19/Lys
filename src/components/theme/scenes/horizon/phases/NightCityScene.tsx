@@ -1,6 +1,6 @@
 "use client";
 
-import * as THREE from "three";
+import { Vector2, Vector3 } from "three";
 import { CelestialBody } from "../layers/CelestialBody";
 import { CitySilhouette } from "../layers/CitySilhouette";
 import { Moonbeam } from "../layers/Moonbeam";
@@ -17,7 +17,7 @@ interface NightCitySceneProps {
 
 export function NightCityScene({ active = true, pixelSize = 3.0 }: NightCitySceneProps) {
   const variant: SkyVariant = "night-city";
-  const moonPos = new THREE.Vector2(0.25, 0.78);
+  const moonPos = new Vector2(0.25, 0.78);
 
   return (
     <>
@@ -38,8 +38,8 @@ export function NightCityScene({ active = true, pixelSize = 3.0 }: NightCityScen
       <CelestialBody
         bodyPosition={moonPos}
         radius={0.1}
-        bodyColor={new THREE.Vector3(0.95, 0.93, 0.88)}
-        glowColor={new THREE.Vector3(0.7, 0.75, 0.85)}
+        bodyColor={new Vector3(0.95, 0.93, 0.88)}
+        glowColor={new Vector3(0.7, 0.75, 0.85)}
         isMoon
         rayCount={0}
         pixelSize={pixelSize}
@@ -50,7 +50,7 @@ export function NightCityScene({ active = true, pixelSize = 3.0 }: NightCityScen
       {/* Volumetric moonbeam */}
       <Moonbeam
         moonPosition={moonPos}
-        beamColor={new THREE.Vector3(0.55, 0.65, 0.85)}
+        beamColor={new Vector3(0.55, 0.65, 0.85)}
         pixelSize={pixelSize}
         position={[0, 0, -8]}
         active={active}
@@ -58,9 +58,9 @@ export function NightCityScene({ active = true, pixelSize = 3.0 }: NightCityScen
 
       {/* Distant city skyline with glowing windows */}
       <CitySilhouette
-        buildingColor={new THREE.Vector3(0.06, 0.05, 0.08)}
-        windowColor={new THREE.Vector3(0.95, 0.85, 0.4)}
-        glowColor={new THREE.Vector3(0.25, 0.45, 0.75)}
+        buildingColor={new Vector3(0.06, 0.05, 0.08)}
+        windowColor={new Vector3(0.95, 0.85, 0.4)}
+        glowColor={new Vector3(0.25, 0.45, 0.75)}
         density={1.0}
         pixelSize={pixelSize}
         position={[0, 0, -7]}
@@ -69,8 +69,8 @@ export function NightCityScene({ active = true, pixelSize = 3.0 }: NightCityScen
 
       {/* Dark ocean with moonlight reflection */}
       <OceanPlane
-        waterColor={new THREE.Vector3(0.03, 0.04, 0.08)}
-        glowColor={new THREE.Vector3(0.5, 0.6, 0.8)}
+        waterColor={new Vector3(0.03, 0.04, 0.08)}
+        glowColor={new Vector3(0.5, 0.6, 0.8)}
         waveSpeed={0.15}
         pixelSize={pixelSize}
         position={[0, -3, -5]}

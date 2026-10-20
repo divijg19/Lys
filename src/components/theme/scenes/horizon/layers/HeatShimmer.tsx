@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { AdditiveBlending, DoubleSide, type Mesh, Vector2 } from "three";
 import { heatShimmerFragment, heatShimmerVertex } from "../shaders/heatShimmer.glsl";
 
 interface HeatShimmerProps {
@@ -18,13 +18,13 @@ export function HeatShimmer({
   position = [0, 0, -1],
   active = true,
 }: HeatShimmerProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uIntensity: { value: intensity },
     }),
@@ -49,9 +49,9 @@ export function HeatShimmer({
         fragmentShader={heatShimmerFragment}
         uniforms={uniforms}
         transparent
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
       />
     </mesh>
   );

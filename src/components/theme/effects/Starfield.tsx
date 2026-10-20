@@ -11,7 +11,7 @@ import { PointMaterial, Points } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import type { ComponentPropsWithoutRef } from "react";
 import { useRef, useState } from "react";
-import type * as THREE from "three";
+import type { Color, Points as ThreePoints } from "three";
 import { createPRNG, seedHash } from "@/lib/utils";
 
 /**
@@ -30,10 +30,10 @@ interface StarfieldProps {
    * @default 0.005
    */
   size?: number;
-  /** The color of the stars. Can be any valid CSS color string.
+  /** The color of the stars. Can be any valid CSS color string, or a `Color` instance.
    * @default "#ffffff"
    */
-  color?: string;
+  color?: string | Color;
   /**
    * The opacity of the stars, from 0 (transparent) to 1 (opaque).
    * @default 1
@@ -74,7 +74,7 @@ export function Starfield({
   // --- Passthrough Props ---
   ...props
 }: StarfieldProps & ComponentPropsWithoutRef<typeof Points>) {
-  const ref = useRef<THREE.Points>(null);
+  const ref = useRef<ThreePoints>(null);
 
   // --- DEFINITIVE FIX: Replace `random.inSphere` with a mathematically stable method. ---
   const [sphere] = useState(() => {

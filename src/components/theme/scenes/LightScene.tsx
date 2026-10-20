@@ -7,6 +7,9 @@
 
 "use client";
 
+// Installs the Three.js console filter at module scope, before the scene mounts.
+import "./installThreeConsole";
+
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useState } from "react";
 import { CameraRig } from "@/components/theme/effects/light/CameraRig";

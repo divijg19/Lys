@@ -9,37 +9,65 @@
 import { PointMaterial, Points } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import {
+  AdditiveBlending,
+  type BufferAttribute,
+  type Color,
+  Euler,
+  Object3D,
+  type PointsMaterial,
+  type Points as ThreePoints,
+  Vector3,
+} from "three";
+
+import { effectProgress } from "@/lib/effectsLifetime";
 
 // Configuration constants for the wisp effect.
 const WISP_LIFESPAN_SECONDS = 3.5; // Slightly longer lifespan
 const PARTICLE_COUNT = 56;
 const WISP_MAX_OPACITY = 0.55;
-const PARTICLE_BASE_SIZE = 0.07;
+
+/*
+ * The size of a wisp, in world units.
+ *
+ * The wisps live on the interaction surface, eight units from the camera, where the view is
+ * about 12.3 units tall. At this size a wisp is a couple of per cent of the screen -- a soft
+ * mote you can actually see. The size used to be 0.07 units, on a point that sat tens of units
+ * away at a grazing angle: the particles came out about a pixel across.
+ */
+const PARTICLE_BASE_SIZE = 0.35;
+
+/**
+ * The opacity a wisp is drawn with, from its progress through its life.
+ *
+ * The fade used to be computed from an age that could be negative -- which made the particles
+ * invisible -- so the arithmetic lives in a function that can be tested on its own.
+ */
+export const wispOpacity = (progress: number) => (1 - progress ** 2) * WISP_MAX_OPACITY;
 
 // --- TYPE DEFINITIONS ---
 type WispProps = {
   id: number;
-  position: THREE.Vector3;
+  position: Vector3;
   creationTime: number;
   onComplete: (id: number) => void;
-  color: string;
+  color: Color;
 };
 
 // Particle data structure now includes velocity and rotation for more complex physics.
 type Particle = {
-  position: THREE.Vector3;
-  velocity: THREE.Vector3;
-  rotation: THREE.Euler;
+  position: Vector3;
+  velocity: Vector3;
+  rotation: Euler;
   size: number;
 };
 
-export type WispData = { id: number; position: THREE.Vector3; creationTime: number };
-export type WispsProps = { wisps: WispData[]; onComplete: (id: number) => void; color: string };
+export type WispData = { id: number; position: Vector3; creationTime: number };
+export type WispsProps = { wisps: WispData[]; onComplete: (id: number) => void; color: Color };
 
 // --- COMPONENTS ---
 const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
-  const ref = useRef<THREE.Points>(null);
+  const ref = useRef<ThreePoints>(null);
   const hasCompleted = useRef(false);
 
   // Initialize particles with random positions and velocities around the origin point.
@@ -49,32 +77,41 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
       const angle = Math.random() * Math.PI * 2;
       const radius = Math.random() * 0.2;
       temp.push({
-        position: new THREE.Vector3(
+        position: new Vector3(
           Math.cos(angle) * radius,
           Math.sin(angle) * radius,
           (Math.random() - 0.5) * 0.2
         ),
-        velocity: new THREE.Vector3(
+        velocity: new Vector3(
           (Math.random() - 0.5) * 0.004,
           0.0016 + Math.random() * 0.0026, // Gentle upward buoyancy
           (Math.random() - 0.5) * 0.004
         ),
-        rotation: new THREE.Euler(0, 0, 0),
+        rotation: new Euler(0, 0, 0),
         size: PARTICLE_BASE_SIZE * (0.5 + Math.random() * 0.5),
       });
     }
     return temp;
   }, []);
 
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const dummy = useMemo(() => new Object3D(), []);
 
   useFrame(({ clock }) => {
     if (!ref.current?.geometry || !ref.current?.material) return;
 
-    const elapsedTime = clock.getElapsedTime() - creationTime;
-    const progress = elapsedTime / WISP_LIFESPAN_SECONDS;
+    /*
+     * `clock.elapsedTime` rather than `clock.getElapsedTime()`: the latter advances the clock as
+     * a side effect of reading it, and the creation time recorded by the scene is read from the
+     * same accumulator. Reading the property keeps both ends of the comparison on one clock.
+     */
+    const age = clock.elapsedTime - creationTime;
+    const { complete, progress } = effectProgress(
+      clock.elapsedTime,
+      creationTime,
+      WISP_LIFESPAN_SECONDS
+    );
 
-    if (progress >= 1) {
+    if (complete) {
       if (!hasCompleted.current) {
         onComplete(id);
         hasCompleted.current = true;
@@ -82,14 +119,14 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
       return;
     }
 
-    const positions = ref.current.geometry.attributes.position as THREE.BufferAttribute;
+    const positions = ref.current.geometry.attributes.position as BufferAttribute;
 
     // Animate each particle based on its unique velocity and add a gentle swirl.
     particles.forEach((particle, i) => {
       // Apply a swirling force (curl noise)
       const swirlStrength = 0.0014;
-      particle.velocity.x += Math.sin(elapsedTime + i) * swirlStrength;
-      particle.velocity.z += Math.cos(elapsedTime + i) * swirlStrength;
+      particle.velocity.x += Math.sin(age + i) * swirlStrength;
+      particle.velocity.z += Math.cos(age + i) * swirlStrength;
 
       // Update position
       particle.position.add(particle.velocity);
@@ -106,8 +143,7 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
 
     positions.needsUpdate = true;
     // Fade out the entire wisp as it reaches the end of its life
-    (ref.current.material as THREE.PointsMaterial).opacity =
-      (1.0 - progress ** 2) * WISP_MAX_OPACITY;
+    (ref.current.material as PointsMaterial).opacity = wispOpacity(progress);
   });
 
   // We now render a static Points object whose vertices are moved in the useFrame loop.
@@ -134,7 +170,7 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
           color={color}
           size={PARTICLE_BASE_SIZE}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
         />
       </Points>
     </group>

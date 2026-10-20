@@ -51,4 +51,8 @@ CHANGELOG.md
 
 *storybook.log
 storybook-static
+
+# Written by `next dev` itself (the agent rules block). It is regenerated on every dev run, so
+# it is ignored rather than committed.
+AGENTS.md
 .velite/
