@@ -9,7 +9,8 @@
 import { shaderMaterial } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { Color, type Mesh, type ShaderMaterial, Vector3 } from "three";
+import { Color, type Mesh, type ShaderMaterial, type Texture, Vector3 } from "three";
+import { createNoiseTexture } from "@/lib/noiseTexture";
 
 const FlowingPlaneMaterial = shaderMaterial(
   {
@@ -19,37 +20,43 @@ const FlowingPlaneMaterial = shaderMaterial(
     uAccent: new Color(0.95, 0.75, 0.9),
     uClickPosition: new Vector3(0, 0, 0),
     uClickStrength: 0.0,
+    uNoise: null,
   },
   `
     uniform float uTime;
     uniform vec3 uClickPosition;
     uniform float uClickStrength;
+    uniform sampler2D uNoise;
     varying float vDisplacement;
     varying vec2 vUv;
-    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-    vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-    vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
-    float snoise(vec2 v) {
-        const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-        vec2 i  = floor(v + dot(v, C.yy) );
-        vec2 x0 = v -   i + dot(i, C.xx);
-        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-        vec4 x12 = x0.xyxy + C.xxzz; x12.xy -= i1;
-        i = mod289(i);
-        vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
-        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-        m = m*m; m = m*m;
-        vec3 x = 2.0 * fract(p * C.www) - 1.0; vec3 h = abs(x) - 0.5;
-        vec3 ox = floor(x + 0.5); vec3 a0 = x - ox;
-        m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-        vec3 g; g.x  = a0.x  * x0.x  + h.x  * x0.y; g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-        return 130.0 * dot(m, g);
+
+    /*
+     * The displacement, from a noise texture rather than from noise in the shader.
+     *
+     * It used to evaluate two octaves of simplex noise per vertex, per frame: the whole of the
+     * mesh ran a noise evaluation twice, and the plane then had to be coarse to afford it -- at
+     * 64 by 64 the detail octave's wavelength was covered by seven quads, and the field came out
+     * softer than it should.
+     *
+     * The texture holds the same field, in the same four channels, with the same frequencies and
+     * the same drift; the vertex shader does two lookups. The coordinates are scaled so that the
+     * feature sizes are unchanged:
+     *
+     *   the old field's features were one cell wide in the noise's own space, so a cell was
+     *   1 / frequency across the plane. The texture holds eight cells across a tile, so the
+     *   lookup is scaled by 1 / 8 and the features land in the same place.
+     */
+    float noiseAt(vec2 point, float frequency, float drift, float scale) {
+      vec2 uv = (point * frequency + uTime * drift) * scale;
+      return texture2D(uNoise, uv).r * 2.0 - 1.0;
     }
+
     void main() {
       vUv = uv;
       vec3 pos = position;
-      float baseNoise = snoise(vec2(pos.x, pos.y) * 0.08 + uTime * 0.02) * 0.22;
-      float detailNoise = snoise(vec2(pos.x, pos.y) * 0.22 + uTime * 0.06) * 0.08;
+      float baseNoise = noiseAt(pos.xy, 0.08, 0.02, 0.125) * 0.22;
+      float detailNoise = texture2D(uNoise, (pos.xy * 0.22 + uTime * 0.06) * 0.125).g * 2.0 - 1.0;
+      detailNoise *= 0.08;
       float totalNoise = baseNoise + detailNoise;
       float dist = distance(pos.xy, uClickPosition.xy);
       float ripple = sin(dist * 2.2 - uTime * 2.2) * uClickStrength;
@@ -104,6 +111,7 @@ interface IFlowingPlaneMaterial extends ShaderMaterial {
     uAccent: { value: Color };
     uClickPosition: { value: Vector3 };
     uClickStrength: { value: number };
+    uNoise: { value: Texture | null };
   };
 }
 
@@ -124,13 +132,23 @@ export const FlowingPlane = ({
   const meshRef = useRef<Mesh>(null);
   const clickStrengthRef = useRef(0.0);
 
+  /*
+   * The noise texture is generated once, when the plane mounts.
+   *
+   * It is a texture rather than noise in the shader because the field is sampled at a coordinate
+   * that drifts: the noise has to be periodic, and a periodic field is far cheaper to look up
+   * than to evaluate.
+   */
+  const noiseTexture = useMemo(() => createNoiseTexture(), []);
+
   const material = useMemo(() => {
     const mat = new FlowingPlaneMaterial();
     mat.uniforms.uPrimary.value = new Color(primaryColor);
     mat.uniforms.uSecondary.value = new Color(secondaryColor);
     mat.uniforms.uAccent.value = new Color(accentColor);
+    mat.uniforms.uNoise.value = noiseTexture;
     return mat;
-  }, [primaryColor, secondaryColor, accentColor]);
+  }, [primaryColor, secondaryColor, accentColor, noiseTexture]);
 
   /*
    * The material is built here rather than declaratively, so react-three-fiber does not own it and
@@ -169,7 +187,18 @@ export const FlowingPlane = ({
       rotation={[-Math.PI / 2.1, 0, 0]}
       position={[0, -3, 0]}
     >
-      <planeGeometry args={[40, 40, 96, 96]} />
+      {/*
+       * 128 by 128 segments.
+       *
+       * The detail octave's wavelength is about 4.5 units and the plane is 40 units wide, so a
+       * segment has to be much shorter than a wavelength for the detail to be carried rather than
+       * smoothed away. This is the density the theme had before the noise moved into a texture.
+       *
+       * The density is affordable because the noise is looked up rather than evaluated: the
+       * per-vertex cost is two texture reads instead of two noise evaluations, and the shader
+       * lost forty lines of noise in the process.
+       */}
+      <planeGeometry args={[40, 40, 128, 128]} />
       <primitive
         ref={ref}
         object={material}

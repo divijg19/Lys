@@ -4,12 +4,40 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { blogs } from "#velite";
 
 const FADE_UP_VARIANTS = {
   hidden: { opacity: 0, y: 10 },
   show: { opacity: 1, y: 0, transition: { type: "spring" as const, duration: 0.8 } },
 };
+
+/*
+ * A post's cover image.
+ *
+ * The cover used to be loaded with `unoptimized`, which serves the file as it is: the one real
+ * cover in the repository is a 424 KB PNG. Letting the optimiser do its job serves a resized,
+ * compressed copy instead. The placeholder covers are empty files, which the optimiser cannot
+ * read, so they fall back to the placeholder graphic.
+ */
+function BlogCover({ cover, title }: { cover?: string; title: string }) {
+  const [src, setSrc] = useState(cover || "/assets/images/placeholder.svg");
+
+  return (
+    <Image
+      src={src}
+      alt={`Cover image for ${title}`}
+      fill
+      sizes="(min-width: 640px) 33vw, 100vw"
+      className="rounded-t-xl object-cover transition-transform duration-300 group-hover:scale-105 sm:rounded-t-none sm:rounded-l-xl"
+      onError={() => {
+        if (src !== "/assets/images/placeholder.svg") {
+          setSrc("/assets/images/placeholder.svg");
+        }
+      }}
+    />
+  );
+}
 
 export function BlogList() {
   /*
@@ -62,12 +90,9 @@ function BlogPostCard(post: (typeof blogs)[number]) {
       <article className="flex h-full flex-col sm:flex-row">
         {post.cover && (
           <div className="relative h-48 w-full sm:h-auto sm:w-1/3">
-            <Image
-              src={post.cover}
-              alt={`Cover image for ${post.title}`}
-              fill
-              unoptimized
-              className="rounded-t-xl object-cover transition-transform duration-300 group-hover:scale-105 sm:rounded-t-none sm:rounded-l-xl"
+            <BlogCover
+              cover={post.cover}
+              title={post.title}
             />
           </div>
         )}

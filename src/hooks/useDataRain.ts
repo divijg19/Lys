@@ -6,6 +6,7 @@
 
 import type { RefObject } from "react";
 import { useEffect, useRef } from "react";
+import { measureCanvas } from "@/lib/canvasSize";
 
 // --- Constants ---
 const ALPHABET =
@@ -80,7 +81,12 @@ export const useDataRain = (canvasRef: RefObject<HTMLCanvasElement | null>) => {
     const canvas = canvasRef.current;
     if (!canvas) return; // This guard clause correctly handles the null case.
 
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    /*
+     * No `willReadFrequently`: that flag tells the browser the canvas will be *read back*, and
+     * Chrome answers by moving it to the software rasteriser. This canvas only ever draws, and
+     * the software path is slower for drawing than the GPU one.
+     */
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const style = getComputedStyle(document.documentElement);
@@ -95,8 +101,17 @@ export const useDataRain = (canvasRef: RefObject<HTMLCanvasElement | null>) => {
 
     const setup = () => {
       const dpr = getDpr();
-      cssWidth = window.innerWidth;
-      cssHeight = window.innerHeight;
+      /*
+       * The canvas' own box, not the window's.
+       *
+       * The rear layer of the cyberpunk rain is only visible in the top band of the screen, and
+       * the canvas used to be sized to the whole window and then clipped: two thirds of its
+       * backing store, and of the clear that happens on every frame, was drawn and thrown away.
+       * Sizing the canvas to itself means the invisible part is never allocated at all.
+       */
+      const size = measureCanvas(canvas, { width: window.innerWidth, height: window.innerHeight });
+      cssWidth = size.width;
+      cssHeight = size.height;
       canvas.width = Math.floor(cssWidth * dpr);
       canvas.height = Math.floor(cssHeight * dpr);
 

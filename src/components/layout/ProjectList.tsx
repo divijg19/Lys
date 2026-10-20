@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { SiGithub as Github } from "react-icons/si";
 import { projects } from "#velite";
 import { Badge } from "@/components/ui/Badge";
@@ -40,6 +41,36 @@ export function ProjectList() {
   );
 }
 
+/*
+ * A project's cover image.
+ *
+ * The cover used to be loaded with `unoptimized`, which tells Next to serve the file as it is.
+ * The one real cover in the repository is a 424 KB PNG, and that is what every visitor of the
+ * projects page downloaded. Letting the optimiser do its job serves a resized, compressed copy
+ * instead.
+ *
+ * The placeholder covers are empty files. The optimiser cannot read one, so the image falls back
+ * to the placeholder graphic -- the same thing the About section has always done.
+ */
+function ProjectCover({ cover, title }: { cover?: string; title: string }) {
+  const [src, setSrc] = useState(cover || "/assets/images/placeholder.svg");
+
+  return (
+    <Image
+      src={src}
+      alt={`Cover image for ${title}`}
+      fill
+      sizes="(min-width: 640px) 50vw, 100vw"
+      className="object-cover transition-transform duration-300 group-hover:scale-105"
+      onError={() => {
+        if (src !== "/assets/images/placeholder.svg") {
+          setSrc("/assets/images/placeholder.svg");
+        }
+      }}
+    />
+  );
+}
+
 function ProjectCard(project: (typeof projects)[number]) {
   return (
     <Link
@@ -48,12 +79,9 @@ function ProjectCard(project: (typeof projects)[number]) {
     >
       <article className="flex h-full flex-col">
         <div className="relative h-48 w-full overflow-hidden rounded-t-xl">
-          <Image
-            src={project.cover || "/assets/images/placeholder.png"}
-            alt={`Cover image for ${project.title}`}
-            fill
-            unoptimized
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          <ProjectCover
+            cover={project.cover}
+            title={project.title}
           />
         </div>
         <div className="flex flex-1 flex-col p-6">

@@ -1,15 +1,19 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   DoubleSide,
   type Group,
   MathUtils,
+  type Mesh,
   type MeshStandardMaterial,
   type PerspectiveCamera,
 } from "three";
 import { useDataRain } from "@/hooks/useDataRain";
+import { rescalePoints } from "@/lib/canvasSize";
+import { frameRateIndependentFactor } from "@/lib/motion";
+import { NeonRegistry } from "@/lib/neonRegistry";
 import { createPRNG, seedHash } from "@/lib/utils";
 
 const NEON_COLORS = {
@@ -51,18 +55,30 @@ function CyberpunkBuilding({
   buildingData: BuildingData;
   width: number;
   depth: number;
-  registerNeon: (mat: MeshStandardMaterial | null) => void;
+  registerNeon: (mat: MeshStandardMaterial) => () => void;
 }) {
   const neonColor =
     NEON_COLORS[buildingData.neonColor as keyof typeof NEON_COLORS] || NEON_COLORS.cyan;
   const buildingWidth = width;
   const buildingDepth = depth;
+
+  /*
+   * The sign's material registers itself, and unregisters when it goes.
+   *
+   * A ref callback cannot do this: react-three-fiber calls it with the mesh on mount and with
+   * `null` on unmount, and `null` says nothing about *which* material left. The registry used to
+   * push on every mount and ignore the nulls, so the same material was in the list several times
+   * over and never left it.
+   */
+  const signRef = useRef<Mesh>(null);
+  useEffect(() => {
+    const material = signRef.current?.material as MeshStandardMaterial | undefined;
+    if (!material) return;
+    return registerNeon(material);
+  }, [registerNeon]);
   return (
     <group position={position}>
-      <mesh
-        castShadow
-        receiveShadow
-      >
+      <mesh>
         <boxGeometry args={[buildingWidth, height, buildingDepth]} />
         <meshStandardMaterial
           color="#0a0a0f"
@@ -78,7 +94,7 @@ function CyberpunkBuilding({
               height * 0.3,
               0,
             ]}
-            ref={(m) => registerNeon(m ? (m.material as MeshStandardMaterial) : null)}
+            ref={signRef}
           >
             <planeGeometry args={[buildingWidth * 0.85, height * 0.18]} />
             <meshStandardMaterial
@@ -204,7 +220,26 @@ function AlleyScene() {
   // Keep direct refs to building groups to avoid scanning all children each frame
   const buildingRefs = useRef<Group[]>([]);
   // Collected neon materials for centralized pulsing
-  const neonMaterialsRef = useRef<MeshStandardMaterial[]>([]);
+  /*
+   * The neon signs, with the intensity each was authored with.
+   *
+   * The registry keeps the authored value so that the pulse can modulate it, and it removes a
+   * sign when the sign goes -- a ref callback cannot, because the `null` it is called with on
+   * unmount says nothing about which sign left.
+   */
+  const neonRegistry = useMemo(() => new NeonRegistry(), []);
+
+  /*
+   * Register a sign's material, and hand back the unregister.
+   *
+   * The callback is stable, because the signs register in an effect that depends on it: an
+   * arrow created on every render would make every sign unregister and register again on every
+   * frame of the parent's re-render.
+   */
+  const registerNeonMaterial = useCallback(
+    (mat: MeshStandardMaterial) => neonRegistry.register(mat),
+    [neonRegistry]
+  );
   const scrollProgressRef = useRef(0);
 
   // Shared alley layout constants
@@ -347,15 +382,22 @@ function AlleyScene() {
   // Precompute alley depth for dynamic distance-based effects
   const alleyDepth = Math.abs(zSpacing) * (BUILDING_PAIRS - 1); // total span of one alley cycle
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const { camera, viewport } = state;
     const minZ = zStart + (BUILDING_PAIRS - 1) * zSpacing;
     // Map page scroll progress (0..1) to alley depth (0..minZ)
     const progress = scrollProgressRef.current;
     const clampedTargetZ = MathUtils.lerp(0, minZ, progress);
 
-    // Smooth camera movement - walking forward
-    camera.position.z += (clampedTargetZ - camera.position.z) * 0.1;
+    /*
+     * Smooth camera movement - walking forward.
+     *
+     * The factor is per second, not per frame: a tenth of the way there in every frame covers
+     * the same ground in the same time at 60 Hz and at 144 Hz. It used to be per frame, so the
+     * walk was about two and a half times faster on a fast display.
+     */
+    camera.position.z +=
+      (clampedTargetZ - camera.position.z) * frameRateIndependentFactor(0.1, delta);
     // Keep eye height low, but avoid excessive vertical drift in the alley
     camera.position.y = -0.7;
     camera.position.x = 0;
@@ -404,21 +446,29 @@ function AlleyScene() {
         const maxLean = 0.32;
         child.rotation.x = MathUtils.lerp(minLean, maxLean, distanceFactor);
       }
-      // Update all neon emissive intensities once per frame
-      neonMaterialsRef.current.forEach((mat) => {
-        if (!mat) return;
-        mat.emissiveIntensity = pulse * (mat.emissiveIntensity ? 1 : 1); // pulse baseline
-      });
+      /*
+       * Update all neon emissive intensities once per frame.
+       *
+       * The pulse *modulates* the intensity each sign was authored with. It used to replace it:
+       * `pulse * (mat.emissiveIntensity ? 1 : 1)` is `pulse * 1`, so the authored 2.0-2.5 was
+       * overwritten by a value between 0.7 and 1.3 -- the neon signs rendered at roughly half the
+       * brightness they were designed for, and the pulse read as the scene being dim rather than
+       * as a sign breathing.
+       */
+      neonRegistry.apply(pulse);
     }
   });
 
   return (
     <group ref={groupRef}>
       {/* Ground - wet reflective street sloping downward to meet backdrop base */}
+      {/*
+       * No `receiveShadow`: the canvas does not enable shadow maps, and no light in this scene
+       * casts one, so the flag asked for a shadow that could never be drawn.
+       */}
       <mesh
         rotation={[-Math.PI / 2 - 0.3, 0, 0]}
         position={[0, -10, -27]}
-        receiveShadow
       >
         <planeGeometry args={[150, 250]} />
         <meshStandardMaterial
@@ -473,9 +523,7 @@ function AlleyScene() {
             buildingData={building.data}
             width={building.data.width}
             depth={building.data.depth}
-            registerNeon={(mat) => {
-              if (mat) neonMaterialsRef.current.push(mat);
-            }}
+            registerNeon={registerNeonMaterial}
           />
         </group>
       ))}
@@ -547,21 +595,6 @@ export function CitySilhouette() {
     let width = 0;
     let height = 0;
 
-    const getDpr = () => Math.min(window.devicePixelRatio || 1, 1.5);
-    const resize = () => {
-      const dpr = getDpr();
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, width, height);
-    };
-    resize();
-
-    window.addEventListener("resize", resize);
-
     interface BoltSegment {
       x: number;
       y: number;
@@ -573,6 +606,53 @@ export function CitySilhouette() {
       color: "cyan" | "yellow";
     }
     const bolts: Bolt[] = [];
+
+    const getDpr = () => Math.min(window.devicePixelRatio || 1, 1.5);
+
+    const resize = () => {
+      const dpr = getDpr();
+      const nextWidth = canvas.clientWidth;
+      const nextHeight = canvas.clientHeight;
+
+      /*
+       * The bolts that are on screen are rescaled rather than thrown away.
+       *
+       * Their coordinates are in CSS pixels, and the canvas has just changed size underneath
+       * them: reallocating the backing store cleared it, so a bolt in flight was wiped in the
+       * middle of its flash, and any that survived would have been drawn in the old coordinate
+       * space -- off the edge of the new canvas.
+       */
+      const scaleX = width > 0 ? nextWidth / width : 1;
+      const scaleY = height > 0 ? nextHeight / height : 1;
+      for (const bolt of bolts) {
+        bolt.path = rescalePoints(bolt.path, scaleX, scaleY);
+      }
+
+      width = nextWidth;
+      height = nextHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+    };
+
+    resize();
+
+    /*
+     * The resize is debounced.
+     *
+     * A window resize fires continuously while a window is being dragged, and each one
+     * reallocated the backing store -- a full-viewport allocation and clear, several times a
+     * second.
+     */
+    let resizeTimeout: ReturnType<typeof setTimeout> | undefined;
+    const scheduleResize = () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(resize, 150);
+    };
+
+    window.addEventListener("resize", scheduleResize);
 
     let rafId = 0;
     let flashTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -714,9 +794,10 @@ export function CitySilhouette() {
 
     return () => {
       mounted = false;
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", scheduleResize);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       stopRaf();
+      if (resizeTimeout) clearTimeout(resizeTimeout);
       if (flashTimeout) clearTimeout(flashTimeout);
       if (secondaryTimeout) clearTimeout(secondaryTimeout);
     };
@@ -744,13 +825,18 @@ export function CitySilhouette() {
         <div className="absolute inset-0 bg-linear-to-b from-purple-950/30 via-purple-900/10 to-transparent" />
         <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-cyan-950/20" />
 
-        {/* 80% DATA RAIN (behind skyline) - now vanishes at 40% screen height */}
+        {/*
+         * 80% DATA RAIN (behind skyline) - vanishes at 40% screen height.
+         *
+         * The canvas is 40% tall rather than full-height-and-clipped. A full-height canvas with
+         * a clip path still allocates and clears a full viewport every frame, two thirds of
+         * which nobody can see.
+         */}
         <canvas
           ref={canvasRefBehind}
-          className="absolute inset-0 pointer-events-none opacity-12"
+          className="absolute inset-x-0 top-0 h-[40%] pointer-events-none opacity-12"
           style={{
             mixBlendMode: "screen",
-            clipPath: "inset(0 0 60% 0)",
             zIndex: 2,
           }}
         />
