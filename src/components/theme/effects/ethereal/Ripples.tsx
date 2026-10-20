@@ -7,27 +7,67 @@
 "use client";
 
 import { shaderMaterial } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { Color, type Mesh, type ShaderMaterial, type Vector3 } from "three";
+import { effectProgress } from "@/lib/effectsLifetime";
+
+/*
+ * How long a ripple lives, in seconds.
+ */
+const RIPPLE_LIFESPAN_SECONDS = 1.5;
+
+/*
+ * The size of the quad the ring is drawn on, in world units.
+ *
+ * The ring is drawn on a surface that faces the camera, eight units from it, where the view is
+ * about 12.3 units tall. A quad of this size is therefore roughly a sixth of the screen, and the
+ * ring -- which grows outwards from the centre as it fades -- reaches about a twelfth of the
+ * screen before it is clipped by the quad.
+ *
+ * The size used to be five units on a plane lying flat on the floor, seen at a grazing angle from
+ * far away: the same ring came out about a hundred pixels wide and twenty tall, in the lower
+ * part of the screen, and could not be seen.
+ */
+const RIPPLE_QUAD_SIZE = 2.2;
+
+/**
+ * The shader uniforms a ripple is drawn with, from its progress through its life.
+ *
+ * The radius grows from nothing to the edge of the plane while the opacity fades out. Both used
+ * to be computed from an age that could be negative -- which made the ring invisible -- so the
+ * arithmetic lives in a function that can be tested on its own.
+ */
+export const rippleUniforms = (progress: number) => ({
+  uRadius: progress * 2.0,
+  uOpacity: 0.4 * (1 - progress),
+});
 
 const RippleMaterial = shaderMaterial(
-  { uColor: new THREE.Color(0.9, 0.8, 1.0), uRadius: 0.0, uOpacity: 0.0 },
+  { uColor: new Color(0.9, 0.8, 1.0), uRadius: 0.0, uOpacity: 0.0 },
   `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
   `uniform vec3 uColor; uniform float uRadius; uniform float uOpacity; varying vec2 vUv;
    void main() {
      vec2 center = vec2(0.5);
      float dist = distance(vUv, center);
-     float ring = smoothstep(uRadius - 0.03, uRadius, dist) - smoothstep(uRadius, uRadius + 0.03, dist);
-     float halo = smoothstep(uRadius - 0.12, uRadius - 0.05, dist) - smoothstep(uRadius - 0.05, uRadius + 0.02, dist);
-     float strength = ring + halo * 0.35;
+
+     /*
+      * A thin ring with a soft inner edge.
+      *
+      * The halo used to be four times the width of the ring and carried a third of the strength,
+      * which made the effect read as a filled disc -- a purple smudge behind the text rather than
+      * a ripple. A plainer ring, and a much quieter halo, keeps it an echo.
+      */
+     float ring = smoothstep(uRadius - 0.02, uRadius, dist) - smoothstep(uRadius, uRadius + 0.02, dist);
+     float halo = smoothstep(uRadius - 0.07, uRadius - 0.03, dist) - smoothstep(uRadius - 0.03, uRadius + 0.01, dist);
+     float strength = ring + halo * 0.15;
      gl_FragColor = vec4(uColor, strength * uOpacity);
    }`
 );
 
-interface IRippleMaterial extends THREE.ShaderMaterial {
+interface IRippleMaterial extends ShaderMaterial {
   uniforms: {
-    uColor: { value: THREE.Color };
+    uColor: { value: Color };
     uRadius: { value: number };
     uOpacity: { value: number };
   };
@@ -35,50 +75,75 @@ interface IRippleMaterial extends THREE.ShaderMaterial {
 
 type RippleProps = {
   id: number;
-  position: THREE.Vector3;
+  position: Vector3;
   creationTime: number;
   onComplete: (id: number) => void;
-  color: string;
+  color: Color;
 };
 
-export type RippleData = { id: number; position: THREE.Vector3; creationTime: number };
+export type RippleData = { id: number; position: Vector3; creationTime: number };
 export type RipplesProps = {
   ripples: RippleData[];
   onComplete: (id: number) => void;
-  color: string;
+  color: Color;
 };
 
 const Ripple = ({ id, position, creationTime, onComplete, color }: RippleProps) => {
   const ref = useRef<IRippleMaterial>(null);
+  const meshRef = useRef<Mesh>(null);
+  const camera = useThree((state) => state.camera);
   const hasCompleted = useRef(false);
   const material = useMemo(() => {
     const mat = new RippleMaterial();
-    mat.uniforms.uColor.value = new THREE.Color(color);
+    mat.uniforms.uColor.value = new Color(color);
     return mat;
   }, [color]);
 
+  /*
+   * The material is built here rather than declaratively, so react-three-fiber does not own it and
+   * will not dispose of it. Without this, every ripple that was ever spawned left a shader
+   * program on the GPU.
+   */
+  useEffect(() => () => material.dispose(), [material]);
+
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    const elapsedTime = clock.getElapsedTime() - creationTime;
-    const lifespan = 1.5;
-    if (elapsedTime > lifespan) {
+    /*
+     * `clock.elapsedTime` rather than `clock.getElapsedTime()`: the latter advances the clock as
+     * a side effect of reading it, and the creation time recorded by the scene is read from the
+     * same accumulator. Reading the property keeps both ends of the comparison on one clock.
+     */
+    const { complete, progress } = effectProgress(
+      clock.elapsedTime,
+      creationTime,
+      RIPPLE_LIFESPAN_SECONDS
+    );
+
+    if (complete) {
       if (!hasCompleted.current) {
         onComplete(id);
         hasCompleted.current = true;
       }
       return;
     }
-    const progress = elapsedTime / lifespan;
-    ref.current.uniforms.uRadius.value = progress * 2.0;
-    ref.current.uniforms.uOpacity.value = 0.32 * (1.0 - progress);
+
+    const { uRadius, uOpacity } = rippleUniforms(progress);
+    ref.current.uniforms.uRadius.value = uRadius;
+    ref.current.uniforms.uOpacity.value = uOpacity;
   });
 
   return (
+    /*
+     * The ring faces the camera. The scene's camera is fixed, so a plane with no rotation already
+     * faces it -- but saying so explicitly means the ring keeps facing the camera if the camera
+     * is ever moved.
+     */
     <mesh
+      ref={meshRef}
       position={position}
-      rotation={[-Math.PI / 2.1, 0, 0]}
+      onUpdate={(self) => self.lookAt(camera.position)}
     >
-      <planeGeometry args={[5, 5]} />
+      <planeGeometry args={[RIPPLE_QUAD_SIZE, RIPPLE_QUAD_SIZE]} />
       <primitive
         ref={ref}
         object={material}

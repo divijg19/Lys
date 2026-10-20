@@ -1,18 +1,18 @@
 /**
  * ClientThemeBackground: isolates the dynamic, client-only ThemeBackground import
  * so that the app root layout can remain a Server Component.
+ *
+ * Note that this component deliberately does *not* import three.js, directly or indirectly. It is
+ * rendered eagerly on every page, so anything it imports is in the initial bundle; three.js is
+ * ~98 KB gzip of library that only the (lazily loaded) theme scenes need. The Three.js console
+ * filter that used to live here now lives with the scenes -- see
+ * `src/components/theme/scenes/installThreeConsole.ts`.
  */
 "use client";
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import ThemeBackground from "@/components/theme/ThemeBackground";
-import { suppressThreeClockDeprecation } from "@/lib/three-deprecations";
-
-// Runs at module scope, so the filter is installed before any theme scene mounts and
-// `@react-three/fiber` constructs its store. Component-scope would be too late: the warning is
-// emitted while the scene is being created.
-suppressThreeClockDeprecation();
 
 export function ClientThemeBackground() {
   const { theme } = useTheme();

@@ -1,6 +1,6 @@
 "use client";
 
-import * as THREE from "three";
+import { Vector3 } from "three";
 import { FogLayer } from "../layers/FogLayer";
 import { SkyGradientPlane, type SkyVariant } from "../layers/SkyGradientPlane";
 import { BokehParticles } from "../sprites/BokehParticles";
@@ -25,7 +25,7 @@ export function DayScene({ active = true, pixelSize = 3.0 }: DaySceneProps) {
 
       {/* Soft atmospheric haze */}
       <FogLayer
-        fogColor={new THREE.Vector3(0.88, 0.7, 0.55)}
+        fogColor={new Vector3(0.88, 0.7, 0.55)}
         density={0.25}
         driftSpeed={0.01}
         pixelSize={pixelSize}

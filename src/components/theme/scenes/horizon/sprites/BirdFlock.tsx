@@ -2,7 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import { type Group, Vector3 } from "three";
 
 interface BirdFlockProps {
   count?: number;
@@ -11,16 +11,12 @@ interface BirdFlockProps {
 }
 
 export function BirdFlock({ count = 8, color = 0x0a0808, active = true }: BirdFlockProps) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   const birds = useRef(
     Array.from({ length: count }, () => ({
       id: `bird-${Math.random().toString(16).slice(2)}`,
-      offset: new THREE.Vector3(
-        (Math.random() - 0.5) * 8,
-        Math.random() * 2 + 3,
-        -5 - Math.random() * 2
-      ),
+      offset: new Vector3((Math.random() - 0.5) * 8, Math.random() * 2 + 3, -5 - Math.random() * 2),
       phase: Math.random() * Math.PI * 2,
       speed: 0.4 + Math.random() * 0.2,
     }))

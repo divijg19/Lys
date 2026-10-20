@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import * as THREE from "three";
+import { MathUtils, Vector2 } from "three";
 // Prefer `three/addons` over `three/examples` for package compatibility.
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
@@ -54,7 +54,7 @@ const ChromaticVignetteGrainShader: ShaderDefinition = {
   uniforms: {
     tDiffuse: { value: null },
     uTime: { value: 0 },
-    uResolution: { value: new THREE.Vector2(1, 1) },
+    uResolution: { value: new Vector2(1, 1) },
     uAberration: { value: 0.85 },
     uVignette: { value: 0.65 },
     uGrain: { value: 0.06 },
@@ -145,7 +145,7 @@ export function HorizonPostFX({ enabled, variant }: { enabled: boolean; variant:
   const passes = useMemo(() => {
     const renderPass = new RenderPass(scene, camera);
 
-    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.24, 0.6, 0.25);
+    const bloom = new UnrealBloomPass(new Vector2(1, 1), 0.24, 0.6, 0.25);
 
     const grade = new ShaderPass(ChromaticVignetteGrainShader);
 
@@ -197,45 +197,35 @@ export function HorizonPostFX({ enabled, variant }: { enabled: boolean; variant:
     const target = presetTargetRef.current;
     const current = presetCurrentRef.current;
 
-    current.bloom.strength = THREE.MathUtils.damp(
+    current.bloom.strength = MathUtils.damp(
       current.bloom.strength,
       target.bloom.strength,
       6,
       delta
     );
-    current.bloom.radius = THREE.MathUtils.damp(
-      current.bloom.radius,
-      target.bloom.radius,
-      6,
-      delta
-    );
-    current.bloom.threshold = THREE.MathUtils.damp(
+    current.bloom.radius = MathUtils.damp(current.bloom.radius, target.bloom.radius, 6, delta);
+    current.bloom.threshold = MathUtils.damp(
       current.bloom.threshold,
       target.bloom.threshold,
       6,
       delta
     );
 
-    current.grade.aberration = THREE.MathUtils.damp(
+    current.grade.aberration = MathUtils.damp(
       current.grade.aberration,
       target.grade.aberration,
       6,
       delta
     );
-    current.grade.vignette = THREE.MathUtils.damp(
+    current.grade.vignette = MathUtils.damp(
       current.grade.vignette,
       target.grade.vignette,
       6,
       delta
     );
-    current.grade.grain = THREE.MathUtils.damp(current.grade.grain, target.grade.grain, 6, delta);
-    current.grade.weave = THREE.MathUtils.damp(current.grade.weave, target.grade.weave, 6, delta);
-    current.grade.jitter = THREE.MathUtils.damp(
-      current.grade.jitter,
-      target.grade.jitter,
-      6,
-      delta
-    );
+    current.grade.grain = MathUtils.damp(current.grade.grain, target.grade.grain, 6, delta);
+    current.grade.weave = MathUtils.damp(current.grade.weave, target.grade.weave, 6, delta);
+    current.grade.jitter = MathUtils.damp(current.grade.jitter, target.grade.jitter, 6, delta);
 
     // Apply bloom tuning
     passes.bloom.strength = current.bloom.strength;

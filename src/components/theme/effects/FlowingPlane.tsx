@@ -9,15 +9,15 @@
 import { shaderMaterial } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import * as THREE from "three";
+import { Color, type Mesh, type ShaderMaterial, Vector3 } from "three";
 
 const FlowingPlaneMaterial = shaderMaterial(
   {
     uTime: 0,
-    uPrimary: new THREE.Color(0.8, 0.7, 0.9),
-    uSecondary: new THREE.Color(0.7, 0.85, 0.9),
-    uAccent: new THREE.Color(0.95, 0.75, 0.9),
-    uClickPosition: new THREE.Vector3(0, 0, 0),
+    uPrimary: new Color(0.8, 0.7, 0.9),
+    uSecondary: new Color(0.7, 0.85, 0.9),
+    uAccent: new Color(0.95, 0.75, 0.9),
+    uClickPosition: new Vector3(0, 0, 0),
     uClickStrength: 0.0,
   },
   `
@@ -74,30 +74,44 @@ const FlowingPlaneMaterial = shaderMaterial(
       float flow = 0.5 + 0.5 * sin(uTime * 0.08 + vUv.x * 1.8 - vUv.y * 1.2 + vDisplacement * 5.0);
       vec3 base = mix(uPrimary, uSecondary, flow);
       float glow = smoothstep(-0.22, 0.28, vDisplacement) * 0.55 + 0.45;
-      float glint = smoothstep(0.8, 1.0, flow) * 0.18;
+      float glint = smoothstep(0.8, 1.0, flow) * 0.06;
 
       vec3 finalColor = base * glow + uAccent * glint;
-      float alpha = (0.12 + 0.22 * centerFade) * edgeFade;
+
+      /*
+       * The alpha is deliberately low.
+       *
+       * The plane is a translucent quad seen at a grazing angle, where its noise-displaced
+       * surface folds over itself in screen space, so the layers stack. A neutral colour stacks
+       * into a faint wash; a chromatic one stacks into a saturated field, and the ethereal
+       * background stopped being a near-white dreamscape and became a blue one.
+       *
+       * The CSS layers of this theme -- the radial washes that carry the pastel -- sit between
+       * 0.12 and 0.22. This is the 3D half of the same field, and it has to land in the same
+       * place: the stacking multiplies the per-fragment alpha several times over, so the value
+       * here is a fraction of what the surface ends up showing.
+       */
+      float alpha = (0.05 + 0.08 * centerFade) * edgeFade;
       gl_FragColor = vec4(finalColor, alpha);
     }`
 );
 
-interface IFlowingPlaneMaterial extends THREE.ShaderMaterial {
+interface IFlowingPlaneMaterial extends ShaderMaterial {
   uniforms: {
     uTime: { value: number };
-    uPrimary: { value: THREE.Color };
-    uSecondary: { value: THREE.Color };
-    uAccent: { value: THREE.Color };
-    uClickPosition: { value: THREE.Vector3 };
+    uPrimary: { value: Color };
+    uSecondary: { value: Color };
+    uAccent: { value: Color };
+    uClickPosition: { value: Vector3 };
     uClickStrength: { value: number };
   };
 }
 
 type FlowingPlaneProps = {
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-  latestClickPosition: THREE.Vector3 | null;
+  primaryColor: Color;
+  secondaryColor: Color;
+  accentColor: Color;
+  latestClickPosition: Vector3 | null;
 };
 
 export const FlowingPlane = ({
@@ -107,16 +121,23 @@ export const FlowingPlane = ({
   latestClickPosition,
 }: FlowingPlaneProps) => {
   const ref = useRef<IFlowingPlaneMaterial>(null);
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const clickStrengthRef = useRef(0.0);
 
   const material = useMemo(() => {
     const mat = new FlowingPlaneMaterial();
-    mat.uniforms.uPrimary.value = new THREE.Color(primaryColor);
-    mat.uniforms.uSecondary.value = new THREE.Color(secondaryColor);
-    mat.uniforms.uAccent.value = new THREE.Color(accentColor);
+    mat.uniforms.uPrimary.value = new Color(primaryColor);
+    mat.uniforms.uSecondary.value = new Color(secondaryColor);
+    mat.uniforms.uAccent.value = new Color(accentColor);
     return mat;
   }, [primaryColor, secondaryColor, accentColor]);
+
+  /*
+   * The material is built here rather than declaratively, so react-three-fiber does not own it and
+   * will not dispose of it. Every theme change used to build a new one and leave the old shader
+   * program on the GPU.
+   */
+  useEffect(() => () => material.dispose(), [material]);
 
   useEffect(() => {
     if (latestClickPosition && ref.current && meshRef.current) {

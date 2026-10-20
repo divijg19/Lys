@@ -54,3 +54,8 @@ jobs:
         run: bun run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+
+      # Guards the size of the initial JavaScript payload, and keeps three.js out of it.
+      # Needs the build output, so it runs after the build step.
+      - name: Bundle budget
+        run: bun run check:bundle

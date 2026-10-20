@@ -2,31 +2,31 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { DoubleSide, type Mesh, Vector2, Vector3 } from "three";
 import { cliffSilhouetteFragment, cliffSilhouetteVertex } from "../shaders/cliffSilhouette.glsl";
 
 interface CliffSilhouetteProps {
-  cliffColor?: THREE.Vector3;
-  rimColor?: THREE.Vector3;
+  cliffColor?: Vector3;
+  rimColor?: Vector3;
   pixelSize?: number;
   position?: [number, number, number];
   active?: boolean;
 }
 
 export function CliffSilhouette({
-  cliffColor = new THREE.Vector3(0.06, 0.05, 0.06),
-  rimColor = new THREE.Vector3(0.9, 0.65, 0.35),
+  cliffColor = new Vector3(0.06, 0.05, 0.06),
+  rimColor = new Vector3(0.9, 0.65, 0.35),
   pixelSize = 3.0,
   position = [0, 0, -2],
   active = true,
 }: CliffSilhouetteProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uCliffColor: { value: cliffColor },
       uRimColor: { value: rimColor },
@@ -52,7 +52,7 @@ export function CliffSilhouette({
         fragmentShader={cliffSilhouetteFragment}
         uniforms={uniforms}
         transparent
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
       />
     </mesh>

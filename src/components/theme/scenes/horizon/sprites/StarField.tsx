@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import { AdditiveBlending, type Points, type PointsMaterial } from "three";
 
 interface StarFieldProps {
   count?: number;
@@ -10,7 +10,7 @@ interface StarFieldProps {
 }
 
 export function StarField({ count = 200, active = true }: StarFieldProps) {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
   const { invalidate } = useThree();
 
   const { positions, sizes } = (() => {
@@ -32,7 +32,7 @@ export function StarField({ count = 200, active = true }: StarFieldProps) {
     if (!active || !pointsRef.current) return;
     if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
 
-    const material = pointsRef.current.material as THREE.PointsMaterial;
+    const material = pointsRef.current.material as PointsMaterial;
     const t = state.clock.elapsedTime;
 
     // Subtle twinkle
@@ -59,7 +59,7 @@ export function StarField({ count = 200, active = true }: StarFieldProps) {
         transparent
         opacity={0.8}
         sizeAttenuation
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
         depthWrite={false}
       />
     </points>

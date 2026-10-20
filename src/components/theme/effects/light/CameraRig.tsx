@@ -10,7 +10,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import { type Mesh, Vector3 } from "three";
 
 // Define the props that this component accepts from the main scene.
 interface CameraRigProps {
@@ -26,20 +26,20 @@ export function CameraRig({
   onReachAnomaly,
   hasReachedAnomaly,
 }: CameraRigProps) {
-  const lookAtTarget = useRef<THREE.Vector3>(new THREE.Vector3());
-  const shuttleRef = useRef<THREE.Mesh>(null);
-  const playerPosition = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 40));
+  const lookAtTarget = useRef<Vector3>(new Vector3());
+  const shuttleRef = useRef<Mesh>(null);
+  const playerPosition = useRef<Vector3>(new Vector3(0, 0, 40));
 
   useFrame((state, delta) => {
-    let targetPos: THREE.Vector3;
-    let lookAtPoint: THREE.Vector3;
-    const anomalyPos = new THREE.Vector3(0, 0, 0);
+    let targetPos: Vector3;
+    let lookAtPoint: Vector3;
+    const anomalyPos = new Vector3(0, 0, 0);
 
     // --- DEFINITIVE REFINEMENT: Create a clean state machine for camera logic ---
     if (hasReachedAnomaly) {
       // Post-collapse: Lock to a dramatic, fixed observation point to watch the supernova.
       // All player movement and control is disabled.
-      targetPos = new THREE.Vector3(0, 15, 25);
+      targetPos = new Vector3(0, 15, 25);
       lookAtPoint = anomalyPos;
     } else {
       // Pre-collapse: The shuttle is actively exploring.
@@ -55,14 +55,14 @@ export function CameraRig({
       // 3. Determine camera and look-at positions based on the view mode.
       if (isThirdPerson) {
         // Third-Person: Calculate a true equidistant point and pull back for a cinematic shot.
-        const midPoint = new THREE.Vector3().lerpVectors(playerPosition.current, anomalyPos, 0.5);
-        const offset = new THREE.Vector3(0, 15, 25);
+        const midPoint = new Vector3().lerpVectors(playerPosition.current, anomalyPos, 0.5);
+        const offset = new Vector3(0, 15, 25);
         targetPos = midPoint.add(offset);
         lookAtPoint = midPoint;
       } else {
         // First-Person: The camera's position IS the player's position.
         targetPos = playerPosition.current;
-        lookAtPoint = new THREE.Vector3(
+        lookAtPoint = new Vector3(
           state.pointer.x * 2,
           -state.pointer.y * 2,
           playerPosition.current.z - 15

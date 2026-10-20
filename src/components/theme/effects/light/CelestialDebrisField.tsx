@@ -9,16 +9,16 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { Euler, type InstancedMesh, type Mesh, Object3D, Vector3 } from "three";
 import { createPRNG, seedHash } from "@/lib/utils";
 
 // --- 1. A strict TypeScript type for instance data. ---
 type InstanceData = {
   id: number;
-  position: THREE.Vector3;
-  scale: THREE.Vector3;
-  rotation: THREE.Euler;
-  orbitAxis: THREE.Vector3;
+  position: Vector3;
+  scale: Vector3;
+  rotation: Euler;
+  orbitAxis: Vector3;
   orbitSpeed: number;
 };
 
@@ -34,9 +34,9 @@ export function CelestialDebrisField({
   hasReachedAnomaly,
 }: CelestialDebrisFieldProps) {
   const count = 750;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const scannerRef = useRef<THREE.Mesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const meshRef = useRef<InstancedMesh>(null);
+  const scannerRef = useRef<Mesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
 
   // `useMemo` generates the stable "birth certificate" for each shard once.
   const instances = useMemo<InstanceData[]>(() => {
@@ -44,13 +44,13 @@ export function CelestialDebrisField({
     const rng = createPRNG(seedHash(`debris:${count}`));
     const randS = () => rng() - 0.5;
     for (let i = 0; i < count; i++) {
-      const axis = new THREE.Vector3(randS(), randS(), randS());
+      const axis = new Vector3(randS(), randS(), randS());
       if (axis.lengthSq() > 0) axis.normalize();
       temp.push({
         id: i,
-        position: new THREE.Vector3(randS() * 80, randS() * 80, randS() * 80),
-        scale: new THREE.Vector3(0.1 + rng() * 0.2, 0.1 + rng() * 0.8, 0.1 + rng() * 0.2),
-        rotation: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
+        position: new Vector3(randS() * 80, randS() * 80, randS() * 80),
+        scale: new Vector3(0.1 + rng() * 0.2, 0.1 + rng() * 0.8, 0.1 + rng() * 0.2),
+        rotation: new Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
         orbitAxis: axis,
         orbitSpeed: 0.0001 + rng() * 0.0005,
       });
@@ -93,7 +93,7 @@ export function CelestialDebrisField({
       instances.forEach((data, i) => {
         dummy.position.copy(data.position);
         dummy.rotation.copy(data.rotation);
-        dummy.scale.copy(i === newHoveredId ? new THREE.Vector3(0, 0, 0) : data.scale);
+        dummy.scale.copy(i === newHoveredId ? new Vector3(0, 0, 0) : data.scale);
         dummy.position.applyAxisAngle(data.orbitAxis, data.orbitSpeed);
         data.position.copy(dummy.position);
         data.rotation.y += 0.001;

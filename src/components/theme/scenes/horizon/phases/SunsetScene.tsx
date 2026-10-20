@@ -1,6 +1,6 @@
 "use client";
 
-import * as THREE from "three";
+import { Vector2, Vector3 } from "three";
 import { CelestialBody } from "../layers/CelestialBody";
 import { HeatShimmer } from "../layers/HeatShimmer";
 import { OceanPlane } from "../layers/OceanPlane";
@@ -27,10 +27,10 @@ export function SunsetScene({ active = true, pixelSize = 3.0 }: SunsetSceneProps
 
       {/* Low sun with dramatic rays */}
       <CelestialBody
-        bodyPosition={new THREE.Vector2(0.15, 0.38)}
+        bodyPosition={new Vector2(0.15, 0.38)}
         radius={0.15}
-        bodyColor={new THREE.Vector3(1.0, 0.45, 0.15)}
-        glowColor={new THREE.Vector3(1.0, 0.6, 0.25)}
+        bodyColor={new Vector3(1.0, 0.45, 0.15)}
+        glowColor={new Vector3(1.0, 0.6, 0.25)}
         rayCount={16}
         pixelSize={pixelSize}
         position={[0, 0, -8]}
@@ -39,8 +39,8 @@ export function SunsetScene({ active = true, pixelSize = 3.0 }: SunsetSceneProps
 
       {/* Ocean with warm colors */}
       <OceanPlane
-        waterColor={new THREE.Vector3(0.12, 0.08, 0.14)}
-        glowColor={new THREE.Vector3(0.95, 0.45, 0.25)}
+        waterColor={new Vector3(0.12, 0.08, 0.14)}
+        glowColor={new Vector3(0.95, 0.45, 0.25)}
         waveSpeed={0.25}
         pixelSize={pixelSize}
         position={[0, -2.5, -4]}

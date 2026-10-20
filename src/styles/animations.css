@@ -61,39 +61,6 @@
   will-change: opacity;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-gradient-pan,
-  .animate-slot-in,
-  .animate-star-scroll,
-  .animate-deep-star-scroll,
-  .animate-defocus-fade,
-  .animate-data-rain .animate-dreamscape-flow,
-  .animate-float-subtle,
-  .animate-sky-pan,
-  .animate-pan-diagonal,
-  .animate-aurora-sway,
-  .animate-horizon-sunrise-shimmer,
-  .animate-horizon-sunset-drift,
-  .animate-horizon-night-twinkle,
-  .animate-horizon-day-caustics,
-  .animate-horizon-moonbeam-sway,
-  .animate-horizon-shore-glimmer,
-  .animate-horizon-mountain-haze,
-  .animate-horizon-dust-drift,
-  .animate-horizon-fog-drift,
-  .animate-horizon-water-glint,
-  .animate-horizon-birds-drift,
-  .animate-horizon-awning-drift,
-  .animate-horizon-city-flicker,
-  .animate-horizon-car-idle,
-  .animate-horizon-cafe-breeze,
-  .animate-lens-flare-pulse,
-  .animate-heat-shimmer-subtle,
-  .animate-float {
-    animation: none;
-  }
-}
-
 /* === SHARED & UTILITY ANIMATIONS === */
 @keyframes slot-in {
   from {
@@ -646,11 +613,8 @@ html[data-theme="simple"] .transition-transform {
  * Reduced-motion override for `.animate-fade-in`.
  *
  * It has to live HERE, directly after the definition above, rather than in the shared
- * reduced-motion block near the top of this file. All 30 other `.animate-*` classes are
- * defined above that block, so `animation: none` outranks them on source order -- but
- * `.animate-fade-in` is defined ~550 lines below it, so an equally specific `animation: none`
- * up there loses and the fade kept playing for reduced-motion visitors. This was the only
- * class in the file with that defect.
+ * reduced-motion block at the end of this file. That block cancels the animation; this one also
+ * has to restore the end state, and it can only do that where the class is defined.
  *
  * `opacity: 1` is load-bearing, not cosmetic. `Expertise.tsx` pairs this class with
  * Tailwind's `opacity-0` to avoid a flash of unstyled content in the frame before the fade
@@ -703,5 +667,55 @@ html[data-theme="simple"] .transition-transform {
   }
   100% {
     transform: translateY(20px);
+  }
+}
+
+/*
+ * Reduced motion: cancel every animation this file defines.
+ *
+ * This block lives at the *end* of the file, and that is load-bearing.
+ *
+ * It used to sit near the top, above the definitions, on the belief that "all the other classes
+ * are defined above that block". They are not: `.animate-slot-in` is defined 13 lines further
+ * down, `.animate-float-subtle` 130 lines further down, `.animate-float` 600 lines further down.
+ * An equally specific `animation: none` that comes *before* a rule wins the cascade to the
+ * *later* rule, so every one of those overrides was silently doing nothing and the animations
+ * kept playing for visitors who asked for reduced motion -- the whole horizon theme, the
+ * ethereal dreamscape, the starfield drift, the floating hero image.
+ *
+ * A media query adds no specificity, so the only thing that decides this is source order: the
+ * override has to come last. `.animate-fade-in` has its own block next to its definition for a
+ * different reason -- it also has to restore `opacity: 1`, which is explained there.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-pan,
+  .animate-slot-in,
+  .animate-star-scroll,
+  .animate-deep-star-scroll,
+  .animate-defocus-fade,
+  .animate-dreamscape-flow,
+  .animate-float-subtle,
+  .animate-sky-pan,
+  .animate-pan-diagonal,
+  .animate-aurora-sway,
+  .animate-horizon-sunrise-shimmer,
+  .animate-horizon-sunset-drift,
+  .animate-horizon-night-twinkle,
+  .animate-horizon-day-caustics,
+  .animate-horizon-moonbeam-sway,
+  .animate-horizon-shore-glimmer,
+  .animate-horizon-mountain-haze,
+  .animate-horizon-dust-drift,
+  .animate-horizon-fog-drift,
+  .animate-horizon-water-glint,
+  .animate-horizon-birds-drift,
+  .animate-horizon-awning-drift,
+  .animate-horizon-city-flicker,
+  .animate-horizon-car-idle,
+  .animate-horizon-cafe-breeze,
+  .animate-lens-flare-pulse,
+  .animate-heat-shimmer-subtle,
+  .animate-float {
+    animation: none;
   }
 }

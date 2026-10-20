@@ -2,13 +2,13 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { DoubleSide, type Mesh, Vector2, Vector3 } from "three";
 import { citySilhouetteFragment, citySilhouetteVertex } from "../shaders/citySilhouette.glsl";
 
 interface CitySilhouetteProps {
-  buildingColor?: THREE.Vector3;
-  windowColor?: THREE.Vector3;
-  glowColor?: THREE.Vector3;
+  buildingColor?: Vector3;
+  windowColor?: Vector3;
+  glowColor?: Vector3;
   density?: number;
   pixelSize?: number;
   position?: [number, number, number];
@@ -16,21 +16,21 @@ interface CitySilhouetteProps {
 }
 
 export function CitySilhouette({
-  buildingColor = new THREE.Vector3(0.08, 0.06, 0.1),
-  windowColor = new THREE.Vector3(0.9, 0.8, 0.3),
-  glowColor = new THREE.Vector3(0.3, 0.5, 0.8),
+  buildingColor = new Vector3(0.08, 0.06, 0.1),
+  windowColor = new Vector3(0.9, 0.8, 0.3),
+  glowColor = new Vector3(0.3, 0.5, 0.8),
   density = 1.0,
   pixelSize = 3.0,
   position = [0, 0, -7],
   active = true,
 }: CitySilhouetteProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uBuildingColor: { value: buildingColor },
       uWindowColor: { value: windowColor },
@@ -58,7 +58,7 @@ export function CitySilhouette({
         fragmentShader={citySilhouetteFragment}
         uniforms={uniforms}
         transparent
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
       />
     </mesh>

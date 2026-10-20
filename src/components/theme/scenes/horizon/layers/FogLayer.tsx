@@ -2,11 +2,11 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { DoubleSide, type Mesh, NormalBlending, Vector2, Vector3 } from "three";
 import { fogLayerFragment, fogLayerVertex } from "../shaders/fogLayer.glsl";
 
 interface FogLayerProps {
-  fogColor?: THREE.Vector3;
+  fogColor?: Vector3;
   density?: number;
   driftSpeed?: number;
   pixelSize?: number;
@@ -15,20 +15,20 @@ interface FogLayerProps {
 }
 
 export function FogLayer({
-  fogColor = new THREE.Vector3(0.8, 0.85, 0.9),
+  fogColor = new Vector3(0.8, 0.85, 0.9),
   density = 0.35,
   driftSpeed = 0.02,
   pixelSize = 3.0,
   position = [0, 0, 0],
   active = true,
 }: FogLayerProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uFogColor: { value: fogColor },
       uDensity: { value: density },
@@ -55,9 +55,9 @@ export function FogLayer({
         fragmentShader={fogLayerFragment}
         uniforms={uniforms}
         transparent
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
-        blending={THREE.NormalBlending}
+        blending={NormalBlending}
       />
     </mesh>
   );

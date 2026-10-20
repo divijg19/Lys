@@ -1,0 +1,5 @@
+{
+  "$comment": "Ceilings for the initial JavaScript payload of the homepage, enforced by scripts/check-bundle-budget.mjs. Raise deliberately, with the reason in the commit that raises it.",
+  "maxInitialRawKb": 1200,
+  "maxInitialGzipKb": 384
+}

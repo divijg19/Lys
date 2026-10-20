@@ -2,14 +2,14 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import { BoxGeometry, type Group, type Mesh, type MeshBasicMaterial } from "three";
 
 interface CafePropsProps {
   active?: boolean;
 }
 
 export function CafeProps({ active = true }: CafePropsProps) {
-  const steamRef = useRef<THREE.Group>(null);
+  const steamRef = useRef<Group>(null);
   const steamPuffs = useRef(
     Array.from({ length: 5 }, () => ({
       id: `steam-${Math.random().toString(16).slice(2)}`,
@@ -25,11 +25,8 @@ export function CafeProps({ active = true }: CafePropsProps) {
       const offset = (t * 0.3 + i * 0.5) % 2.0;
       child.position.y = -0.5 + offset * 0.5;
       child.scale.setScalar(Math.max(0.01, 0.2 - offset * 0.1));
-      if ((child as THREE.Mesh).material) {
-        ((child as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = Math.max(
-          0,
-          0.6 - offset * 0.3
-        );
+      if ((child as Mesh).material) {
+        ((child as Mesh).material as MeshBasicMaterial).opacity = Math.max(0, 0.6 - offset * 0.3);
       }
     });
   });
@@ -44,7 +41,7 @@ export function CafeProps({ active = true }: CafePropsProps) {
 
       {/* Table outline for pixel-art clarity */}
       <lineSegments position={[0, 0, 0]}>
-        <edgesGeometry args={[new THREE.BoxGeometry(1.2, 0.05, 0.8)]} />
+        <edgesGeometry args={[new BoxGeometry(1.2, 0.05, 0.8)]} />
         <lineBasicMaterial
           color={0x1a1a1a}
           linewidth={2}

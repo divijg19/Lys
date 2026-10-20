@@ -30,14 +30,17 @@
  * log calls, so nothing else in the app is touched, no global console state is mutated, and the call
  * site stays where it belongs.
  */
-import * as THREE from "three";
+// A named import, not `import * as THREE`: this module is loaded by every theme scene, and the
+// namespace form defeats tree-shaking, so the whole of three.js (Audio, CubeCamera, Skeleton,
+// Raycaster, ExtrudeGeometry, LOD -- none of them used) would be pulled in.
+import { setConsoleFunction } from "three";
 
 const SUPPRESSED = "Clock: This module has been deprecated. Please use THREE.Timer instead.";
 
 export function suppressThreeClockDeprecation(): void {
   if (typeof window === "undefined") return;
 
-  THREE.setConsoleFunction((type, message, ...params) => {
+  setConsoleFunction((type, message, ...params) => {
     if (type === "warn" && message.includes(SUPPRESSED)) return;
 
     const console_ = window.console;

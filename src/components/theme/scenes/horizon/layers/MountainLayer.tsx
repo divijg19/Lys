@@ -2,12 +2,12 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import { DoubleSide, type Mesh, Vector2, Vector3 } from "three";
 import { mountainLayerFragment, mountainLayerVertex } from "../shaders/mountainLayer.glsl";
 
 interface MountainLayerProps {
-  mountainColor?: THREE.Vector3;
-  rimColor?: THREE.Vector3;
+  mountainColor?: Vector3;
+  rimColor?: Vector3;
   roughness?: number;
   parallaxFactor?: number;
   pixelSize?: number;
@@ -16,21 +16,21 @@ interface MountainLayerProps {
 }
 
 export function MountainLayer({
-  mountainColor = new THREE.Vector3(0.12, 0.08, 0.1),
-  rimColor = new THREE.Vector3(0.9, 0.7, 0.5),
+  mountainColor = new Vector3(0.12, 0.08, 0.1),
+  rimColor = new Vector3(0.9, 0.7, 0.5),
   roughness = 0.15,
   parallaxFactor = 0.2,
   pixelSize = 3.0,
   position = [0, -1, -6],
   active = true,
 }: MountainLayerProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const { size, invalidate } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new Vector2(size.width, size.height) },
       uPixelSize: { value: pixelSize },
       uMountainColor: { value: mountainColor },
       uRimColor: { value: rimColor },
@@ -58,7 +58,7 @@ export function MountainLayer({
         fragmentShader={mountainLayerFragment}
         uniforms={uniforms}
         transparent
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
       />
     </mesh>

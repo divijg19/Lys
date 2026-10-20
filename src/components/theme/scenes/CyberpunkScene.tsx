@@ -6,6 +6,9 @@
 
 "use client";
 
+// Installs the Three.js console filter at module scope, before the scene mounts.
+import "./installThreeConsole";
+
 import { useEffect, useState } from "react";
 import { CitySilhouette } from "@/components/theme/effects/cyberpunk/CitySilhouette";
 import { NeonGlow } from "@/components/theme/effects/cyberpunk/NeonGlow";
