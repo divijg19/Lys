@@ -45,6 +45,7 @@ const read = (relative: string): string =>
   readFileSync(path.join(SRC, relative), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 const ETHEREAL_SCENE = read("components/theme/scenes/EtherealScene.tsx");
+const PLANE = read("components/theme/effects/FlowingPlane.tsx");
 const RIPPLES = read("components/theme/effects/ethereal/Ripples.tsx");
 const WISPS = read("components/theme/effects/ethereal/Wisps.tsx");
 
@@ -104,6 +105,33 @@ describe("effectProgress", () => {
     const { complete, progress } = effectProgress(4.2, 1000.5, 1.5);
     expect(progress).toBe(0);
     expect(complete).toBe(false);
+  });
+});
+
+describe("ethereal scene: the field's colour and structure", () => {
+  it("takes the field's colour from the theme's own pastels", () => {
+    /*
+     * The base layer used to be a gradient from the background to the muted colour -- two
+     * near-whites -- with a set of coloured washes layered on top of it. The result was a
+     * background that was almost colourless while the rest of the theme stayed pastel.
+     */
+    expect(ETHEREAL_SCENE).toMatch(/hsl\(var\(--primary\) \/ 0\.2\)/);
+    expect(ETHEREAL_SCENE).toMatch(/hsl\(var\(--secondary\) \/ 0\.2\)/);
+    expect(ETHEREAL_SCENE).toMatch(/hsl\(var\(--accent\) \/ 0\.2\)/);
+  });
+
+  it("keeps the plane dense enough to carry the detail octave", () => {
+    // The detail octave's wavelength is about 4.5 units on a 40-unit plane, so a segment has to
+    // be much shorter than that. At 64 by 64 the field came out softer than it should.
+    expect(PLANE).toMatch(/planeGeometry args=\{\[40, 40, 128, 128\]\}/);
+  });
+
+  it("takes the displacement from the noise texture, not from noise in the shader", () => {
+    // Two lookups per vertex instead of two noise evaluations, which is what makes the density
+    // above affordable.
+    // Both octaves come from the texture.
+    expect(PLANE.match(/texture2D\(uNoise/g)?.length).toBe(2);
+    expect(PLANE).not.toMatch(/float snoise\(/);
   });
 });
 

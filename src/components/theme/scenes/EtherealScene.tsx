@@ -251,18 +251,25 @@ const EtherealScene = () => {
 
   return (
     <div className="pointer-events-auto absolute inset-0">
+      {/*
+       * The field's colour comes from here, and the plane's displacement gives it structure.
+       *
+       * The base layer is a gradient of the theme's own three pastels. It used to be a gradient
+       * from the background to the muted colour -- two near-whites -- which made the ethereal
+       * theme's background almost colourless while the rest of the theme stayed pastel. The
+       * coloured washes that were layered on top of it (two radial gradients, two blobs, a
+       * vignette) were an attempt to put the colour back, and they left the field paler than it
+       * had been before any of them.
+       *
+       * The pastels at 0.2 are what the theme's tokens are for: they are light colours, and over a
+       * white background they stay a wash rather than a tint.
+       */}
       <div
         className={cn("-z-10 absolute inset-0 animate-dreamscape-flow")}
         style={{
           backgroundSize: "200% 200%",
-          backgroundImage: "linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)))",
-        }}
-      />
-      <div
-        className={cn("-z-10 absolute inset-0")}
-        style={{
           backgroundImage:
-            "radial-gradient(1200px 900px at 22% 18%, hsl(var(--primary) / 0.22), transparent 60%), radial-gradient(1100px 800px at 82% 78%, hsl(var(--accent) / 0.18), transparent 55%)",
+            "linear-gradient(45deg, hsl(var(--primary) / 0.2), hsl(var(--secondary) / 0.2), hsl(var(--accent) / 0.2))",
         }}
       />
       <div
@@ -271,8 +278,8 @@ const EtherealScene = () => {
         )}
         style={{
           backgroundImage:
-            "radial-gradient(ellipse at center, hsl(var(--secondary) / 0.14) 0%, transparent 68%)",
-          animationDuration: "22s",
+            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.2) 0%, transparent 70%)",
+          animationDuration: "15s",
         }}
       />
       <div
@@ -281,16 +288,9 @@ const EtherealScene = () => {
         )}
         style={{
           backgroundImage:
-            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.12) 0%, transparent 68%)",
-          animationDuration: "26s",
-          animationDelay: "2s",
-        }}
-      />
-      <div
-        className={cn("-z-10 absolute inset-0")}
-        style={{
-          backgroundImage:
-            "radial-gradient(1200px 800px at 50% 0%, transparent 40%, hsl(var(--background) / 0.6) 100%)",
+            "radial-gradient(ellipse at center, hsl(var(--accent) / 0.2) 0%, transparent 70%)",
+          animationDuration: "18s",
+          animationDelay: "3s",
         }}
       />
       <Canvas

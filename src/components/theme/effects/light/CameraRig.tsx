@@ -11,6 +11,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { type Mesh, Vector3 } from "three";
+import { frameRateIndependentFactor } from "@/lib/motion";
 
 // Define the props that this component accepts from the main scene.
 interface CameraRigProps {
@@ -70,9 +71,16 @@ export function CameraRig({
       }
     }
 
-    // 4. Smoothly interpolate the camera and its focus target for a cinematic feel.
-    state.camera.position.lerp(targetPos, 0.05);
-    lookAtTarget.current.lerp(lookAtPoint, 0.05);
+    /*
+     * 4. Smoothly interpolate the camera and its focus target for a cinematic feel.
+     *
+     * The factor is per second, not per frame: it used to be a twentieth of the way there in
+     * every frame, which covers the same ground in the same time at 60 Hz and at 144 Hz only by
+     * accident -- a fast display reached the target in a third of the time.
+     */
+    const ease = frameRateIndependentFactor(0.05, delta);
+    state.camera.position.lerp(targetPos, ease);
+    lookAtTarget.current.lerp(lookAtPoint, ease);
     state.camera.lookAt(lookAtTarget.current);
 
     // 5. Update the visible shuttle mesh's position and orientation.
