@@ -36,3 +36,23 @@ export function frameRateIndependentFactor(
 
   return 1 - (1 - clamped) ** (delta * fps);
 }
+
+/**
+ * The retention of a value that decays, given the frame's duration in seconds.
+ *
+ * This is the decay form of the same idea as `frameRateIndependentFactor`: a value that keeps
+ * `base` of itself per 60 Hz frame keeps `base ** (delta * 60)` of itself after `delta` seconds,
+ * whatever the frame rate.
+ *
+ * The ethereal scene used `value * 0.95` and `velocity * 0.982` per frame, which made the click's
+ * echo fade twice as fast on a 144 Hz display and the wisps drift twice as fast with it.
+ */
+export function frameRateIndependentDecay(
+  base: number,
+  delta: number,
+  fps: number = REFERENCE_FPS
+): number {
+  if (!Number.isFinite(delta) || delta <= 0) return 1;
+
+  return base ** (delta * fps);
+}

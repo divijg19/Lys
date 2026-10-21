@@ -135,6 +135,18 @@ describe("ethereal scene: the field's colour and structure", () => {
   });
 });
 
+describe("ethereal scene: the fades are per second, not per frame", () => {
+  it("fades the click's echo per second", () => {
+    expect(PLANE).toMatch(/frameRateIndependentDecay\(0\.95, delta\)/);
+    expect(PLANE).not.toMatch(/cs \* 0\.95/);
+  });
+
+  it("drags the wisps per second", () => {
+    expect(WISPS).toMatch(/frameRateIndependentDecay\(0\.982, delta\)/);
+    expect(WISPS).not.toMatch(/multiplyScalar\(0\.982\)/);
+  });
+});
+
 describe("ethereal scene: one clock for the whole effect lifecycle", () => {
   it("does not derive the creation time from a DOM event timestamp", () => {
     // `event.nativeEvent.timeStamp` is the origin mismatch. It is counted from the page's time

@@ -11,7 +11,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { frameRateIndependentFactor } from "@/lib/motion";
+import { frameRateIndependentDecay, frameRateIndependentFactor } from "@/lib/motion";
 
 /** Run a lerp for `seconds`, in frames of `fps`, and return how far it got. */
 const travel = (base: number, seconds: number, fps: number): number => {
@@ -63,5 +63,34 @@ describe("frameRateIndependentFactor", () => {
       expect(factor).toBeGreaterThan(0);
       expect(factor).toBeLessThanOrEqual(1);
     }
+  });
+});
+
+describe("frameRateIndependentDecay", () => {
+  it("keeps the same share of a value in the same time at any frame rate", () => {
+    // The ethereal scene faded the click's echo by 0.95 per frame and dragged the wisps by 0.982
+    // per frame, so both were twice as fast on a 144 Hz display as on a 60 Hz one.
+    for (const base of [0.95, 0.982]) {
+      const retained = (fps: number): number => {
+        const delta = 1 / fps;
+        let value = 1;
+        for (let step = 0; step < fps; step++) {
+          value *= frameRateIndependentDecay(base, delta);
+        }
+        return value;
+      };
+
+      expect(retained(120)).toBeCloseTo(retained(60), 6);
+      expect(retained(144)).toBeCloseTo(retained(60), 6);
+    }
+  });
+
+  it("keeps the value as it was at 60 Hz", () => {
+    expect(frameRateIndependentDecay(0.95, 1 / 60)).toBeCloseTo(0.95, 6);
+  });
+
+  it("keeps everything on a frame that took no time", () => {
+    expect(frameRateIndependentDecay(0.95, 0)).toBe(1);
+    expect(frameRateIndependentDecay(0.95, Number.NaN)).toBe(1);
   });
 });

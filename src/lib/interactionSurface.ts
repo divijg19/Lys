@@ -79,7 +79,12 @@ export function pointOnCameraSurface(
  * The point where the pointer's ray meets the floor plane, for the wave that spreads away.
  *
  * Returns `null` when the ray never reaches the floor -- a click above the horizon points
- * upwards, and there is nothing to intersect.
+ * upwards, and there is nothing to intersect -- and `null` when it reaches the floor beyond the
+ * plane's own extent.
+ *
+ * It used to clamp the point to the plane's edge instead, which put the wave at the horizon for
+ * any click near the top of the page: the wave appeared as far from the click as the field
+ * allows, which is not what "the click made a wave here" should mean.
  */
 export function pointOnFloor(
   camera: PerspectiveCamera,
@@ -110,9 +115,10 @@ export function pointOnFloor(
   if (!Number.isFinite(distance) || distance <= 0) return null;
 
   const point = camera.position.clone().addScaledVector(direction, distance);
-  point.x = Math.min(extent, Math.max(-extent, point.x));
-  point.z = Math.min(extent, Math.max(-extent, point.z));
-  point.y = floorHeight;
 
+  // Beyond the plane's own extent there is no field to disturb.
+  if (Math.abs(point.x) > extent || Math.abs(point.z) > extent) return null;
+
+  point.y = floorHeight;
   return point;
 }

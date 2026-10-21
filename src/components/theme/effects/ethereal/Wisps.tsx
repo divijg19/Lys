@@ -21,6 +21,7 @@ import {
 } from "three";
 
 import { effectProgress } from "@/lib/effectsLifetime";
+import { frameRateIndependentDecay } from "@/lib/motion";
 
 // Configuration constants for the wisp effect.
 const WISP_LIFESPAN_SECONDS = 3.5; // Slightly longer lifespan
@@ -96,7 +97,7 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
 
   const dummy = useMemo(() => new Object3D(), []);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     if (!ref.current?.geometry || !ref.current?.material) return;
 
     /*
@@ -131,8 +132,10 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
       // Update position
       particle.position.add(particle.velocity);
 
-      // Apply drag so they slow down over time
-      particle.velocity.multiplyScalar(0.982);
+      // Apply drag so they slow down over time. Per second, not per frame: the drag used to be
+      // 0.982 of the velocity in every frame, so the wisps drifted twice as fast on a fast
+      // display.
+      particle.velocity.multiplyScalar(frameRateIndependentDecay(0.982, delta));
 
       // Set the final calculated position for this frame
       dummy.position.copy(particle.position);
