@@ -10,6 +10,7 @@ import { shaderMaterial } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { Color, type Mesh, type ShaderMaterial, type Texture, Vector3 } from "three";
+import { frameRateIndependentDecay } from "@/lib/motion";
 import { createNoiseTexture } from "@/lib/noiseTexture";
 
 const FlowingPlaneMaterial = shaderMaterial(
@@ -167,12 +168,16 @@ export const FlowingPlane = ({
     }
   }, [latestClickPosition]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     if (!ref.current) return;
     ref.current.uniforms.uTime.value = clock.getElapsedTime();
     const cs = clickStrengthRef.current;
     if (cs > 0.0005) {
-      const newStrength = cs * 0.95;
+      /*
+       * The echo fades per second, not per frame: it kept 0.95 of itself in every frame, so it
+       * faded twice as fast on a 144 Hz display as on a 60 Hz one.
+       */
+      const newStrength = cs * frameRateIndependentDecay(0.95, delta);
       clickStrengthRef.current = newStrength;
       ref.current.uniforms.uClickStrength.value = newStrength;
     } else if (cs !== 0) {

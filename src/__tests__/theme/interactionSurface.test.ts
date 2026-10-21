@@ -122,8 +122,17 @@ describe("pointOnFloor", () => {
     expect(pointOnFloor(camera(), new Vector2(0, 0.9))).toBeNull();
   });
 
-  it("keeps the point on the floor's own extent", () => {
-    const point = pointOnFloor(camera(), new Vector2(0.99, -0.99));
+  it("has no point where the ray leaves the floor's own extent", () => {
+    /*
+     * A ray just below the horizon travels a very long way before it reaches the floor, and the
+     * floor ends. It used to be clamped to the edge, which put the wave at the horizon for any
+     * click near the top of the page -- as far from the click as the field allows.
+     */
+    expect(pointOnFloor(camera(), new Vector2(0, -0.02))).toBeNull();
+  });
+
+  it("has a point where the ray does meet the floor", () => {
+    const point = pointOnFloor(camera(), new Vector2(0, -0.5));
 
     expect(point).not.toBeNull();
     expect(Math.abs(point?.x ?? 0)).toBeLessThanOrEqual(18);
