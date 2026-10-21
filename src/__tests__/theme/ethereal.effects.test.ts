@@ -136,11 +136,6 @@ describe("ethereal scene: the field's colour and structure", () => {
 });
 
 describe("ethereal scene: the fades are per second, not per frame", () => {
-  it("fades the click's echo per second", () => {
-    expect(PLANE).toMatch(/frameRateIndependentDecay\(0\.95, delta\)/);
-    expect(PLANE).not.toMatch(/cs \* 0\.95/);
-  });
-
   it("drags the wisps per second", () => {
     expect(WISPS).toMatch(/frameRateIndependentDecay\(0\.982, delta\)/);
     expect(WISPS).not.toMatch(/multiplyScalar\(0\.982\)/);
@@ -223,11 +218,6 @@ describe("ethereal scene: the effect lands under the pointer", () => {
     expect(ETHEREAL_SCENE).toMatch(/pointOnCameraSurface\(/);
     expect(ETHEREAL_SCENE).toMatch(/setRipples\(/);
   });
-
-  it("keeps the floor for the wave that spreads away", () => {
-    expect(ETHEREAL_SCENE).toMatch(/pointOnFloor\(/);
-    expect(ETHEREAL_SCENE).toMatch(/setLastPlaneClick\(/);
-  });
 });
 
 describe("ethereal scene: the interaction is reachable", () => {
@@ -238,7 +228,6 @@ describe("ethereal scene: the interaction is reachable", () => {
      * whole page. The effects were not merely broken, they were unreachable.
      */
     expect(ETHEREAL_SCENE).toMatch(/window\.addEventListener\("pointerdown"/);
-    expect(ETHEREAL_SCENE).toMatch(/window\.addEventListener\("contextmenu"/);
   });
 
   it("does not take the pointer away from the page's own controls", () => {

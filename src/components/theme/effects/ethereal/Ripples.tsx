@@ -56,11 +56,16 @@ const RippleMaterial = shaderMaterial(
       *
       * The halo used to be four times the width of the ring and carried a third of the strength,
       * which made the effect read as a filled disc -- a purple smudge behind the text rather than
-      * a ripple. A plainer ring, and a much quieter halo, keeps it an echo.
+      * a ripple. It is now a band with a soft falloff on both sides and a quiet glow inside it,
+      * which reads as an echo rather than a mark.
       */
-     float ring = smoothstep(uRadius - 0.02, uRadius, dist) - smoothstep(uRadius, uRadius + 0.02, dist);
-     float halo = smoothstep(uRadius - 0.07, uRadius - 0.03, dist) - smoothstep(uRadius - 0.03, uRadius + 0.01, dist);
-     float strength = ring + halo * 0.15;
+     /*
+      * One soft band, centred on the ring's radius.
+      *
+      * A second term for the inside of the ring filled the whole disc: the effect read as a pale
+      * patch rather than a ripple. A single band, wide enough to be soft, is an echo.
+      */
+     float strength = (1.0 - smoothstep(0.0, 0.08, abs(dist - uRadius))) * 0.8;
      gl_FragColor = vec4(uColor, strength * uOpacity);
    }`
 );
@@ -144,11 +149,17 @@ const Ripple = ({ id, position, creationTime, onComplete, color }: RippleProps) 
       onUpdate={(self) => self.lookAt(camera.position)}
     >
       <planeGeometry args={[RIPPLE_QUAD_SIZE, RIPPLE_QUAD_SIZE]} />
+      {/*
+       * `depthWrite: false` is not optional here. The material is transparent, but it still wrote
+       * depth, so the ring's whole quad -- not just the ring -- cut a hole in the field behind it
+       * and the page showed through as a pale square.
+       */}
       <primitive
         ref={ref}
         object={material}
         attach="material"
         transparent
+        depthWrite={false}
       />
     </mesh>
   );

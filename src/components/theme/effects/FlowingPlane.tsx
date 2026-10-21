@@ -9,8 +9,7 @@
 import { shaderMaterial } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { Color, type Mesh, type ShaderMaterial, type Texture, Vector3 } from "three";
-import { frameRateIndependentDecay } from "@/lib/motion";
+import { Color, type Mesh, type ShaderMaterial, type Texture } from "three";
 import { createNoiseTexture } from "@/lib/noiseTexture";
 
 const FlowingPlaneMaterial = shaderMaterial(
@@ -19,14 +18,10 @@ const FlowingPlaneMaterial = shaderMaterial(
     uPrimary: new Color(0.8, 0.7, 0.9),
     uSecondary: new Color(0.7, 0.85, 0.9),
     uAccent: new Color(0.95, 0.75, 0.9),
-    uClickPosition: new Vector3(0, 0, 0),
-    uClickStrength: 0.0,
     uNoise: null,
   },
   `
     uniform float uTime;
-    uniform vec3 uClickPosition;
-    uniform float uClickStrength;
     uniform sampler2D uNoise;
     varying float vDisplacement;
     varying vec2 vUv;
@@ -59,11 +54,18 @@ const FlowingPlaneMaterial = shaderMaterial(
       float detailNoise = texture2D(uNoise, (pos.xy * 0.22 + uTime * 0.06) * 0.125).g * 2.0 - 1.0;
       detailNoise *= 0.08;
       float totalNoise = baseNoise + detailNoise;
-      float dist = distance(pos.xy, uClickPosition.xy);
-      float ripple = sin(dist * 2.2 - uTime * 2.2) * uClickStrength;
-      ripple *= (1.0 - smoothstep(0.0, 2.2, dist));
-      pos.z += totalNoise + ripple * 0.35;
+      pos.z += totalNoise;
       vDisplacement = pos.z;
+
+      /*
+       * Where this fragment ends up on the screen.
+       *
+       * The plane is a floor seen almost edge-on, so its own coordinates say nothing about where
+       * it appears: a point at the far end of the plane and a point at the near end are metres
+       * apart in the scene and centimetres apart on the screen. The pointer is a position on the
+       * screen, so the response to it has to be computed there too -- which is what the
+       * normalised device coordinates of the fragment are.
+       */
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }`,
   `
@@ -110,8 +112,6 @@ interface IFlowingPlaneMaterial extends ShaderMaterial {
     uPrimary: { value: Color };
     uSecondary: { value: Color };
     uAccent: { value: Color };
-    uClickPosition: { value: Vector3 };
-    uClickStrength: { value: number };
     uNoise: { value: Texture | null };
   };
 }
@@ -120,18 +120,11 @@ type FlowingPlaneProps = {
   primaryColor: Color;
   secondaryColor: Color;
   accentColor: Color;
-  latestClickPosition: Vector3 | null;
 };
 
-export const FlowingPlane = ({
-  primaryColor,
-  secondaryColor,
-  accentColor,
-  latestClickPosition,
-}: FlowingPlaneProps) => {
+export const FlowingPlane = ({ primaryColor, secondaryColor, accentColor }: FlowingPlaneProps) => {
   const ref = useRef<IFlowingPlaneMaterial>(null);
   const meshRef = useRef<Mesh>(null);
-  const clickStrengthRef = useRef(0.0);
 
   /*
    * The noise texture is generated once, when the plane mounts.
@@ -158,32 +151,9 @@ export const FlowingPlane = ({
    */
   useEffect(() => () => material.dispose(), [material]);
 
-  useEffect(() => {
-    if (latestClickPosition && ref.current && meshRef.current) {
-      const local = latestClickPosition.clone();
-      meshRef.current.worldToLocal(local);
-      ref.current.uniforms.uClickPosition.value.copy(local);
-      clickStrengthRef.current = 1.0;
-      ref.current.uniforms.uClickStrength.value = 1.0;
-    }
-  }, [latestClickPosition]);
-
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock }) => {
     if (!ref.current) return;
     ref.current.uniforms.uTime.value = clock.getElapsedTime();
-    const cs = clickStrengthRef.current;
-    if (cs > 0.0005) {
-      /*
-       * The echo fades per second, not per frame: it kept 0.95 of itself in every frame, so it
-       * faded twice as fast on a 144 Hz display as on a 60 Hz one.
-       */
-      const newStrength = cs * frameRateIndependentDecay(0.95, delta);
-      clickStrengthRef.current = newStrength;
-      ref.current.uniforms.uClickStrength.value = newStrength;
-    } else if (cs !== 0) {
-      clickStrengthRef.current = 0;
-      ref.current.uniforms.uClickStrength.value = 0;
-    }
   });
 
   return (

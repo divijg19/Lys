@@ -41,10 +41,16 @@ type ThemeColors = {
   accentForeground: Color;
 };
 
-const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
+const SceneContent = ({
+  isCalm,
+  onEcho,
+}: {
+  isCalm: boolean;
+  /** Raised when the visitor clicks, so the field can answer in its own colours. */
+  onEcho: (clientX: number, clientY: number) => void;
+}) => {
   const [ripples, setRipples] = useState<RippleData[]>([]);
   const [wisps, setWisps] = useState<WispData[]>([]);
-  const [lastPlaneClick, setLastPlaneClick] = useState<Vector3 | null>(null);
   const [isMounted, setMounted] = useState(false);
   const [themeColors, setThemeColors] = useState<ThemeColors>({
     primary: new Color(),
@@ -104,7 +110,6 @@ const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
     if (!isCalm) return;
     setRipples([]);
     setWisps([]);
-    setLastPlaneClick(null);
   }, [isCalm]);
 
   const handleRemoveRipple = useCallback(
@@ -171,10 +176,12 @@ const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
       if (event.button !== 0) return;
       if (isControl(event.target)) return;
 
-      const { surface, floor } = pointerToSurface(event.clientX, event.clientY);
+      const { surface } = pointerToSurface(event.clientX, event.clientY);
 
-      // The wave that spreads away across the floor, and the ring at the cursor.
-      if (floor) setLastPlaneClick(floor);
+      // The echo in the field's own colours, at the cursor.
+      onEcho(event.clientX, event.clientY);
+
+      // The ring at the cursor. The echo in the field's colours is the scene's own.
       setRipples((prev) => [
         ...prev,
         {
@@ -206,7 +213,11 @@ const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("contextmenu", onContextMenu);
     };
-  }, [clock, isCalm, pointerToSurface]);
+    // The canvas element, not the renderer: the element is the same object on every render,
+    // so this effect runs once.
+    // The camera's position and the canvas' element: both are the same object on every
+    // render, so this effect runs once.
+  }, [clock, isCalm, onEcho, pointerToSurface]);
 
   return (
     <>
@@ -217,7 +228,6 @@ const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
             primaryColor={themeColors.primary}
             secondaryColor={themeColors.secondary}
             accentColor={themeColors.accent}
-            latestClickPosition={lastPlaneClick}
           />
           <Ripples
             ripples={ripples}
@@ -237,6 +247,10 @@ const SceneContent = ({ isCalm }: { isCalm: boolean }) => {
 
 const EtherealScene = () => {
   const [isCalm, setIsCalm] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pointerBloomRef = useRef<HTMLDivElement>(null);
+  const echoBloomRef = useRef<HTMLDivElement>(null);
+  const echoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const update = () => setIsCalm(readIsCalm());
@@ -249,8 +263,107 @@ const EtherealScene = () => {
     return () => observer.disconnect();
   }, []);
 
+  /*
+   * The field's answer to the pointer, and to a click.
+   *
+   * These are *screen-space* effects, and they live in the screen-space layer: two soft pools of
+   * light in the theme's own colours, one that follows the cursor and one that a click leaves
+   * behind.
+   *
+   * They were drawn on the 3D plane at first, which cannot work. The plane is a floor seen at a
+   * grazing angle: it covers the lower third of the screen, so a pointer over the headline had no
+   * plane to answer on, and lifting the plane's alpha revealed the quad's own square edge in the
+   * middle of the background.
+   *
+   * The pools are positioned with a transform, so following the cursor is a composited change
+   * rather than a repaint of a full-screen gradient.
+   */
+  const place = useCallback((element: HTMLElement | null, clientX: number, clientY: number) => {
+    const container = containerRef.current;
+    if (!element || !container) return;
+
+    const rect = container.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
+    element.style.transform = `translate3d(${clientX - rect.left}px, ${clientY - rect.top}px, 0)`;
+  }, []);
+
+  useEffect(() => {
+    if (isCalm) return;
+
+    const onPointerMove = (event: PointerEvent) => {
+      place(pointerBloomRef.current, event.clientX, event.clientY);
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+    };
+  }, [isCalm, place]);
+
+  /*
+   * A click leaves an echo: a pool of light where the click was, fading out over about a second
+   * and a half. It is faded by a CSS transition rather than per frame, so it costs nothing to
+   * keep.
+   */
+  const raiseEcho = useCallback(
+    (clientX: number, clientY: number) => {
+      const echo = echoBloomRef.current;
+      if (!echo) return;
+
+      place(echo, clientX, clientY);
+      echo.style.opacity = "1";
+
+      if (echoTimer.current) clearTimeout(echoTimer.current);
+      echoTimer.current = setTimeout(() => {
+        if (echo) echo.style.opacity = "0";
+      }, 120);
+    },
+    [place]
+  );
+
+  useEffect(
+    () => () => {
+      if (echoTimer.current) clearTimeout(echoTimer.current);
+    },
+    []
+  );
+
   return (
-    <div className="pointer-events-auto absolute inset-0">
+    <div
+      ref={containerRef}
+      className="pointer-events-auto absolute inset-0"
+    >
+      {/*
+       * The pools of light: the cursor's, and the last click's.
+       *
+       * They are behind the field's gradient layers, so the colour they add reads as the field
+       * brightening rather than as a light on top of it.
+       */}
+      <div
+        ref={pointerBloomRef}
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-0 h-[38rem] w-[38rem] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, hsl(var(--accent) / 0.16) 0%, hsl(var(--primary) / 0.08) 35%, transparent 70%)",
+          transform: "translate3d(-100rem, -100rem, 0)",
+          marginTop: "-19rem",
+          marginLeft: "-19rem",
+        }}
+      />
+      <div
+        ref={echoBloomRef}
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-0 h-[30rem] w-[30rem] rounded-full opacity-0 transition-opacity duration-1000 ease-out"
+        style={{
+          background:
+            "radial-gradient(circle, hsl(var(--accent) / 0.3) 0%, hsl(var(--primary) / 0.14) 40%, transparent 72%)",
+          transform: "translate3d(-100rem, -100rem, 0)",
+          marginTop: "-15rem",
+          marginLeft: "-15rem",
+        }}
+      />
       {/*
        * The field's colour comes from here, and the plane's displacement gives it structure.
        *
@@ -301,7 +414,10 @@ const EtherealScene = () => {
         className="absolute inset-0"
         style={{ background: "transparent" }}
       >
-        <SceneContent isCalm={isCalm} />
+        <SceneContent
+          isCalm={isCalm}
+          onEcho={raiseEcho}
+        />
       </Canvas>
     </div>
   );
