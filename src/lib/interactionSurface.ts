@@ -143,3 +143,33 @@ export function screenConsistentScale(
 
   return distance / referenceDistance;
 }
+
+/** How long before the next ambient wisp, in seconds: the shortest and the longest. */
+export const AMBIENT_WISP_MIN_SECONDS = 6;
+export const AMBIENT_WISP_MAX_SECONDS = 14;
+
+/**
+ * How long to wait before the next ambient wisp.
+ *
+ * The wisps used to need a right click, which also opened the browser's own context menu over
+ * them and advertised nothing. They drift up on their own instead, so the theme is alive for a
+ * visitor who never touches anything.
+ */
+export function nextAmbientWispDelay(random: () => number = Math.random): number {
+  return (
+    AMBIENT_WISP_MIN_SECONDS + random() * (AMBIENT_WISP_MAX_SECONDS - AMBIENT_WISP_MIN_SECONDS)
+  );
+}
+
+/**
+ * A random point on the interaction surface, for an ambient wisp to rise from.
+ *
+ * The point is kept away from the very edges, where a wisp would be half off the screen.
+ */
+export function randomSurfacePoint(
+  camera: PerspectiveCamera,
+  random: () => number = Math.random
+): Vector3 {
+  const ndc = new Vector2(random() * 1.6 - 0.8, random() * 1.2 - 0.6);
+  return pointOnCameraSurface(camera, ndc);
+}

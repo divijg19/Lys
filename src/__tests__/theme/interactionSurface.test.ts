@@ -14,11 +14,15 @@
 import { PerspectiveCamera, Vector2 } from "three";
 import { describe, expect, it } from "vitest";
 import {
+  AMBIENT_WISP_MAX_SECONDS,
+  AMBIENT_WISP_MIN_SECONDS,
   FLOOR_HEIGHT,
   INTERACTION_DISTANCE,
   ndcFromClient,
+  nextAmbientWispDelay,
   pointOnCameraSurface,
   pointOnFloor,
+  randomSurfacePoint,
   screenConsistentScale,
 } from "@/lib/interactionSurface";
 
@@ -163,5 +167,27 @@ describe("screenConsistentScale", () => {
   it("does nothing when the distance is not a number", () => {
     expect(screenConsistentScale(0)).toBe(1);
     expect(screenConsistentScale(Number.NaN)).toBe(1);
+  });
+});
+
+describe("the ambient wisps", () => {
+  it("wait between six and fourteen seconds", () => {
+    for (const random of [() => 0, () => 0.5, () => 0.999]) {
+      const delay = nextAmbientWispDelay(random);
+      expect(delay).toBeGreaterThanOrEqual(AMBIENT_WISP_MIN_SECONDS);
+      expect(delay).toBeLessThanOrEqual(AMBIENT_WISP_MAX_SECONDS);
+    }
+  });
+
+  it("appear in the middle of the field, not at its edges", () => {
+    const camera = new PerspectiveCamera(75, 1280 / 720, 0.1, 1000);
+    camera.position.set(0, 2, 5);
+    camera.updateMatrixWorld(true);
+
+    const point = randomSurfacePoint(camera, () => 0);
+    // The surface's half-width is d * tan(fov/2) * aspect, and the point is kept inside the
+    // middle of it.
+    const halfWidth = INTERACTION_DISTANCE * Math.tan((75 * Math.PI) / 360) * (1280 / 720);
+    expect(Math.abs(point.x)).toBeLessThan(halfWidth);
   });
 });

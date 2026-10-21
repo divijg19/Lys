@@ -13,8 +13,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Color, type PerspectiveCamera, type Vector3 } from "three";
 import {
   ndcFromClient,
+  nextAmbientWispDelay,
   pointOnCameraSurface,
   pointOnFloor,
+  randomSurfacePoint,
   screenConsistentScale,
 } from "@/lib/interactionSurface";
 import { cssVarToThreeColor } from "@/lib/threeColor";
@@ -170,6 +172,50 @@ const SceneContent = ({
     [camera, gl]
   );
 
+  /*
+   * The wisps drift up on their own.
+   *
+   * They used to need a right click, which also opened the browser's own context menu over them
+   * and was advertised by nothing. A mote now rises every few seconds from somewhere in the
+   * field, so the theme is alive for a visitor who never touches anything -- and there is no
+   * gesture left that fights the browser.
+   */
+  useEffect(() => {
+    if (isCalm) return;
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const schedule = () => {
+      timer = setTimeout(() => {
+        if (cancelled) return;
+
+        // A tab that is hidden is not looking at the scene, and a wisp that appears and expires
+        // unseen is a wisp for nothing.
+        if (document.visibilityState === "visible") {
+          const position = randomSurfacePoint(camera as PerspectiveCamera);
+          setWisps((prev) => [
+            ...prev,
+            {
+              id: nextId.current++,
+              position,
+              scale: screenConsistentScale(camera.position.distanceTo(position)),
+              creationTime: clock.elapsedTime,
+            },
+          ]);
+        }
+
+        schedule();
+      }, nextAmbientWispDelay() * 1000);
+    };
+
+    schedule();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [camera, clock, isCalm]);
+
   useEffect(() => {
     if (isCalm) return;
 
@@ -204,28 +250,9 @@ const SceneContent = ({
       ]);
     };
 
-    const onContextMenu = (event: MouseEvent) => {
-      if (isControl(event.target)) return;
-
-      const { surface } = pointerToSurface(event.clientX, event.clientY);
-      const scale = screenConsistentScale(camera.position.distanceTo(surface));
-
-      setWisps((prev) => [
-        ...prev,
-        {
-          id: nextId.current++,
-          position: surface,
-          scale,
-          creationTime: clock.elapsedTime,
-        },
-      ]);
-    };
-
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
-    window.addEventListener("contextmenu", onContextMenu, { passive: true });
     return () => {
       window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("contextmenu", onContextMenu);
     };
     // The canvas element, not the renderer: the element is the same object on every render,
     // so this effect runs once.
