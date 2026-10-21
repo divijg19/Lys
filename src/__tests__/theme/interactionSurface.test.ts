@@ -19,6 +19,7 @@ import {
   ndcFromClient,
   pointOnCameraSurface,
   pointOnFloor,
+  screenConsistentScale,
 } from "@/lib/interactionSurface";
 
 /** The scene's camera: at (0, 2, 5), looking horizontally along -z. */
@@ -137,5 +138,30 @@ describe("pointOnFloor", () => {
     expect(point).not.toBeNull();
     expect(Math.abs(point?.x ?? 0)).toBeLessThanOrEqual(18);
     expect(Math.abs(point?.z ?? 0)).toBeLessThanOrEqual(18);
+  });
+});
+
+describe("screenConsistentScale", () => {
+  it("scales a thing further away so that it stays the same size on the screen", () => {
+    // The interaction surface is flat, so a point at the top of the view is further away than
+    // one at the bottom, and a fixed-size quad on it came out 167 pixels across at the top of the
+    // page and 128 in the middle.
+    expect(screenConsistentScale(INTERACTION_DISTANCE)).toBe(1);
+    expect(screenConsistentScale(INTERACTION_DISTANCE * 1.5)).toBeCloseTo(1.5, 6);
+    expect(screenConsistentScale(INTERACTION_DISTANCE * 0.5)).toBeCloseTo(0.5, 6);
+  });
+
+  it("keeps the size on the screen constant", () => {
+    // The apparent size of an object is its size divided by its distance, so scaling by the
+    // distance cancels that out.
+    for (const distance of [6, 8, 11, 16]) {
+      const size = 2.2 * screenConsistentScale(distance);
+      expect(size / distance).toBeCloseTo(2.2 / INTERACTION_DISTANCE, 6);
+    }
+  });
+
+  it("does nothing when the distance is not a number", () => {
+    expect(screenConsistentScale(0)).toBe(1);
+    expect(screenConsistentScale(Number.NaN)).toBe(1);
   });
 });

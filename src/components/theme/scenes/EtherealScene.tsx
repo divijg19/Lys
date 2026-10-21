@@ -11,7 +11,12 @@ import "./installThreeConsole";
 import { Canvas, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Color, type PerspectiveCamera, type Vector3 } from "three";
-import { ndcFromClient, pointOnCameraSurface, pointOnFloor } from "@/lib/interactionSurface";
+import {
+  ndcFromClient,
+  pointOnCameraSurface,
+  pointOnFloor,
+  screenConsistentScale,
+} from "@/lib/interactionSurface";
 import { cssVarToThreeColor } from "@/lib/threeColor";
 import { cn } from "@/lib/utils";
 import { type RippleData, Ripples } from "../effects/ethereal/Ripples";
@@ -178,6 +183,12 @@ const SceneContent = ({
 
       const { surface } = pointerToSurface(event.clientX, event.clientY);
 
+      /*
+       * The ring is scaled with its distance from the camera, so it is the same size on the
+       * screen wherever it is raised.
+       */
+      const scale = screenConsistentScale(camera.position.distanceTo(surface));
+
       // The echo in the field's own colours, at the cursor.
       onEcho(event.clientX, event.clientY);
 
@@ -187,6 +198,7 @@ const SceneContent = ({
         {
           id: nextId.current++,
           position: surface,
+          scale,
           creationTime: clock.elapsedTime,
         },
       ]);
@@ -196,12 +208,14 @@ const SceneContent = ({
       if (isControl(event.target)) return;
 
       const { surface } = pointerToSurface(event.clientX, event.clientY);
+      const scale = screenConsistentScale(camera.position.distanceTo(surface));
 
       setWisps((prev) => [
         ...prev,
         {
           id: nextId.current++,
           position: surface,
+          scale,
           creationTime: clock.elapsedTime,
         },
       ]);
@@ -217,7 +231,7 @@ const SceneContent = ({
     // so this effect runs once.
     // The camera's position and the canvas' element: both are the same object on every
     // render, so this effect runs once.
-  }, [clock, isCalm, onEcho, pointerToSurface]);
+  }, [camera.position, clock, isCalm, onEcho, pointerToSurface]);
 
   return (
     <>

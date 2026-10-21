@@ -81,19 +81,26 @@ interface IRippleMaterial extends ShaderMaterial {
 type RippleProps = {
   id: number;
   position: Vector3;
+  scale: number;
   creationTime: number;
   onComplete: (id: number) => void;
   color: Color;
 };
 
-export type RippleData = { id: number; position: Vector3; creationTime: number };
+export type RippleData = {
+  id: number;
+  position: Vector3;
+  /** The factor that keeps the ring the same size on the screen. */
+  scale: number;
+  creationTime: number;
+};
 export type RipplesProps = {
   ripples: RippleData[];
   onComplete: (id: number) => void;
   color: Color;
 };
 
-const Ripple = ({ id, position, creationTime, onComplete, color }: RippleProps) => {
+const Ripple = ({ id, position, scale, creationTime, onComplete, color }: RippleProps) => {
   const ref = useRef<IRippleMaterial>(null);
   const meshRef = useRef<Mesh>(null);
   const camera = useThree((state) => state.camera);
@@ -146,6 +153,7 @@ const Ripple = ({ id, position, creationTime, onComplete, color }: RippleProps) 
     <mesh
       ref={meshRef}
       position={position}
+      scale={scale}
       onUpdate={(self) => self.lookAt(camera.position)}
     >
       <planeGeometry args={[RIPPLE_QUAD_SIZE, RIPPLE_QUAD_SIZE]} />

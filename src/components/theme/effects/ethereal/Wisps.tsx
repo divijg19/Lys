@@ -50,6 +50,7 @@ export const wispOpacity = (progress: number) => (1 - progress ** 2) * WISP_MAX_
 type WispProps = {
   id: number;
   position: Vector3;
+  scale: number;
   creationTime: number;
   onComplete: (id: number) => void;
   color: Color;
@@ -63,11 +64,17 @@ type Particle = {
   size: number;
 };
 
-export type WispData = { id: number; position: Vector3; creationTime: number };
+export type WispData = {
+  id: number;
+  position: Vector3;
+  /** The factor that keeps the wisps the same size on the screen. */
+  scale: number;
+  creationTime: number;
+};
 export type WispsProps = { wisps: WispData[]; onComplete: (id: number) => void; color: Color };
 
 // --- COMPONENTS ---
-const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
+const Wisp = ({ id, position, scale, creationTime, onComplete, color }: WispProps) => {
   const ref = useRef<ThreePoints>(null);
   const hasCompleted = useRef(false);
 
@@ -163,7 +170,10 @@ const Wisp = ({ id, position, creationTime, onComplete, color }: WispProps) => {
 
   return (
     // The entire Points cloud is moved to the click position.
-    <group position={position}>
+    <group
+      position={position}
+      scale={scale}
+    >
       <Points
         ref={ref}
         positions={initialPositions}

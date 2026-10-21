@@ -122,3 +122,24 @@ export function pointOnFloor(
   point.y = floorHeight;
   return point;
 }
+
+/**
+ * The factor by which a world-space object has to be scaled to keep its size on the screen.
+ *
+ * The interaction surface is a flat plane in front of the camera, so a point at the top of the
+ * view is further away than one at the bottom, and a fixed-size quad on it comes out a different
+ * size on the screen at each end: the same click produced a ring of 167 pixels across at the top
+ * of the page and 128 in the middle. Scaling the quad with the distance keeps the ring the same
+ * size wherever it is raised.
+ *
+ * The distance is measured from the camera, and `referenceDistance` is the distance at which the
+ * size was chosen.
+ */
+export function screenConsistentScale(
+  distance: number,
+  referenceDistance: number = INTERACTION_DISTANCE
+): number {
+  if (!Number.isFinite(distance) || distance <= 0) return 1;
+
+  return distance / referenceDistance;
+}
