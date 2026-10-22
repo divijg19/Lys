@@ -22,9 +22,11 @@ Design Principles:
 Serene, luminous field anchored by a flowing noise-driven plane and ephemeral interaction echoes.
 
 Key Effects:
-- FlowingPlane (dual-scale simplex noise + ripple uniform injection).
-- Wisps (on-demand particle sprites) & concentric shader ripples.
-- Ref-based uniform decay (no re-render loops) for ripple intensity.
+- The field's colour is a gradient of the theme's own three pastels, with two slow blobs over it;
+  the 3D plane adds the structure, not the colour.
+- FlowingPlane (dual-scale noise from a periodic texture, displaced at 128x128 segments).
+- Every fade is per second rather than per frame, so the scene moves the same way on every
+  display.
 
 Design Principles:
 - Soft translucency, pastel gradients, low-frequency motion, gentle easing.

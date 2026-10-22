@@ -50,9 +50,8 @@ Single source of truth: `lib/themes.ts` exports `themes` & `THEME_NAMES`. `Theme
 - Centralized neon pulse (single frame hook) updates all emissive signs.
 
 ### Ethereal Theme
-- Flowing GLSL plane (dual noise blend + ripple uniform).
-- Ref‑based click ripple decay (no per‑frame state churn).
-- Wisps + ripples as on‑demand ephemeral FX.
+- Flowing GLSL plane (dual noise blend from a periodic texture).
+- Per-second fades, so the scene moves the same way on every display.
 
 ### Light / Anomaly Theme
 - Camera state machine (`CameraRig`): first → third person → anomaly lock.
