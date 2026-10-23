@@ -25,6 +25,18 @@ beforeEach(() => {
   nextThemes.current = "dark";
 });
 
+/**
+ * `renderHook` only exposes the latest value, so the mount test records every render instead.
+ * The probe lives at module scope because a component defined inside a test is a different
+ * component type on every call -- React would remount it and lose the render history.
+ */
+const observed: boolean[] = [];
+
+function Probe() {
+  observed.push(useTheme().isMounted);
+  return null;
+}
+
 describe("useTheme", () => {
   it("resolves the stored theme name to its full theme object", () => {
     const { result } = renderHook(() => useTheme());
@@ -52,13 +64,9 @@ describe("useTheme", () => {
   });
 
   it("reports unmounted before the effect, then mounted", () => {
-    // renderHook's result only exposes the latest value, so record every render instead: the
-    // first must be the server-matching `false` (theme not yet trustworthy), the last `true`.
-    const observed: boolean[] = [];
-    function Probe() {
-      observed.push(useTheme().isMounted);
-      return null;
-    }
+    // The first render must report the server-matching `false` (theme not yet trustworthy), the
+    // last `true`. Probe records every render; clear its history from any earlier test first.
+    observed.length = 0;
     render(<Probe />);
 
     expect(observed[0]).toBe(false);

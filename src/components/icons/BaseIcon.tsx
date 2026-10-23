@@ -59,20 +59,3 @@ export function BaseIcon({
     </svg>
   );
 }
-
-/** Helper to create a simple monochrome (currentColor) icon from a path definition */
-export function createPathIcon(d: string, viewBox = "0 0 24 24") {
-  return function PathIcon(props: IconProps) {
-    return (
-      <BaseIcon
-        viewBox={viewBox}
-        {...props}
-      >
-        <path
-          d={d}
-          fill="currentColor"
-        />
-      </BaseIcon>
-    );
-  };
-}
