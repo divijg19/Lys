@@ -3,7 +3,9 @@
 This document summarizes the intent, core identity, and key technical components for the active immersive themes in the portfolio.
 
 ---
+
 ### Cyberpunk – "Latent Glitch & Neon"
+
 Atmospheric neon alley receding toward a towering skyline. Foreground elements are intentionally scaled down to emphasize depth.
 
 Key Effects:
@@ -18,7 +20,9 @@ Design Principles:
 - Fast, sharp micro-animations; scanline motifs; subtle glitch allowances.
 
 ---
+
 ### Ethereal – "A Placid Dreamscape"
+
 Serene, luminous field anchored by a flowing noise-driven plane and ephemeral interaction echoes.
 
 Key Effects:
@@ -32,7 +36,9 @@ Design Principles:
 - Soft translucency, pastel gradients, low-frequency motion, gentle easing.
 
 ---
+
 ### Light (Anomaly Arc)
+
 Expansive, forward journey culminating in anomaly encounter sequence.
 
 Key Effects:
@@ -44,7 +50,9 @@ Design Principles:
 - Clean luminous palette, spacefaring clarity, cinematic escalation.
 
 ---
+
 ### Mirage – "The Unstable Reality"
+
 Still desert scene—distortion emerges only through interaction or scripted pulses (heat refraction potential).
 
 Current Elements:
@@ -55,7 +63,9 @@ Design Principles:
 - Sand/ochre tonal base, crisp UI layering, abrupt distortion transitions.
 
 ---
+
 ### Simple / Dark / Light (Foundational Modes)
+
 Baseline accessibility & contrast variants; act as low-complexity fallbacks in reduced-motion / low-data contexts.
 
 Shared Technical Notes:
@@ -64,13 +74,16 @@ Shared Technical Notes:
 - All scenes respect `data-reduce-motion` and `data-low-data` attributes for perf & accessibility.
 
 ---
+
 ### Performance Patterns (Cross-Theme)
+
 - Frame consolidation (shared pulses, centralized loops).
 - Ref caches for scene objects (avoid per-frame tree scans).
 - Idle skipping for procedural canvases (lightning).
 - Precomputed per-building factors (divergence, pair index fraction).
 
 ### Roadmap (Visual Enhancements)
+
 - Mirage heat refraction shader.
 - Worker-offloaded rain / lightning (OffscreenCanvas) when supported.
 - Unified EffectsClock to sync noise phases & pulses across themes.
