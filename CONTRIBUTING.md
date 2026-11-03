@@ -77,7 +77,7 @@ bun run lint
 
 ## Env Vars
 
-Add to `src/lib/env.ts`; never access `process.env.*` directly elsewhere.
+Add to `src/lib/env.server.ts` (server-only) with the zod schema pattern it uses; never access `process.env.*` directly elsewhere.
 
 ## Testing
 

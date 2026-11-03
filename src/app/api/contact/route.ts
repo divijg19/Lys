@@ -23,6 +23,23 @@ function rateLimit(ip: string): boolean {
   return true;
 }
 
+// --- HTML ESCAPING ------------------------------------------------------------
+// Everything the sender controls is escaped before it is interpolated into the HTML email, so
+// a message containing markup cannot inject arbitrary HTML or tracking content into the inbox it
+// is delivered to.
+const HTML_ENTITIES: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+const escapeHtml = (value: string): string =>
+  value.replace(/[&<>"']/g, (ch) => HTML_ENTITIES[ch] ?? ch);
+
+/** A subject line must not carry CR/LF, or a name could merge lines in a mail client. */
+const singleLine = (value: string): string => value.replace(/[\r\n\t]+/g, " ").trim();
+
 // --- DATA VALIDATION SCHEMA ---
 const contactFormSchema = z.object({
   name: z.string().trim().min(2, { error: "Name must be at least 2 characters." }),
@@ -35,9 +52,18 @@ const contactFormSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const body = await request.json();
-    if (body._hp && body._hp.trim().length > 0) {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ message: "Request body is not valid JSON" }, { status: 400 });
+  }
+
+  try {
+    if (
+      (body as { _hp?: unknown })._hp &&
+      String((body as { _hp?: unknown })._hp).trim().length > 0
+    ) {
       return NextResponse.json({ message: "Accepted" }, { status: 200 });
     }
     const ipHeader = request.headers.get("x-forwarded-for") || "";
@@ -66,43 +92,45 @@ export async function POST(request: Request) {
     const resend = new Resend(env.data.RESEND_API_KEY);
 
     const { name, email, message } = parsed.data;
+    const safeName = singleLine(name);
+    const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
 
     // 2. --- SEND THE EMAIL ---
     const { data, error } = await resend.emails.send({
       from: "Portfolio Contact <onboarding@resend.dev>", // A more professional "from" name
       to: "divijganjoo2003@gmail.com", // Your personal email address
-      subject: `New Message from ${name} via your Portfolio`,
+      subject: `New Message from ${safeName} via your Portfolio`,
       replyTo: email, // This allows you to "Reply" directly to the user's email.
-      // A beautifully formatted HTML email body.
+      // A beautifully formatted HTML email body. Everything the sender controls is escaped.
       html: `
         <h1>New Contact Form Submission</h1>
         <p>You have received a new message from your portfolio contact form.</p>
         <hr>
         <h2>Sender Details:</h2>
         <ul>
-          <li><strong>Name:</strong> ${name}</li>
-          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Name:</strong> ${escapeHtml(name)}</li>
+          <li><strong>Email:</strong> ${escapeHtml(email)}</li>
         </ul>
         <h2>Message:</h2>
-        <p>${message}</p>
+        <p>${safeMessage}</p>
         <hr>
         <p><small>This email was sent from your portfolio's contact form.</small></p>
       `,
     });
 
     if (error) {
-      // If Resend has an error, return a server error message.
-      return NextResponse.json({ message: "Error sending email", error }, { status: 500 });
+      // If Resend has an error, return a server error message. Details stay in the server log,
+      // not in the response body.
+      console.error("[contact] Resend failed:", error);
+      return NextResponse.json({ message: "Error sending email" }, { status: 500 });
     }
 
     // 3. --- RETURN A SUCCESS RESPONSE ---
     return NextResponse.json({ message: "Email sent successfully!", data }, { status: 200 });
   } catch (err) {
-    // A catch-all for any other unexpected errors.
-    const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
-    return NextResponse.json(
-      { message: "An unexpected error occurred", error: errorMessage },
-      { status: 500 }
-    );
+    // A catch-all for any other unexpected errors. The client gets a constant message; the
+    // details go to the server log only.
+    console.error("[contact] unexpected error:", err);
+    return NextResponse.json({ message: "An unexpected error occurred" }, { status: 500 });
   }
 }
