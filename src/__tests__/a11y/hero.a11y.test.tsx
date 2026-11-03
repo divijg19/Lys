@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import axe from "axe-core";
 import { describe, expect, it } from "vitest";
 import { Hero } from "@/components/sections/Hero";
@@ -11,7 +11,7 @@ async function runAxe(node: HTMLElement) {
 
 describe("Hero accessibility", () => {
   it("has no critical violations", async () => {
-    const { container } = render(<Hero />);
+    const { container } = await act(async () => render(<Hero />));
     const results = await runAxe(container);
     if (results.violations.length > 0) {
       // Log details for debugging

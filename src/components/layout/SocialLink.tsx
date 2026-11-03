@@ -1,13 +1,13 @@
 "use client";
 
-import type { IconType } from "react-icons";
+import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/utils";
 
 // Define the props for our reusable component
 interface SocialLinkProps {
   href: string;
   name: string;
-  icon: IconType;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   colorClass: string;
 }
 

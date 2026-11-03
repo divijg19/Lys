@@ -7,7 +7,7 @@ export default defineConfig({
       provider: "v8",
       reportsDirectory: "coverage",
       reporter: ["text", "json", "html"],
-      thresholds: { lines: 0.7, branches: 0.6, functions: 0.65, statements: 0.7 },
+      thresholds: { lines: 0.84, branches: 0.73, functions: 0.82, statements: 0.83 },
     },
     projects: [
       {

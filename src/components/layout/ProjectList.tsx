@@ -5,8 +5,8 @@ import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { SiGithub as Github } from "react-icons/si";
 import { projects } from "#velite";
+import { GithubIcon as Github } from "@/components/icons/GithubIcon";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 

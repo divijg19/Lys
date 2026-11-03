@@ -16,6 +16,15 @@ Object.defineProperty(globalThis, "IntersectionObserver", {
   value: IntersectionObserver,
 });
 
+// Mock HTMLCanvasElement.getContext for jsdom (it has none) so the canvas-backed scenes don't
+// spam "Not implemented: HTMLCanvasElement's getContext() method" on every test.
+if (typeof HTMLCanvasElement !== "undefined") {
+  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+    configurable: true,
+    value: () => null,
+  });
+}
+
 // Mock window.matchMedia for usePrefersReducedMotion.
 //
 // Force `reduce` to match so tests take the calm path deterministically, but answer
