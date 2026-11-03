@@ -1,16 +1,7 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
-const dirname =
-  typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
-
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  esbuild: {
-    jsx: "automatic",
-    jsxImportSource: "react",
-  },
   test: {
     coverage: {
       provider: "v8",
@@ -20,10 +11,6 @@ export default defineConfig({
     },
     projects: [
       {
-        esbuild: {
-          jsx: "automatic",
-          jsxImportSource: "react",
-        },
         test: {
           name: "unit",
           environment: "jsdom",
@@ -32,15 +19,13 @@ export default defineConfig({
         },
         resolve: {
           alias: {
-            "@": path.resolve(dirname, "src"),
+            "@": path.resolve(import.meta.dirname, "src"),
             // Must mirror the "#velite" path mapping in tsconfig.json ("./.velite").
             // velite emits its output to <root>/.velite, not src/.velite/generated.
-            "#velite": path.resolve(dirname, ".velite"),
+            "#velite": path.resolve(import.meta.dirname, ".velite"),
           },
         },
       },
-      // Storybook project temporarily disabled due to missing peer dep (markdown-to-jsx) resolution in optimizeDeps.
-      // Re-enable after adding the dependency or adjusting Storybook docgen configuration.
     ],
   },
 });
