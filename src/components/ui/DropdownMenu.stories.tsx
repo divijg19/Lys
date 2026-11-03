@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import * as React from "react";
-import { SiGithub as Github } from "react-icons/si";
+import { GithubIcon as Github } from "@/components/icons/GithubIcon";
 import { Button } from "@/components/ui/Button"; // Confirmed: File is Button with capital B
 import {
   DropdownMenu,

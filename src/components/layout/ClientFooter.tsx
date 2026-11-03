@@ -3,8 +3,8 @@
 import { ArrowUp, Heart, Mail } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { SiGithub as Github } from "react-icons/si";
 import { bio } from "#velite";
+import { GithubIcon as Github } from "@/components/icons/GithubIcon";
 import { Button } from "@/components/ui/Button";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useScroll } from "@/hooks/useScroll";

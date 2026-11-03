@@ -1,8 +1,9 @@
 import { FileText, Mail } from "lucide-react";
-import type { IconType } from "react-icons";
-import { FaLinkedin as Linkedin } from "react-icons/fa";
-import { SiGithub as Github, SiInstagram as Instagram } from "react-icons/si";
+import type { ComponentType, SVGProps } from "react";
 import { bio } from "#velite";
+import { GithubIcon as Github } from "@/components/icons/GithubIcon";
+import { InstagramIcon as Instagram } from "@/components/icons/InstagramIcon";
+import { LinkedinIcon as Linkedin } from "@/components/icons/LinkedinIcon";
 
 export const HERO_TAGLINES = [
   "Systems Engineer & Toolmaker",
@@ -22,7 +23,7 @@ export const HERO_STACK_RIBBONS = [
 export type HeroSocialLink = {
   href: string;
   name: string;
-  icon: IconType;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   colorClass: string;
 };
 

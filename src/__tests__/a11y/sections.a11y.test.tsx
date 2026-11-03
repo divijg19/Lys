@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import axe from "axe-core";
 import { describe, expect, it } from "vitest";
 
@@ -29,7 +29,7 @@ const components = [
 describe("Sections accessibility", () => {
   components.forEach(([label, Comp]) => {
     it(`${label} has no critical violations`, async () => {
-      const { container } = render(<Comp />);
+      const { container } = await act(async () => render(<Comp />));
       // Run axe sequentially by awaiting each run
       await new Promise((resolve) => setTimeout(resolve, 100));
       const results = await runAxe(container);
