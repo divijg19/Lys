@@ -1,6 +1,6 @@
 {
   "name": "lys",
-  "version": "0.1.0",
+  "version": "0.2.28",
   "private": true,
   "type": "module",
   "scripts": {
@@ -86,5 +86,8 @@
     "@tailwindcss/oxide",
     "esbuild",
     "sharp"
-  ]
+  ],
+  "overrides": {
+    "sharp": "^0.35.5"
+  }
 }
