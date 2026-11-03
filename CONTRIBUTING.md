@@ -39,7 +39,9 @@
 
 ### Git Hooks
 
-Husky will run linting before commits (if configured). Keep commits small and descriptive.
+There are no Git hooks in this repo; linting and the test suite are enforced by CI instead
+(`bunx biome check .`, type-check, tests, bundle budget). Run `bun run qa` before you push.
+Keep commits small and descriptive.
 
 ### Release
 

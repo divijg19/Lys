@@ -18,8 +18,9 @@
     "test:ci": "vitest run --coverage --reporter=dot",
     "test:e2e:smoke": "node scripts/e2e-smoke.mjs",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
-    "qa": "bun type-check && bun lint && bun format && bun test:ci",
-    "storybook": "storybook build && storybook dev -p 6006"
+    "qa": "bunx biome check . && bun run type-check && bun run test:ci",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build"
   },
   "dependencies": {
     "@hookform/resolvers": "7.0.2",
@@ -79,7 +80,7 @@
   },
   "engines": {
     "bun": ">=1.0.0",
-    "node": ">=20.0.0"
+    "node": "^22.22.2"
   },
   "trustedDependencies": [
     "@tailwindcss/oxide",

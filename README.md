@@ -62,13 +62,13 @@ Single source of truth: `lib/themes.ts` exports `themes` & `THEME_NAMES`. `Theme
 
 ## 🧪 Quality & Tooling
 
-| Tool      | Purpose                                                |
-| --------- | ------------------------------------------------------ |
-| Biome     | Unified lint + format (scripts: `lint`, `format`)      |
-| Vitest    | Unit / component tests (scripts: `test`, `test:watch`) |
-| Storybook | UI surface exploration (`storybook`)                   |
-| Velite    | Static content build (blogs, projects)                 |
-| Bun       | Package + runtime speed                                |
+| Tool      | Purpose                                             |
+| --------- | --------------------------------------------------- |
+| Biome     | Unified lint + format (scripts: `lint`, `format`)   |
+| Vitest    | Unit / component tests (scripts: `test`, `test:ci`) |
+| Storybook | UI surface exploration (`storybook`)                |
+| Velite    | Static content build (blogs, projects)              |
+| Bun       | Package + runtime speed                             |
 
 ### Scripts
 
@@ -112,7 +112,7 @@ If `RESEND_API_KEY` is missing, builds still succeed, but `POST /api/contact` re
 ## 🚀 Deployment
 
 - Vercel (configured via `vercel.json` & Next edge defaults).
-- Analyze bundle with `bun run build:analyze`.
+- Analyze bundle with `bun run analyze`.
 
 ## 🤝 Contributing
 

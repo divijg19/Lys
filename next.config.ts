@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
+          // HTTPS-only guarantee: dev serves without TLS, so this would poison the browser cache /
+          // force HTTPS for local URLs. Production deploys terminate TLS at the edge.
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
