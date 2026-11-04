@@ -50,6 +50,7 @@ Keep commits small and descriptive.
   release notes; pull requests and tags carry the shared history.
 
 Thank you for contributing to a fast, accessible, and maintainable portfolio codebase! 🌟
+
 # Contributing Guide
 
 Focus areas: accessibility, performance, maintainability.

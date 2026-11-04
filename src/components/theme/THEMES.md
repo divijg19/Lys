@@ -9,6 +9,7 @@ This document summarizes the intent, core identity, and key technical components
 Atmospheric neon alley receding toward a towering skyline. Foreground elements are intentionally scaled down to emphasize depth.
 
 Key Effects:
+
 - Infinite procedural alley: recycled building pairs, FOV-based divergence, vertical descent + stepped drop.
 - Dual data rain canvas: rear layer clipped (top 25% visible), front ambient layer.
 - Procedural lightning (cyan/yellow branching bolts) with idle frame skip.
@@ -16,6 +17,7 @@ Key Effects:
 - Lean + perspective easing for cinematic spread.
 
 Design Principles:
+
 - High contrast; electric accent colors (cyan, fuchsia, lime) over near-black base.
 - Fast, sharp micro-animations; scanline motifs; subtle glitch allowances.
 
@@ -26,6 +28,7 @@ Design Principles:
 Serene, luminous field anchored by a flowing noise-driven plane and ephemeral interaction echoes.
 
 Key Effects:
+
 - The field's colour is a gradient of the theme's own three pastels, with two slow blobs over it;
   the 3D plane adds the structure, not the colour.
 - FlowingPlane (dual-scale noise from a periodic texture, displaced at 128x128 segments).
@@ -33,6 +36,7 @@ Key Effects:
   display.
 
 Design Principles:
+
 - Soft translucency, pastel gradients, low-frequency motion, gentle easing.
 
 ---
@@ -42,11 +46,13 @@ Design Principles:
 Expansive, forward journey culminating in anomaly encounter sequence.
 
 Key Effects:
+
 - CameraRig state machine: free travel → cinematic third-person → anomaly lock.
 - Debris field + star/particle parallax.
 - HUD distance feedback.
 
 Design Principles:
+
 - Clean luminous palette, spacefaring clarity, cinematic escalation.
 
 ---
@@ -56,10 +62,12 @@ Design Principles:
 Still desert scene—distortion emerges only through interaction or scripted pulses (heat refraction potential).
 
 Current Elements:
+
 - Procedural sky + ground foundation (baseline scene file).
 - Future: localized refractive heat shimmer & chromatic displacement.
 
 Design Principles:
+
 - Sand/ochre tonal base, crisp UI layering, abrupt distortion transitions.
 
 ---
@@ -69,6 +77,7 @@ Design Principles:
 Baseline accessibility & contrast variants; act as low-complexity fallbacks in reduced-motion / low-data contexts.
 
 Shared Technical Notes:
+
 - Theme registry (`lib/themes.ts`) enumerates all names consumed by `ThemeProvider`.
 - `ThemeBackground` orchestrates graceful cross-fades & low-data gating.
 - All scenes respect `data-reduce-motion` and `data-low-data` attributes for perf & accessibility.
