@@ -1,6 +1,7 @@
 <h1 align="center">Lys: Multi‑Theme Immersive Portfolio</h1>
 
 Lys is a laptop-first web-based performance‑focused, multi‑aesthetic developer portfolio built with:
+
 - Next.js (App Router) + React 19
 - TypeScript + strict Biome linting / formatting
 - Tailwind CSS (layered with CSS variables per theme)
@@ -93,6 +94,7 @@ Single source of truth: `lib/themes.ts` exports `themes` & `THEME_NAMES`. `Theme
 ## 🗂 Content Modeling
 
 Velite ingests:
+
 - `/content/blogs/*.mdx`
 - `/content/projects/*.mdx`
 - YAML index files (bio, expertise, resume, services)
