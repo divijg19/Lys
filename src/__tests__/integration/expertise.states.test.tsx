@@ -307,7 +307,12 @@ describe("Expertise skill card states", () => {
   });
 
   it("never passes a non-Node relatedTarget to contains when the pointer leaves the grid", () => {
-    const { container } = render(<Expertise />);
+    const { container } = render(
+      <>
+        <Expertise />
+        <div data-outside />
+      </>
+    );
     const grid = container.querySelector("[data-skill-grid]") as HTMLElement;
 
     /*
@@ -328,16 +333,22 @@ describe("Expertise skill card states", () => {
     Object.defineProperty(leaveEvent, "relatedTarget", { value: window, configurable: true });
     fireEvent(grid, leaveEvent);
 
-    expect(contains.mock.calls.flat()).not.toContain(window);
+    expect(contains.mock.calls.flat().every((target) => target instanceof Node)).toBe(true);
 
-    // A genuine move to a sibling inside the grid still asks the question and is handled.
-    const insideMove = createEvent.mouseOut(grid, { bubbles: true });
-    Object.defineProperty(insideMove, "relatedTarget", {
-      value: grid.querySelector("[data-skill-card]"),
-      configurable: true,
-    });
-    fireEvent(grid, insideMove);
-    expect(contains).toHaveBeenCalled();
+    /*
+     * A genuine move out to another node in the page still asks the question and is handled. The
+     * target is a React-rendered sibling, not `document.body`: React resolves a leave only when
+     * it can map `relatedTarget` back to a fiber, and falls back to `window` otherwise.
+     *
+     * Both nodes are looked up before the spy is installed on purpose: `querySelector` consults
+     * `contains` internally through the selector engine, which used to satisfy a bare
+     * `toHaveBeenCalled()` without the handler ever running. Asserting the exact argument also
+     * pins the call to the handler rather than to the selector.
+     */
+    const outside = container.querySelector("[data-outside]") as HTMLElement;
+    const moveOut = createEvent.mouseOut(grid, { bubbles: true, relatedTarget: outside });
+    fireEvent(grid, moveOut);
+    expect(contains).toHaveBeenCalledWith(outside);
   });
 
   it("never passes a non-Node relatedTarget to contains when the trigger blurs", async () => {
